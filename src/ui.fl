@@ -1,0 +1,100 @@
+# data file for the FLTK User Interface Designer (FLUID)
+version 2.1000 
+images_dir header_name 
+header_name {.h} 
+code_name {.cpp} 
+gridx 5 
+gridy 5 
+snap 3
+decl {//Copyright (C) 2012 Carsten Paproth} {selected
+} 
+
+namespace SK {open
+} {
+  class UILock {} {
+    Function {UILock()} {} {
+      code {fltk::lock();} {}
+    }
+    Function {~UILock()} {} {
+      code {fltk::unlock();} {}
+    }
+  }
+  class UserInterface {open
+  } {
+    decl {std::map<std::string, boost::function<void(void)> > f;} {public
+    }
+    Function {UserInterface()} {open
+    } {
+      code {fltk::lock();} {}
+      {fltk::Window} mainwnd {
+        label {Skat-Konferenz}
+        callback {mainwnd->hide();
+fltk::unlock();} open
+        private xywh {251 32 960 700}
+        extra_code {\#include <map>
+\#include <string>
+\#include <boost/function/function0.hpp>
+\#include <fltk/run.h>
+\#include "GlImage.h"
+\#include "GlTable.h"} visible
+      } {
+        {fltk::TabGroup} {} {open
+          xywh {0 0 960 700}
+        } {
+          {fltk::Group} {} {
+            label Spiel open
+            xywh {0 25 960 675}
+          } {
+            {fltk::InvisibleBox} table {
+              xywh {0 240 640 435} box FLAT_BOX color 0x71c67100
+              class GlTable
+            }
+            {fltk::InvisibleBox} leftimage {
+              xywh {0 0 320 240} box FLAT_BOX color 56
+              class GlImage
+            }
+            {fltk::InvisibleBox} rightimage {
+              xywh {320 0 320 240} box FLAT_BOX color 56
+              class GlImage
+            }
+            {fltk::InvisibleBox} midimage {
+              xywh {640 435 320 240} box FLAT_BOX color 56
+              class GlImage
+            }
+            {fltk::Output} info {
+              label {Underrun Overrun NoLock}
+              xywh {700 100 166 20} align 5
+            }
+          }
+          {fltk::Group} {} {
+            label Liste open
+            xywh {0 25 960 675} hide
+          } {}
+          {fltk::Group} {} {
+            label System
+            xywh {0 25 960 675} hide
+          } {
+            {fltk::Button} {} {
+              label {Reset Audio}
+              callback {f["Button"]();}
+              private xywh {50 40 102 25}
+            }
+          }
+          {fltk::Group} {} {
+            label Log open
+            xywh {0 25 960 675} hide
+          } {
+            {fltk::TextDisplay} log {
+              xywh {0 0 960 675}
+            }
+          }
+        }
+      }
+      code {w->show();} {}
+    }
+    Function {~UserInterface()} {open
+    } {
+      code {delete mainwnd;} {}
+    }
+  }
+} 

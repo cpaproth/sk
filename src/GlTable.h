@@ -1,0 +1,55 @@
+/*Copyright (C) 2012 Carsten Paproth
+
+This file is part of Skat-Konferenz.
+
+Skat-Konferenz is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Skat-Konferenz is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
+
+#ifndef SK_GLTABLE_H
+#define SK_GLTABLE_H
+
+
+#include <fltk/GlWindow.h>
+#include <vector>
+
+
+namespace SK {
+
+using namespace std;
+
+class GlTable : public fltk::GlWindow {
+
+	unsigned		texture;
+	unsigned		width;
+	unsigned		height;
+	vector<unsigned char>	mem;
+	vector<unsigned char>	hand;
+	unsigned		selected;
+
+	void drawCard(unsigned, unsigned, float, float, float, float);
+	bool insideCard(int, int, float, float, float, float);
+
+	void draw(void);
+	int handle(int);
+
+public:
+	GlTable(int, int, int, int, const char* = 0);
+	
+
+};
+
+
+}
+
+
+#endif
