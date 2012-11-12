@@ -12,11 +12,11 @@ This software is a work in progress, but the networking and videoconferencing pa
 ## Dependencies
 
 Following portable open source libraries are used by *sk*:
-* fast light toolkit [FLTK-2.0](www.fltk.org) for the graphical user interface and the OpenGL interface
-* open source computer vision library [OpenCV](www.opencv.org) for the webcam capture interface and image compressions (libjpeg and libpng)
-* [PortAudio](www.portaudio.com) for the audio hardware interface
-* the fast Fourier transform implementation of the GNU scientific library [GSL](www.gnu.org/software/gsl/) for a simple audio compression algorithm
-* [Boost](www.boost.org) for multithreading (boost::thread) and asynchronous network I/O (boost::asio)
+* fast light toolkit [FLTK-2.0](http://www.fltk.org) for the graphical user interface and the OpenGL interface
+* open source computer vision library [OpenCV](http://www.opencv.org) for the webcam capture interface and image compressions (libjpeg and libpng)
+* [PortAudio](http://www.portaudio.com) for the audio hardware interface
+* the fast Fourier transform implementation of the GNU scientific library [GSL](http://www.gnu.org/software/gsl/) for a simple audio compression algorithm
+* [Boost](http://www.boost.org) for multithreading (boost::thread) and asynchronous network I/O (boost::asio)
 
 
 ## Building
