@@ -33,11 +33,13 @@ class UserInterface;
 class Network;
 
 class Video {
-	static const int smooththreshold = 80;
-	static const int roughthreshold = 60;
+	static const unsigned imagewidth = 320;
+	static const unsigned imageheight = 240;
+	static const unsigned maxlatency = 200;
 
 	boost::shared_ptr<cv::VideoCapture>	capture;
 	boost::thread				videothread;
+	boost::mutex				videomutex;
 	UserInterface&				ui;
 	Network&				network;
 

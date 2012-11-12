@@ -82,7 +82,6 @@ int main(void) {
 
 
 	try {
-		//pair<string, string> server("RMC-070097DP", "129.247.219.145");
 		pair<string, string> server("fuchsbau", "192.168.0.1");
 		if (boost::asio::ip::host_name() == server.first)
 			network.start("", 50000, &newcommand);

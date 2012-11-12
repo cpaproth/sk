@@ -50,15 +50,18 @@ Network::Network(void) : socket(io, ip::udp::v4()), timer(io) {
 
 
 Network::~Network(void) {
-	timer.cancel();
-	socket.close();
-	iothread.join();
+	try {
+		timer.cancel();
+		socket.close();
+		iothread.join();
+	} catch (...) {}
 }
 
 
 void Network::start(const string& address, unsigned bw, handler h) {
 	bandwidth = bw;
 	cmdfunc = h;
+
 	if (address.empty()) {
 		server = true;
 		socket.bind(udpendpoint(ip::udp::v4(), serverport));
@@ -137,7 +140,7 @@ void Network::processmessage(unsigned i, const string& message) {
 
 	unsigned curmsgid;
 	ss(id) >> curmsgid;
-	
+
 	if ((command != "hello" && curmsgid <= peers[i].lastmsgid) || (command == "hello" && peers[i].lastmsgid == curmsgid))
 		return;
 		
@@ -178,7 +181,7 @@ void Network::worker(void) {
 		io.run();
 		cout << "network stopped" << endl;
 	} catch (std::exception& e) {
-		cout << "network failed due to: " << e.what() << endl;
+		cout << "network failure: " << e.what() << endl;
 	}
 }
 

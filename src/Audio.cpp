@@ -31,22 +31,31 @@ bool CPLib::Progress(size_t i, size_t n) {
 Audio::Audio(Network& nw) : fft(framesize), network(nw) {
 	data.resize(framesize);
 	encbuf.resize(encsize);
+
 	if (Pa_Initialize() != paNoError)
 		throw runtime_error("audio initialization failed");
 	if (Pa_OpenDefaultStream(&stream, 1, 1, paInt16, samplerate, framesize, &callback, this) != paNoError) {
 		Pa_Terminate();
 		throw runtime_error("open audio stream failed");
 	}
-	Pa_StartStream(stream);
-	cout << "audio started" << endl;
+	if (Pa_StartStream(stream) != paNoError) {
+		Pa_CloseStream(stream);
+		Pa_Terminate();
+		throw runtime_error("start audio stream failed");
+	}
+
+	cout << "audio stream started" << endl;
 }
 
 
 Audio::~Audio(void) {
-	Pa_StopStream(stream);
-	Pa_CloseStream(stream);
-	Pa_Terminate();
-	cout << "audio stopped" << endl;
+	try {
+		Pa_StopStream(stream);
+		Pa_CloseStream(stream);
+		Pa_Terminate();
+
+		cout << "audio stream stopped" << endl;
+	} catch (...) {}
 }
 
 
@@ -120,6 +129,7 @@ int Audio::callback(const void* in, void* out, unsigned long size, const PaStrea
 		audio.encode((short*)in);
 		audio.network.broadcast(audio.encbuf, audio.decbuf, maxlatency);
 		audio.decode((short*)out);
+
 	} catch (exception& e) {
 		cout << "audio failure: " << e.what() << endl;
 		return paAbort;

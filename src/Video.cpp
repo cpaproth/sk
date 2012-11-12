@@ -32,18 +32,23 @@ using namespace boost;
 
 Video::Video(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 	capture = shared_ptr<VideoCapture>(new VideoCapture(0));
+
 	if (!capture->isOpened() && !capture->open("webcam.avi"))
 		throw runtime_error("open webcam failed");
+
 	videothread = thread(bind(&Video::worker, this));
-	cout << "video started" << endl;
+
+	cout << "video capture started" << endl;
 }
 
 
-volatile bool wert = true;
 Video::~Video(void) {
-	wert=false;
-	videothread.join();
-	cout << "video stopped" << endl;
+	try {
+		videomutex.lock();
+		videothread.join();
+
+		cout << "video capture stopped" << endl;
+	} catch (...) {}
 }
 
 
@@ -53,8 +58,10 @@ unsigned char& Video::pixel(Mat& img, unsigned row, unsigned col, unsigned chann
 
 
 void Video::deblock(Mat& img, unsigned c, bool v) {
-	int smoothweights[] = {-8, -6, -4, -2, 3, 4, 6, 8};
-	int roughweights[] = {0, 0, -8, -4, 5, 8, 0, 0};
+	static const int smooththreshold = 80;
+	static const int roughthreshold = 60;
+	static const int smoothweights[] = {-8, -6, -4, -2, 3, 4, 6, 8};
+	static const int roughweights[] = {0, 0, -8, -4, 5, 8, 0, 0};
 
 	for (int i = 0; i < (v? img.rows: img.cols); i++) {
 		for (int j = 4; j + 8 < (v? img.cols: img.rows); j += 8) {
@@ -89,10 +96,10 @@ void Video::deblock(Mat& img) {
 
 
 void Video::worker(void) {
-	Mat			img(240, 320, CV_8UC3);
-	Mat			dst(240, 320, CV_8UC3);
-	Mat			limg(240, 320, CV_8UC3);
-	Mat			rimg(240, 320, CV_8UC3);
+	Mat			img(imageheight, imagewidth, CV_8UC3);
+	Mat			dst(imageheight, imagewidth, CV_8UC3);
+	Mat			limg(imageheight, imagewidth, CV_8UC3);
+	Mat			rimg(imageheight, imagewidth, CV_8UC3);
 	vector<unsigned char>	buf;
 	vector<vector<unsigned char> >	rbuf;
 	vector<int>		params;
@@ -100,7 +107,8 @@ void Video::worker(void) {
 	params.push_back(CV_IMWRITE_JPEG_QUALITY);
 	params.push_back(25);
 
-	while (wert) {
+	while (videomutex.try_lock()) {
+		videomutex.unlock();
 		//this_thread::sleep(posix_time::milliseconds(100));
 		*capture >> img;
 		if (img.size().area() == 0) {
@@ -110,7 +118,7 @@ void Video::worker(void) {
 		resize(img, dst, dst.size());
 		imencode(".jpg", dst, buf, params);
 		
-		network.broadcast(buf, rbuf, 200);
+		network.broadcast(buf, rbuf, maxlatency);
 		
 		if (rbuf.size() > 0 && rbuf[0].size() > 0) {
 			limg = imdecode(Mat(rbuf[0]), 1);
