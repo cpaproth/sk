@@ -54,7 +54,7 @@ GlTable::GlTable(int x, int y, int w ,int h, const char* l) : GlWindow(x, y, w, 
 }
 
 
-void GlTable::drawCard(unsigned c, unsigned r, float x, float y, float a, float sy) {
+void GlTable::draw_card(unsigned c, unsigned r, float x, float y, float a, float sy) {
 	float sx = sy / height * width / 4.f;
 	sy /= 2.f;
 
@@ -72,7 +72,7 @@ void GlTable::drawCard(unsigned c, unsigned r, float x, float y, float a, float 
 }
 
 
-bool GlTable::insideCard(int mx, int my, float x, float y, float a, float sy) {
+bool GlTable::inside_card(int mx, int my, float x, float y, float a, float sy) {
 	float sx = sy / height * width / 4.f;
 	sy /= 2.f;
 
@@ -116,12 +116,12 @@ void GlTable::draw(void) {
 		float angle = -0.3f + i * 0.06f;
 		float sx = i != selected? 0.f: -50.f * sin(angle);
 		float sy = i != selected? 0.f: 50.f * cos(angle);
-		drawCard(vals[i] % 8, vals[i] / 8, x + sx, a * x * x + b * x + sy, angle, 200.f);
+		draw_card(vals[i] % 8, vals[i] / 8, x + sx, a * x * x + b * x + sy, angle, 200.f);
 	}
 	
-	drawCard(4, 2, 200.f, 330.f, rand() * 0.4f / RAND_MAX - 0.2f, 160.f);
-	drawCard(3, 1, 440.f, 330.f, rand() * 0.4f / RAND_MAX - 0.2f, 160.f);
-	drawCard(0, 0, 320.f, 300.f, rand() * 0.4f / RAND_MAX - 0.2f, 160.f);
+	draw_card(4, 2, 200.f, 330.f, rand() * 0.4f / RAND_MAX - 0.2f, 160.f);
+	draw_card(3, 1, 440.f, 330.f, rand() * 0.4f / RAND_MAX - 0.2f, 160.f);
+	draw_card(0, 0, 320.f, 300.f, rand() * 0.4f / RAND_MAX - 0.2f, 160.f);
 	
 	glEnd();
 }
@@ -148,7 +148,7 @@ int GlTable::handle(int event) {
 				float angle = -0.3f + i * 0.06f;
 				float sx = i != selected? 0.f: -50.f * sin(angle);
 				float sy = i != selected? 0.f: 50.f * cos(angle);
-				if (insideCard(event_x(), h() - event_y() - 1, x + sx, a * x * x + b * x + sy, angle, 200.f))
+				if (inside_card(event_x(), h() - event_y() - 1, x + sx, a * x * x + b * x + sy, angle, 200.f))
 					sel = i;
 			}
 		if (sel != selected) {

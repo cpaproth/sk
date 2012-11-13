@@ -20,9 +20,10 @@ namespace SK {open
   }
   class UserInterface {open
   } {
+    decl {fltk::Preferences prefs;} {}
     decl {std::map<std::string, boost::function<void(void)> > f;} {public
     }
-    Function {UserInterface()} {open
+    Function {UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "sk")} {open
     } {
       code {fltk::lock();} {}
       {fltk::Window} mainwnd {
@@ -34,6 +35,7 @@ fltk::unlock();} selected
 \#include <string>
 \#include <boost/function/function0.hpp>
 \#include <fltk/run.h>
+\#include <fltk/Preferences.h>
 \#include "GlImage.h"
 \#include "GlTable.h"} visible
       } {
@@ -60,10 +62,9 @@ fltk::unlock();} selected
               xywh {640 435 320 240} box FLAT_BOX color 56
               class GlImage
             }
-            {fltk::Output} info {
-              label {Underrun Overrun NoLock}
-              xywh {700 100 166 20} align 5
-            }
+            {fltk::Group} {} {open
+              xywh {640 0 320 435} box DOWN_BOX
+            } {}
           }
           {fltk::Group} {} {
             label Liste open
@@ -73,15 +74,97 @@ fltk::unlock();} selected
             label System open
             xywh {0 25 960 675} hide
           } {
-            {fltk::Button} {} {
-              label {Restart Audio Stream}
-              callback {f["audio restart"]();}
-              private xywh {50 40 150 25}
+            {fltk::Group} {} {
+              label Audio open
+              xywh {630 85 220 145} align 33 box DOWN_BOX labeltype ENGRAVED_LABEL
+            } {
+              {fltk::Button} {} {
+                label {Neustart Audio Stream}
+                callback {f["audio restart"]();}
+                tooltip {Falls der Audiostream verzögert läuft, kann ein Neustart dies evtl. beheben. Zeigt auch die gegenwärtige CPU Auslastung des Audiostreams im Logfenster an.}
+                private xywh {35 40 150 25}
+              }
+              {fltk::CheckButton} {} {
+                label {Mikrofon abspielen}
+                callback {f["audio toggle"]();}
+                tooltip {Wenn aktiviert, dann wird die Mikrofonaufnahme nicht übers Netzwerk gesendet, sondern direkt abgespielt. Kann nützlich sein um den Mixer richtig einstellen zu können, damit z.B. Echos verringert werden. }
+                xywh {35 90 150 25}
+              }
             }
-            {fltk::CheckButton} {} {
-              label {Mikrofon abspielen}
-              callback {f["audio toggle"]();}
-              xywh {50 85 150 25}
+            {fltk::Group} {} {
+              label Netzwerk open
+              xywh {90 60 390 290} align 33 box DOWN_BOX labeltype ENGRAVED_LABEL
+            } {
+              {fltk::Input} address {
+                label {IP-Adresse}
+                callback {prefs.set("ipaddress", address->value());}
+                tooltip {Feld leer lassen um die Skat-Konferenz als Server zu starten.}
+                xywh {165 40 195 25}
+                extra_code {char* c;
+prefs.get("ipaddress", c, "");
+address->value(c);
+delete[] c;}
+              }
+              {fltk::ValueInput} port {
+                label {UDP-Port}
+                callback {if (port->value() < 0)
+  port->value(0);
+if (port->value() > 65535)
+  port->value(65535);
+prefs.set("udpport", port->value());}
+                tooltip {Um einen Server mit einer Portnummer kleiner als 1024 zu starten, benötigt man evtl. Root-Rechte.}
+                xywh {165 90 195 25} when RELEASE color 0xffffff00 maximum 65535 step 1
+                extra_code {double d;
+prefs.get("udpport", d, 34588);
+port->value(d);}
+              }
+              {fltk::ValueInput} bandwidth {
+                label {Video Upload-Bandbreite}
+                callback {if (bandwidth->value() < 0)
+  bandwidth->value(0);
+prefs.set("bandwidth", bandwidth->value());}
+                tooltip {Maximale Upload-Bandbreite für Video in Byte/s, wird auf die verbundenen Peers aufgeteilt. Der Audiostream benötigt pro Peer immer 2500 Byte/s, sonstiger Netzwerkverkehr ist weniger als 1000 Byte/s pro Peer.}
+                xywh {165 140 195 25} when RELEASE color 0xffffff00 maximum 1e+009 step 1
+                extra_code {double d;
+prefs.get("bandwidth", d, 50000);
+bandwidth->value(d);}
+              }
+              {fltk::Button} {} {
+                label Start
+                callback {f["network start"]();}
+                tooltip {Startet die Skat-Konferenz als Server oder Client.}
+                xywh {165 190 195 25}
+              }
+              {fltk::Button} {} {
+                label Stats
+                callback {f["network stats"]();}
+                tooltip {Gibt ein paar Statistiken über die verbundenen Peers im Logfenster aus.}
+                xywh {165 240 195 25}
+              }
+              {fltk::CheckButton} autostart {
+                label Auto
+                callback {prefs.set("autostart", autostart->value());}
+                tooltip {Wenn aktiviert, dann wird das Netzwerk beim nächsten Programmstart automatisch mitgestartet. Nur sinnvoll für Server oder statische IP-Adresse.}
+                xywh {70 190 60 25}
+                extra_code {int i;
+prefs.get("autostart", i, 0);
+autostart->value(i != 0);}
+              }
+            }
+            {fltk::Group} {} {
+              label Spiel
+              xywh {525 295 265 150} align 33 box DOWN_BOX labeltype ENGRAVED_LABEL
+            } {
+              {fltk::Input} name {
+                label Spielername
+                callback {prefs.set("username", name->value());}
+                tooltip {Dein Spielername.}
+                xywh {85 40 165 25}
+                extra_code {char* c;
+prefs.get("username", c, "nobody");
+name->value(c);
+delete[] c;}
+              }
             }
           }
           {fltk::Group} {} {
@@ -96,9 +179,12 @@ fltk::unlock();} selected
       }
       code {w->show();} {}
     }
-    Function {~UserInterface()} {open
-    } {
+    Function {~UserInterface(void)} {} {
       code {delete mainwnd;} {}
     }
+    Function {UserInterface(const UserInterface&):prefs("", "", "")} {open private
+    } {}
+    Function {operator=(const UserInterface&)} {open private
+    } {}
   }
 } 

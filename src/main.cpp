@@ -15,8 +15,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
-#include <boost/asio/ip/host_name.hpp>
-
 
 #include "ui.h"
 
@@ -32,26 +30,74 @@ using namespace CPLib;
 using namespace SK;
 
 
-
-
-UserInterface* pui;
-class mysbuf : public std::streambuf {
-	int overflow(int ch) {
-		char buf[] = {(char)ch, 0};
-		fltk::lock();
-		pui->log->append(buf);
-		if (buf[0] == '\n') {
-			pui->log->scroll(INT_MAX, 0);
-			fltk::awake();
-		}
-		fltk::unlock();
-		return ch;
-	}
+class UIsbuf : public streambuf {
+	UserInterface&	ui;
+	streambuf*	oldsbuf;
+	
+	int overflow(int);
+public:
+	UIsbuf(UserInterface&);
+	~UIsbuf(void);
 };
 
 
-Network network;
-void newcommand(unsigned i, const string& command, const string& data) {
+UIsbuf::UIsbuf(UserInterface& ui) : ui(ui) {
+	UILock lock;
+	oldsbuf = cout.rdbuf(this);
+}
+UIsbuf::~UIsbuf(void) {
+	UILock lock;
+	cout.rdbuf(oldsbuf);
+}
+int UIsbuf::overflow(int c) {
+	char buf[] = {(char)c, 0};
+	//UILock lock;
+	ui.log->append(buf);
+	if (buf[0] == '\n') {
+		ui.log->scroll(INT_MAX, 0);
+	//	fltk::awake();
+	}
+	return c;
+}
+
+
+
+
+class Program {
+	UserInterface	ui;
+	UIsbuf		sbuf;
+	Network		network;
+	Video		video;
+	Audio		audio;
+
+	void start_network(void);
+	void handle_command(unsigned, const string&, const string&);
+public:
+	Program(void);
+};
+
+
+Program::Program(void) : sbuf(ui), video(ui, network), audio(network) {
+	cout << "Skat-Konferenz Copyright (C) 2012 Carsten Paproth." << endl;
+	cout << "This program is free software and comes with ABSOLUTELY NO WARRANTY." << endl;
+	cout << "Licensed under the terms of GPLv3, see <http://www.gnu.org/licenses/>." << endl << endl;
+
+	ui.f["audio restart"] = boost::bind(&Audio::restart, &audio);
+	ui.f["audio toggle"] = boost::bind(&Audio::toggle_playmic, &audio);
+	ui.f["network stats"] = boost::bind(&Network::stats, &network);
+	ui.f["network start"] = boost::bind(&Program::start_network, this);
+
+	if (ui.autostart->value())
+		start_network();
+}
+
+
+void Program::start_network(void) {
+	network.start(ui.address->value(), (unsigned short)ui.port->value(), (unsigned)ui.bandwidth->value(), boost::bind(&Program::handle_command, this, _1, _2, _3));
+}
+
+
+void Program::handle_command(unsigned i, const string& command, const string& data) {
 	if (command == "peersconnected") {
 		cout << "juhu " << data << endl;
 		if (data == "2")
@@ -67,39 +113,19 @@ void newcommand(unsigned i, const string& command, const string& data) {
 
 
 int main(void) {
-
-	UserInterface ui;
-	pui=&ui;
-	mysbuf sbuf;
-	streambuf* oldbuf = cout.rdbuf(&sbuf);
-
-	cout << "Skat-Konferenz Copyright (C) 2012 Carsten Paproth." << endl;
-	cout << "This program is free software and comes with ABSOLUTELY NO WARRANTY." << endl;
-	cout << "Licensed under the terms of GPLv3, see <http://www.gnu.org/licenses/>." << endl << endl;
-	
-	Video video(ui, network);
-	Audio audio(network);
-
-
 	try {
-		pair<string, string> server("fuchsbau", "192.168.0.1");
-		if (boost::asio::ip::host_name() == server.first)
-			network.start("", 50000, &newcommand);
-		else
-			network.start(server.second, 50000, &newcommand);
-	}catch(exception& e){
-		cout<<e.what()<<endl;
+		Program program;
+
+		while(true)
+			try {
+				return fltk::run();
+			} catch (exception& e) {
+				cout << "error: " << e.what() << endl;
+			}
+	} catch (exception& e) {
+		cout << "error: " << e.what() << endl;
 	}
 
+	return 1;
 
-	ui.f["audio restart"] = boost::bind(&Audio::restart, &audio);
-	ui.f["audio toggle"] = boost::bind(&Audio::toggle_dest, &audio);
-
-	fltk::run();
-
-
-	cout.rdbuf(oldbuf);
-
-
-	return 0;
 }

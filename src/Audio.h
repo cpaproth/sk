@@ -21,7 +21,6 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 #include <portaudio.h>
 #include "MathLib.h"
-#include <boost/thread/mutex.hpp>
 
 
 namespace SK {
@@ -30,29 +29,6 @@ using namespace std;
 
 
 class Network;
-
-
-class sbool {
-	bool		value;
-	boost::mutex	mutex;
-public:
-	sbool(void) : value(false) {}
-	void set(bool b) {
-		boost::lock_guard<boost::mutex> lock(mutex);
-		value = b;
-	}
-	bool get(void) {
-		boost::lock_guard<boost::mutex> lock(mutex);
-		return value;
-	}
-	operator bool(void) {
-		if (mutex.try_lock()) {
-			boost::lock_guard<boost::mutex> lock(mutex, boost::adopt_lock);
-			return value;
-		}
-		return false;
-	}
-};
 
 
 class Audio {
@@ -67,7 +43,7 @@ class Audio {
 	vector<unsigned char>		encbuf;
 	vector<vector<unsigned char> >	decbuf;
 	Network&			network;
-	sbool				mic;
+	bool				playmic;
 
 
 	void encode(short*);
@@ -82,7 +58,7 @@ public:
 	~Audio(void);
 	
 	void restart(void);
-	void toggle_dest(void);
+	void toggle_playmic(void);
 
 };
 

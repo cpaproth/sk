@@ -20,7 +20,6 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #include <ctime>
 #include "Convenience.h"
 
-#include <boost/asio/ip/host_name.hpp>
 
 using namespace SK;
 using namespace CPLib;
@@ -41,16 +40,14 @@ istream& operator>>(istream& s, ip::udp::endpoint& ep) {
 Network::Network(void) : socket(io, ip::udp::v4()), timer(io) {
 	msgid = 0;
 	bandwidth = 0;
+	mutexbusy = 0;
 	recvbuf.resize(recvsize);
-
-	toosmall = 0;
-	toobig = 0;
-	nolock = 0;
 }
 
 
 Network::~Network(void) {
 	try {
+		lock_guard<timed_mutex> lock(netmutex);
 		timer.cancel();
 		socket.close();
 		iothread.join();
@@ -58,17 +55,28 @@ Network::~Network(void) {
 }
 
 
-void Network::start(const string& address, unsigned bw, handler h) {
+void Network::start(const string& address, unsigned short port, unsigned bw, handler h) {
+	lock_guard<timed_mutex> lock(netmutex);
+	if (iothread.joinable()) {
+		timer.cancel();
+		socket.close();
+		iothread.join();
+		peers.clear();
+		socket.open(ip::udp::v4());
+		endpoint = udpendpoint();
+		io.reset();
+	}
+
 	bandwidth = bw;
 	cmdfunc = h;
 
 	if (address.empty()) {
 		server = true;
-		socket.bind(udpendpoint(ip::udp::v4(), serverport));
+		socket.bind(udpendpoint(ip::udp::v4(), port));
 		
 	} else {
 		server = false;
-		endpoint = udpendpoint(ip::address_v4::from_string(address), serverport);
+		endpoint = udpendpoint(ip::address_v4::from_string(address), port);
 		peers.push_back(Peer(endpoint));
 	}
 	
@@ -83,7 +91,7 @@ void Network::broadcast(const ucharbuf& send, vector<ucharbuf>& recv, unsigned l
 	recv.clear();
 
 	if (!netmutex.timed_lock(posix_time::milliseconds(latency))) {
-		nolock++;
+		mutexbusy++;
 		return;
 	}
 	lock_guard<timed_mutex> lock(netmutex, adopt_lock);
@@ -96,7 +104,7 @@ void Network::broadcast(const ucharbuf& send, vector<ucharbuf>& recv, unsigned l
 				recv.push_back(peers[i].fifo.front());
 				peers[i].fifo.pop_front();
 			} else
-				toosmall++;
+				peers[i].fifoempty++;
 			socket.async_send_to(buffer(*buf), peers[i].endpoint, bind(&Network::sender, this, buf, _1, _2));
 		} else {
 			recv.push_back(peers[i].buffer);
@@ -121,6 +129,14 @@ void Network::command(unsigned i, const string& command, const string& data) {
 		shared_ptr<ucharbuf> buf(new ucharbuf(peers[i].messages[0].begin(), peers[i].messages[0].end()));
 		socket.async_send_to(buffer(*buf), peers[i].endpoint, bind(&Network::sender, this, buf, _1, _2));
 	}
+}
+
+
+void Network::stats(void) {
+	lock_guard<timed_mutex> lock(netmutex);
+	cout << "known peers: " << peers.size() << ", network mutex busy: " << mutexbusy << endl;
+	for (unsigned i = 0; i < peers.size(); i++)
+		cout << "peer " << i << " fifo empty/full: " << peers[i].fifoempty << '/' << peers[i].fifofull << endl;
 }
 
 
@@ -214,12 +230,9 @@ void Network::receiver(const errorcode& e, size_t n) {
 	} else if (n < fifosize) {
 		processmessage(peer - peers.begin(), string(recvbuf.begin(), recvbuf.begin() + n));
 	} else if (n == fifosize) {
-		if (ip::host_name() == "fuchsbau")	
-			socket.send_to(buffer(&recvbuf[0], n), endpoint);
-			
 		peer->fifo.push_back(ucharbuf(recvbuf.begin(), recvbuf.begin() + n));
-		if (peer->fifo.size() >= 5) {
-			toobig++;
+		if (peer->fifo.size() >= fifomax) {
+			peer->fifofull++;
 			while (peer->fifo.size() > 1)
 				peer->fifo.pop_front();
 		}
@@ -238,7 +251,7 @@ void Network::sender(shared_ptr<ucharbuf>, const errorcode&, size_t) {
 void Network::deadline(const errorcode& e) {
 	if (e)
 		return;
-		
+
 	lock_guard<timed_mutex> lock(netmutex);
 
 	if (server) {

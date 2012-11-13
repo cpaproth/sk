@@ -36,8 +36,8 @@ using namespace std;
 class Network {
 	static const size_t maxpeers = 2;
 	static const size_t fifosize = 160;
+	static const size_t fifomax = 5;
 	static const size_t recvsize = 20000;
-	static const unsigned short serverport = 34588;
 	static const unsigned timerrate = 4;
 
 	
@@ -53,15 +53,18 @@ class Network {
 		ucharbuf	buffer;
 		deque<string>	messages;
 		double		lasttime;
+		unsigned	fifoempty;
+		unsigned	fifofull;
 		unsigned	lastmsgid;
 		unsigned	bucket;
 		unsigned	connections;
-		Peer(const udpendpoint& ep) : endpoint(ep), lastmsgid(-1), bucket(0), connections(0) {}
+		Peer(const udpendpoint& ep) : endpoint(ep), fifoempty(0), fifofull(0), lastmsgid(-1), bucket(0), connections(0) {}
 	};
 	
 	bool				server;
 	unsigned			msgid;
 	unsigned			bandwidth;
+	unsigned			mutexbusy;
 	handler				cmdfunc;
 	boost::asio::io_service		io;
 	boost::asio::ip::udp::socket	socket;
@@ -86,12 +89,10 @@ public:
 	Network(void);
 	~Network(void);
 
-	void start(const string&, unsigned, handler);
+	void start(const string&, unsigned short, unsigned, handler);
 	void broadcast(const ucharbuf&, vector<ucharbuf>&, unsigned);
 	void command(unsigned, const string&, const string&);
-	
-	
-	unsigned toobig, toosmall, nolock;
+	void stats(void);
 
 };
 

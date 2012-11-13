@@ -32,6 +32,7 @@ Audio::Audio(Network& nw) : fft(framesize), network(nw) {
 	data.resize(framesize);
 	encbuf.resize(encodesize);
 	stream = 0;
+	playmic = false;
 
 	if (Pa_Initialize() != paNoError)
 		throw runtime_error("audio initialization failed");
@@ -67,8 +68,8 @@ void Audio::restart(void) {
 }
 
 
-void Audio::toggle_dest(void) {
-	mic.set(!mic.get());
+void Audio::toggle_playmic(void) {
+	playmic = !playmic;
 }
 
 
@@ -133,7 +134,7 @@ int Audio::callback(const void* in, void* out, unsigned long size, const PaStrea
 		Audio& a = *(Audio*)data;
 
 		a.encode((short*)in);
-		if (!a.mic) {
+		if (!a.playmic) {
 			a.network.broadcast(a.encbuf, a.decbuf, maxlatency);
 		} else {
 			a.decbuf.clear();

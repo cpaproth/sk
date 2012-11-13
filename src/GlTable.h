@@ -36,8 +36,8 @@ class GlTable : public fltk::GlWindow {
 	vector<unsigned char>	hand;
 	unsigned		selected;
 
-	void drawCard(unsigned, unsigned, float, float, float, float);
-	bool insideCard(int, int, float, float, float, float);
+	void draw_card(unsigned, unsigned, float, float, float, float);
+	bool inside_card(int, int, float, float, float, float);
 
 	void draw(void);
 	int handle(int);

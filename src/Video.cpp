@@ -36,6 +36,7 @@ Video::Video(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 	if (!capture->isOpened() && !capture->open("webcam.avi"))
 		throw runtime_error("open webcam failed");
 
+	working = true;
 	videothread = thread(bind(&Video::worker, this));
 
 	cout << "video capture started" << endl;
@@ -44,7 +45,7 @@ Video::Video(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 
 Video::~Video(void) {
 	try {
-		workmutex.lock();
+		working = false;
 		videothread.join();
 
 		cout << "video capture stopped" << endl;
@@ -107,8 +108,7 @@ void Video::worker(void) {
 	params.push_back(CV_IMWRITE_JPEG_QUALITY);
 	params.push_back(25);
 
-	while (workmutex.try_lock()) {
-		workmutex.unlock();
+	while (working) {
 		//this_thread::sleep(posix_time::milliseconds(100));
 		*capture >> img;
 		if (img.size().area() == 0) {
@@ -129,7 +129,6 @@ void Video::worker(void) {
 			deblock(rimg);
 		}
 		fltk::lock();
-		ui.info->value(ss(network.toosmall) << " " << network.toobig << " " << network.nolock | c_str);
 		ui.midimage->set(&dst);
 		ui.midimage->redraw();
 		ui.leftimage->set(&limg);

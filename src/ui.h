@@ -7,45 +7,79 @@
 #include <string>
 #include <boost/function/function0.hpp>
 #include <fltk/run.h>
+#include <fltk/Preferences.h>
 #include "GlImage.h"
 #include "GlTable.h"
 #include <fltk/TabGroup.h>
 #include <fltk/Group.h>
-#include <fltk/Output.h>
 #include <fltk/Button.h>
 #include <fltk/CheckButton.h>
+#include <fltk/Input.h>
+#include <fltk/ValueInput.h>
 #include <fltk/TextDisplay.h>
 
 namespace SK  {
 
 class UILock  {
 public:
-	UILock();
-	~UILock();
+  UILock();
+  ~UILock();
 };
 
 class UserInterface  {
+  fltk::Preferences prefs;
 public:
-	std::map<std::string, boost::function<void(void)> > f;
-	UserInterface();
+  std::map<std::string, boost::function<void(void)> > f;
+  UserInterface(void);
 private:
-	fltk::Window *mainwnd;
-	inline void cb_mainwnd_i(fltk::Window*, void*);
-	static void cb_mainwnd(fltk::Window*, void*);
+  fltk::Window *mainwnd;
+  inline void cb_mainwnd_i(fltk::Window*, void*);
+  static void cb_mainwnd(fltk::Window*, void*);
 public:
-				GlTable *table;
-				GlImage *leftimage;
-				GlImage *rightimage;
-				GlImage *midimage;
-				fltk::Output *info;
+        GlTable *table;
+        GlImage *leftimage;
+        GlImage *rightimage;
+        GlImage *midimage;
 private:
-				inline void cb_Restart_i(fltk::Button*, void*);
-				static void cb_Restart(fltk::Button*, void*);
-				inline void cb_Mikrofon_i(fltk::CheckButton*, void*);
-				static void cb_Mikrofon(fltk::CheckButton*, void*);
+          inline void cb_Neustart_i(fltk::Button*, void*);
+          static void cb_Neustart(fltk::Button*, void*);
+          inline void cb_Mikrofon_i(fltk::CheckButton*, void*);
+          static void cb_Mikrofon(fltk::CheckButton*, void*);
 public:
-				fltk::TextDisplay *log;
-	~UserInterface();
+          fltk::Input *address;
+private:
+          inline void cb_address_i(fltk::Input*, void*);
+          static void cb_address(fltk::Input*, void*);
+public:
+          fltk::ValueInput *port;
+private:
+          inline void cb_port_i(fltk::ValueInput*, void*);
+          static void cb_port(fltk::ValueInput*, void*);
+public:
+          fltk::ValueInput *bandwidth;
+private:
+          inline void cb_bandwidth_i(fltk::ValueInput*, void*);
+          static void cb_bandwidth(fltk::ValueInput*, void*);
+          inline void cb_Start_i(fltk::Button*, void*);
+          static void cb_Start(fltk::Button*, void*);
+          inline void cb_Stats_i(fltk::Button*, void*);
+          static void cb_Stats(fltk::Button*, void*);
+public:
+          fltk::CheckButton *autostart;
+private:
+          inline void cb_autostart_i(fltk::CheckButton*, void*);
+          static void cb_autostart(fltk::CheckButton*, void*);
+public:
+          fltk::Input *name;
+private:
+          inline void cb_name_i(fltk::Input*, void*);
+          static void cb_name(fltk::Input*, void*);
+public:
+        fltk::TextDisplay *log;
+  ~UserInterface(void);
+private:
+  UserInterface(const UserInterface&);
+  void operator=(const UserInterface&);
 };
 }
 #endif
