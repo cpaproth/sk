@@ -30,7 +30,8 @@ bool CPLib::Progress(size_t i, size_t n) {
 
 Audio::Audio(Network& nw) : fft(framesize), network(nw) {
 	data.resize(framesize);
-	encbuf.resize(encsize);
+	encbuf.resize(encodesize);
+	stream = 0;
 
 	if (Pa_Initialize() != paNoError)
 		throw runtime_error("audio initialization failed");
@@ -66,8 +67,13 @@ void Audio::restart(void) {
 }
 
 
+void Audio::toggle_dest(void) {
+	mic.set(!mic.get());
+}
+
+
 void Audio::encode(short* in) {
-	encbuf.assign(encsize, 0);
+	encbuf.assign(encodesize, 0);
 
 	for (unsigned i = 0; i < data.size(); i++)
 		data[i] = in[i] / 32768.;
@@ -124,11 +130,16 @@ int Audio::callback(const void* in, void* out, unsigned long size, const PaStrea
 		if (size != framesize)
 			throw runtime_error("wrong frame size");
 
-		Audio& audio = *(Audio*)data;
+		Audio& a = *(Audio*)data;
 
-		audio.encode((short*)in);
-		audio.network.broadcast(audio.encbuf, audio.decbuf, maxlatency);
-		audio.decode((short*)out);
+		a.encode((short*)in);
+		if (!a.mic) {
+			a.network.broadcast(a.encbuf, a.decbuf, maxlatency);
+		} else {
+			a.decbuf.clear();
+			a.decbuf.push_back(a.encbuf);
+		}
+		a.decode((short*)out);
 
 	} catch (exception& e) {
 		cout << "audio failure: " << e.what() << endl;

@@ -12,11 +12,18 @@ void UserInterface::cb_mainwnd(fltk::Window* o, void* v) {
 	((UserInterface*)(o->user_data()))->cb_mainwnd_i(o,v);
 }
 
-inline void UserInterface::cb_Reset_i(fltk::Button*, void*) {
-	f["Button"]();
+inline void UserInterface::cb_Restart_i(fltk::Button*, void*) {
+	f["audio restart"]();
 }
-void UserInterface::cb_Reset(fltk::Button* o, void* v) {
-	((UserInterface*)(o->parent()->parent()->parent()->user_data()))->cb_Reset_i(o,v);
+void UserInterface::cb_Restart(fltk::Button* o, void* v) {
+	((UserInterface*)(o->parent()->parent()->parent()->user_data()))->cb_Restart_i(o,v);
+}
+
+inline void UserInterface::cb_Mikrofon_i(fltk::CheckButton*, void*) {
+	f["audio toggle"]();
+}
+void UserInterface::cb_Mikrofon(fltk::CheckButton* o, void* v) {
+	((UserInterface*)(o->parent()->parent()->parent()->user_data()))->cb_Mikrofon_i(o,v);
 }
 
 UILock::UILock() {
@@ -66,8 +73,11 @@ UserInterface::UserInterface() {
 			 {fltk::Group* o = new fltk::Group(0, 25, 960, 675, "System");
 				o->hide();
 				o->begin();
-				 {fltk::Button* o = new fltk::Button(50, 40, 102, 25, "Reset Audio");
-					o->callback((fltk::Callback*)cb_Reset);
+				 {fltk::Button* o = new fltk::Button(50, 40, 150, 25, "Restart Audio Stream");
+					o->callback((fltk::Callback*)cb_Restart);
+				}
+				 {fltk::CheckButton* o = new fltk::CheckButton(50, 85, 150, 25, "Mikrofon abspielen");
+					o->callback((fltk::Callback*)cb_Mikrofon);
 				}
 				o->end();
 			}

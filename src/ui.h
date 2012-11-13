@@ -13,6 +13,7 @@
 #include <fltk/Group.h>
 #include <fltk/Output.h>
 #include <fltk/Button.h>
+#include <fltk/CheckButton.h>
 #include <fltk/TextDisplay.h>
 
 namespace SK  {
@@ -38,8 +39,10 @@ public:
 				GlImage *midimage;
 				fltk::Output *info;
 private:
-				inline void cb_Reset_i(fltk::Button*, void*);
-				static void cb_Reset(fltk::Button*, void*);
+				inline void cb_Restart_i(fltk::Button*, void*);
+				static void cb_Restart(fltk::Button*, void*);
+				inline void cb_Mikrofon_i(fltk::CheckButton*, void*);
+				static void cb_Mikrofon(fltk::CheckButton*, void*);
 public:
 				fltk::TextDisplay *log;
 	~UserInterface();

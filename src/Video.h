@@ -39,7 +39,7 @@ class Video {
 
 	boost::shared_ptr<cv::VideoCapture>	capture;
 	boost::thread				videothread;
-	boost::mutex				videomutex;
+	boost::mutex				workmutex;
 	UserInterface&				ui;
 	Network&				network;
 

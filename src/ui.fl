@@ -6,8 +6,7 @@ code_name {.cpp}
 gridx 5 
 gridy 5 
 snap 3
-decl {//Copyright (C) 2012 Carsten Paproth} {selected
-} 
+decl {//Copyright (C) 2012 Carsten Paproth} {} 
 
 namespace SK {open
 } {
@@ -29,7 +28,7 @@ namespace SK {open
       {fltk::Window} mainwnd {
         label {Skat-Konferenz}
         callback {mainwnd->hide();
-fltk::unlock();} open
+fltk::unlock();} selected
         private xywh {251 32 960 700}
         extra_code {\#include <map>
 \#include <string>
@@ -71,13 +70,18 @@ fltk::unlock();} open
             xywh {0 25 960 675} hide
           } {}
           {fltk::Group} {} {
-            label System
+            label System open
             xywh {0 25 960 675} hide
           } {
             {fltk::Button} {} {
-              label {Reset Audio}
-              callback {f["Button"]();}
-              private xywh {50 40 102 25}
+              label {Restart Audio Stream}
+              callback {f["audio restart"]();}
+              private xywh {50 40 150 25}
+            }
+            {fltk::CheckButton} {} {
+              label {Mikrofon abspielen}
+              callback {f["audio toggle"]();}
+              xywh {50 85 150 25}
             }
           }
           {fltk::Group} {} {

@@ -44,7 +44,7 @@ Video::Video(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 
 Video::~Video(void) {
 	try {
-		videomutex.lock();
+		workmutex.lock();
 		videothread.join();
 
 		cout << "video capture stopped" << endl;
@@ -107,8 +107,8 @@ void Video::worker(void) {
 	params.push_back(CV_IMWRITE_JPEG_QUALITY);
 	params.push_back(25);
 
-	while (videomutex.try_lock()) {
-		videomutex.unlock();
+	while (workmutex.try_lock()) {
+		workmutex.unlock();
 		//this_thread::sleep(posix_time::milliseconds(100));
 		*capture >> img;
 		if (img.size().area() == 0) {

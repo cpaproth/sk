@@ -92,7 +92,8 @@ int main(void) {
 	}
 
 
-	ui.f["Button"] = boost::bind(&Audio::restart, &audio);
+	ui.f["audio restart"] = boost::bind(&Audio::restart, &audio);
+	ui.f["audio toggle"] = boost::bind(&Audio::toggle_dest, &audio);
 
 	fltk::run();
 
