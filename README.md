@@ -19,7 +19,8 @@ Following portable open source libraries are used by *sk*:
 * [Boost](http://www.boost.org) for multithreading (boost::thread) and asynchronous network I/O (boost::asio)
 
 Playing card images are copied from [GNOME Aisleriot](https://live.gnome.org/Aisleriot) and modified to look more like Skat cards:
-![playing cards](https://github.com/cpaproth/sk/blob/master/images/cards.png)
+
+![playing cards](https://github.com/cpaproth/sk/raw/master/images/cards.png)
 
 
 ## Building
