@@ -6,7 +6,6 @@ using namespace SK;
 
 inline void UserInterface::cb_mainwnd_i(fltk::Window*, void*) {
   mainwnd->hide();
-  fltk::unlock();
 }
 void UserInterface::cb_mainwnd(fltk::Window* o, void* v) {
   ((UserInterface*)(o->user_data()))->cb_mainwnd_i(o,v);
@@ -89,9 +88,17 @@ UILock::~UILock() {
   fltk::unlock();
 }
 
+UIUnlock::UIUnlock() {
+  fltk::unlock();
+}
+
+UIUnlock::~UIUnlock() {
+  fltk::lock();
+}
+
 UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "sk") {
   fltk::Window* w;
-  fltk::lock();
+  UILock lock;
    {fltk::Window* o = mainwnd = new fltk::Window(960, 700, "Skat-Konferenz");
     w = o;
     o->shortcut(0xff1b);

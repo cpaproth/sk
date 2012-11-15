@@ -37,6 +37,13 @@ class Audio {
 	static const size_t encodesize = 160;
 	static const unsigned maxlatency = 20;
 
+	struct PaInit {
+		PaInit(void);
+		~PaInit(void);
+	};
+
+
+	PaInit				painit;
 	PaStream*			stream;
 	CPLib::FFT			fft;
 	valarray<complex<double> >	data;

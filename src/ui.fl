@@ -18,6 +18,14 @@ namespace SK {open
       code {fltk::unlock();} {}
     }
   }
+  class UIUnlock {} {
+    Function {UIUnlock()} {} {
+      code {fltk::unlock();} {}
+    }
+    Function {~UIUnlock()} {} {
+      code {fltk::lock();} {}
+    }
+  }
   class UserInterface {open
   } {
     decl {fltk::Preferences prefs;} {}
@@ -25,11 +33,10 @@ namespace SK {open
     }
     Function {UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "sk")} {open
     } {
-      code {fltk::lock();} {}
+      code {UILock lock;} {}
       {fltk::Window} mainwnd {
         label {Skat-Konferenz}
-        callback {mainwnd->hide();
-fltk::unlock();} open
+        callback {mainwnd->hide();} open selected
         private xywh {251 32 960 700} resizable
         extra_code {\#include <map>
 \#include <string>
@@ -62,7 +69,7 @@ fltk::unlock();} open
               xywh {640 435 320 240} box FLAT_BOX color 56
               class GlImage
             }
-            {fltk::Group} {} {open selected
+            {fltk::Group} {} {open
               xywh {640 0 320 435} box DOWN_BOX
             } {}
           }
@@ -181,7 +188,8 @@ delete[] c;}
       code {w->resizable(0);} {}
       code {w->show();} {}
     }
-    Function {~UserInterface(void)} {} {
+    Function {~UserInterface(void)} {open
+    } {
       code {delete mainwnd;} {}
     }
     Function {UserInterface(const UserInterface&):prefs("", "", "")} {open private

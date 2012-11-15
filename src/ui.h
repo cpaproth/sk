@@ -26,6 +26,12 @@ public:
   ~UILock();
 };
 
+class UIUnlock  {
+public:
+  UIUnlock();
+  ~UIUnlock();
+};
+
 class UserInterface  {
   fltk::Preferences prefs;
 public:

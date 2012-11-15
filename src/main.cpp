@@ -34,58 +34,42 @@ class UIsbuf : public streambuf {
 	UserInterface&	ui;
 	streambuf*	oldsbuf;
 	
-	int overflow(int);
-public:
-	UIsbuf(UserInterface&);
-	~UIsbuf(void);
-};
-
-
-UIsbuf::UIsbuf(UserInterface& ui) : ui(ui) {
-	UILock lock;
-	oldsbuf = cout.rdbuf(this);
-}
-UIsbuf::~UIsbuf(void) {
-	UILock lock;
-	cout.rdbuf(oldsbuf);
-}
-int UIsbuf::overflow(int c) {
-	char buf[] = {(char)c, 0};
-	UILock lock;
-	ui.log->append(buf);
-	if (buf[0] == '\n') {
-		ui.log->scroll(INT_MAX, 0);
-		fltk::awake();
+	int overflow(int c) {
+		char buf[] = {(char)c, 0};
+		UILock lock;
+		ui.log->append(buf);
+		if (buf[0] == '\n') {
+			ui.log->scroll(INT_MAX, 0);
+			fltk::awake();
+		}
+		return c;
 	}
-	return c;
-}
-
-
+public:
+	UIsbuf(UserInterface& ui) : ui(ui) {
+		oldsbuf = cout.rdbuf(this);
+	}
+	~UIsbuf(void) {
+		cout.rdbuf(oldsbuf);
+	}
+};
 
 
 class Program {
-	UserInterface	ui;
-	UIsbuf		sbuf;
-	Network		network;
-	Video		video;
-	Audio		audio;
+	UserInterface&	ui;
+	Network&	network;
+	Video&		video;
+	Audio&		audio;
 
-	void start_network(void);
 	void handle_command(unsigned, const string&, const string&);
 public:
-	Program(void);
+	Program(UserInterface&, Network&, Video&, Audio&);
+
+	void start_network(void);
 };
 
 
-Program::Program(void) : sbuf(ui), video(ui, network), audio(network) {
-	cout << "Skat-Konferenz Copyright (C) 2012 Carsten Paproth." << endl;
-	cout << "This program is free software and comes with ABSOLUTELY NO WARRANTY." << endl;
-	cout << "Licensed under the terms of GPLv3, see <http://www.gnu.org/licenses/>." << endl << endl;
-
-	ui.f["audio restart"] = boost::bind(&Audio::restart, &audio);
-	ui.f["audio toggle"] = boost::bind(&Audio::toggle_playmic, &audio);
-	ui.f["network stats"] = boost::bind(&Network::stats, &network);
-	ui.f["network start"] = boost::bind(&Program::start_network, this);
+Program::Program(UserInterface& ui, Network& nw, Video& v, Audio& a) : ui(ui), network(nw), video(v), audio(a) {
+	audio.restart();
 
 	if (ui.autostart->value())
 		start_network();
@@ -93,9 +77,8 @@ Program::Program(void) : sbuf(ui), video(ui, network), audio(network) {
 
 
 void Program::start_network(void) {
-	fltk::unlock();
+	UIUnlock lock;
 	network.start(ui.address->value(), (unsigned short)ui.port->value(), (unsigned)ui.bandwidth->value(), boost::bind(&Program::handle_command, this, _1, _2, _3));
-	fltk::lock();
 }
 
 
@@ -116,10 +99,27 @@ void Program::handle_command(unsigned i, const string& command, const string& da
 
 int main(void) {
 	try {
-		Program program;
+		UserInterface	ui;
+		UIsbuf		sbuf(ui);
+
+		cout << "Skat-Konferenz Copyright (C) 2012 Carsten Paproth." << endl;
+		cout << "This program is free software and comes with ABSOLUTELY NO WARRANTY." << endl;
+		cout << "Licensed under the terms of GPLv3, see <http://www.gnu.org/licenses/>." << endl << endl;
+
+		Network		network;
+		Video		video(ui, network);
+		Audio		audio(network);
+		Program		program(ui, network, video, audio);
+
+		ui.f["audio restart"] = boost::bind(&Audio::restart, &audio);
+		ui.f["audio toggle"] = boost::bind(&Audio::toggle_playmic, &audio);
+		ui.f["network stats"] = boost::bind(&Network::stats, &network);
+		ui.f["network start"] = boost::bind(&Program::start_network, &program);
+
 
 		while(true)
 			try {
+				UILock lock;
 				return fltk::run();
 			} catch (exception& e) {
 				cout << "error: " << e.what() << endl;
