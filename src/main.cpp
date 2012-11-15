@@ -109,6 +109,7 @@ int main(void) {
 		Network		network;
 		Video		video(ui, network);
 		Audio		audio(network);
+		UILock		lock;
 		Program		program(ui, network, video, audio);
 
 		ui.f["audio restart"] = boost::bind(&Audio::restart, &audio);
@@ -119,7 +120,6 @@ int main(void) {
 
 		while(true)
 			try {
-				UILock lock;
 				return fltk::run();
 			} catch (exception& e) {
 				cout << "error: " << e.what() << endl;

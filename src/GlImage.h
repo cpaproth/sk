@@ -37,10 +37,7 @@ class GlImage : public fltk::GlWindow {
 public:
 	GlImage(int, int, int, int, const char* = 0);
 	
-	void set(cv::Mat* cvimg) {
-		img = cvimg;
-	}
-
+	void set(cv::Mat*);
 };
 
 

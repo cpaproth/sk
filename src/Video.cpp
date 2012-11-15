@@ -97,45 +97,52 @@ void Video::deblock(Mat& img) {
 
 
 void Video::worker(void) {
-	Mat			img(imageheight, imagewidth, CV_8UC3);
-	Mat			dst(imageheight, imagewidth, CV_8UC3);
-	Mat			limg(imageheight, imagewidth, CV_8UC3);
-	Mat			rimg(imageheight, imagewidth, CV_8UC3);
-	vector<unsigned char>	buf;
-	vector<vector<unsigned char> >	rbuf;
-	vector<int>		params;
+	try {
+		Mat				img(imageheight, imagewidth, CV_8UC3);
+		Mat				limg(imageheight, imagewidth, CV_8UC3, Scalar());
+		Mat				rimg(imageheight, imagewidth, CV_8UC3, Scalar());
+		Mat				cap(imageheight, imagewidth, CV_8UC3);
+		vector<unsigned char>		encbuf;
+		vector<vector<unsigned char> >	decbuf;
+		vector<int>			params;
 
-	params.push_back(CV_IMWRITE_JPEG_QUALITY);
-	params.push_back(25);
-
-	while (working) {
-		//this_thread::sleep(posix_time::milliseconds(100));
-		*capture >> img;
-		if (img.size().area() == 0) {
-			capture->open("webcam.avi");
-			continue;
-		}
-		resize(img, dst, dst.size());
-		imencode(".jpg", dst, buf, params);
-		
-		network.broadcast(buf, rbuf, maxlatency);
-		
-		if (rbuf.size() > 0 && rbuf[0].size() > 0) {
-			limg = imdecode(Mat(rbuf[0]), 1);
-			deblock(limg);
-		}
-		if (rbuf.size() > 1 && rbuf[1].size() > 0) {
-			rimg = imdecode(Mat(rbuf[1]), 1);
-			deblock(rimg);
-		}
-		fltk::lock();
-		ui.midimage->set(&dst);
-		ui.midimage->redraw();
+		params.push_back(CV_IMWRITE_JPEG_QUALITY);
+		params.push_back(25);
+		ui.midimage->set(&img);
 		ui.leftimage->set(&limg);
-		ui.leftimage->redraw();
 		ui.rightimage->set(&rimg);
-		ui.rightimage->redraw();
-		fltk::awake();
-		fltk::unlock();
+
+		while (working) {
+			*capture >> cap;
+
+			if (cap.size().area() == 0) {
+				capture->open("webcam.avi");
+				*capture >> cap;
+			}
+			if (cap.size().area() == 0)
+				throw runtime_error("empty captured image");
+
+			resize(cap, img, img.size());
+			imencode(".jpg", img, encbuf, params);
+			
+			network.broadcast(encbuf, decbuf, maxlatency);
+			
+			if (decbuf.size() > 0 && decbuf[0].size() > 0) {
+				limg = imdecode(Mat(decbuf[0]), 1);
+				deblock(limg);
+			}
+			if (decbuf.size() > 1 && decbuf[1].size() > 0) {
+				rimg = imdecode(Mat(decbuf[1]), 1);
+				deblock(rimg);
+			}
+			
+			UILock lock;
+			ui.midimage->redraw();
+			ui.leftimage->redraw();
+			ui.rightimage->redraw();
+			fltk::awake();
+		}
+	} catch (std::exception& e) {
+		cout << "video failure: " << e.what() << endl;
 	}
 }

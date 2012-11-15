@@ -79,7 +79,7 @@ void Audio::toggle_playmic(void) {
 }
 
 
-void Audio::encode(short* in) {
+void Audio::encode(const short* in) {
 	encbuf.assign(encodesize, 0);
 
 	for (unsigned i = 0; i < data.size(); i++)
@@ -98,36 +98,41 @@ void Audio::encode(short* in) {
 	i = 0;
 	for (map<unsigned, double>::iterator it = channels.begin(); it != channels.end(); it++, i++) {
 		encbuf[it->first >> 3] |= 1 << (it->first & 7);
-		encbuf[32 + i] = ((unsigned)(log(1. + it->second * 10000.) / log(10001.) * 15.) << 4)
-			| ((unsigned)((arg(data[it->first]) + M_PI) / M_PI * 8.) & 15);
+		double rho = log(1. + it->second * 10000.) / log(10001.) * 15.;
+		double phi = (arg(data[it->first]) + M_PI) / M_PI * 8.;
+		encbuf[32 + i] = ((unsigned)rho << 4) | ((unsigned)phi & 15);
 	}
 }
 
 
 void Audio::decode(short* out) {
-	if (decbuf.size() == 0)
-		return;
-	vector<unsigned char> in(decbuf[0]);
+	valarray<double> output(0., framesize);
 
-	data[0] = data[data.size() / 2] = 0.;
-	unsigned i = 0;
-	for (unsigned j = 1; j < data.size() / 2; j++) {
-		if (in[j >> 3] & (1 << (j & 7)) && i < 128) {
-			data[j] = 0.5 * polar<double>((pow(10001., (in[32 + i] >> 4) / 15.) - 1.) / 10000., (in[32 + i] & 15) / 8. * M_PI - M_PI);
-			i++;
-		} else
-			data[j] = polar<double>(0.00005, rand() * 2. * M_PI / RAND_MAX);
-		data[data.size() - j] = conj(data[j]);
+	for (unsigned k = 0; k < decbuf.size(); k++) {
+		data[0] = data[data.size() / 2] = 0.;
+		unsigned i = 0;
+		for (unsigned j = 1; j < data.size() / 2; j++) {
+			if (decbuf[k][j >> 3] & (1 << (j & 7)) && i < 128) {
+				double rho = (pow(10001., (decbuf[k][32 + i] >> 4) / 15.) - 1.) / 10000.;
+				double phi = (decbuf[k][32 + i] & 15) / 8. * M_PI - M_PI;
+				data[j] = 0.5 * polar<double>(rho, phi);
+				i++;
+			} else
+				data[j] = polar<double>(0.00005, rand() * 2. * M_PI / RAND_MAX);
+			data[data.size() - j] = conj(data[j]);
+		}
+		fft(data, false);
+		for (unsigned i = 0; i < data.size(); i++)
+			output[i] += data[i].real();
 	}
 
-	fft(data, false);
-	for (unsigned i = 0; i < data.size(); i++) {
-		if (data[i].real() > 1.)
+	for (unsigned i = 0; i < output.size(); i++) {
+		if (output[i] > 1.)
 			out[i] = 32767;
-		else if (data[i].real() < -1.)
+		else if (output[i] < -1.)
 			out[i] = -32768;
 		else
-			out[i] = (short)(data[i].real() * 32767.);
+			out[i] = (short)(output[i] * 32767.);
 	}
 }
 

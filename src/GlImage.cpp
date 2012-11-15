@@ -28,6 +28,11 @@ GlImage::GlImage(int x, int y, int w ,int h, const char* l) : GlWindow(x, y, w, 
 }
 
 
+void GlImage::set(cv::Mat* cvimg) {
+	img = cvimg;
+}
+
+
 void GlImage::draw(void) {
 	if (!valid()) {
 		ortho();

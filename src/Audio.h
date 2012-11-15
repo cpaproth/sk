@@ -53,7 +53,7 @@ class Audio {
 	bool				playmic;
 
 
-	void encode(short*);
+	void encode(const short*);
 	void decode(short*);
 
 	static int callback(const void*, void*, unsigned long, const PaStreamCallbackTimeInfo*, PaStreamCallbackFlags, void*);
