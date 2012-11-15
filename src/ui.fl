@@ -1,6 +1,6 @@
 # data file for the FLTK User Interface Designer (FLUID)
 version 2.1000 
-images_dir header_name 
+images_dir D:/Install/sk/src/ui.fl 
 header_name {.h} 
 code_name {.cpp} 
 gridx 5 
@@ -29,8 +29,8 @@ namespace SK {open
       {fltk::Window} mainwnd {
         label {Skat-Konferenz}
         callback {mainwnd->hide();
-fltk::unlock();} selected
-        private xywh {251 32 960 700}
+fltk::unlock();} open
+        private xywh {251 32 960 700} resizable
         extra_code {\#include <map>
 \#include <string>
 \#include <boost/function/function0.hpp>
@@ -62,7 +62,7 @@ fltk::unlock();} selected
               xywh {640 435 320 240} box FLAT_BOX color 56
               class GlImage
             }
-            {fltk::Group} {} {open
+            {fltk::Group} {} {open selected
               xywh {640 0 320 435} box DOWN_BOX
             } {}
           }
@@ -81,7 +81,7 @@ fltk::unlock();} selected
               {fltk::Button} {} {
                 label {Neustart Audio Stream}
                 callback {f["audio restart"]();}
-                tooltip {Falls der Audiostream verzögert läuft, kann ein Neustart dies evtl. beheben. Zeigt auch die gegenwärtige CPU Auslastung des Audiostreams im Logfenster an.}
+                tooltip {Falls der Audiostream verzögert läuft, kann ein Neustart dies evtl. beheben. Zeigt zusätzlich die gegenwärtige CPU Auslastung des Audiostreams im Log-Fenster an.}
                 private xywh {35 40 150 25}
               }
               {fltk::CheckButton} {} {
@@ -127,7 +127,8 @@ prefs.set("bandwidth", bandwidth->value());}
                 xywh {165 140 195 25} when RELEASE color 0xffffff00 maximum 1e+009 step 1
                 extra_code {double d;
 prefs.get("bandwidth", d, 50000);
-bandwidth->value(d);}
+bandwidth->value(d);
+bandwidth->linesize(1000);}
               }
               {fltk::Button} {} {
                 label Start
@@ -138,7 +139,7 @@ bandwidth->value(d);}
               {fltk::Button} {} {
                 label Stats
                 callback {f["network stats"]();}
-                tooltip {Gibt ein paar Statistiken über die verbundenen Peers im Logfenster aus.}
+                tooltip {Gibt ein paar Statistiken über die verbundenen Peers im Log-Fenster aus.}
                 xywh {165 240 195 25}
               }
               {fltk::CheckButton} autostart {
@@ -177,6 +178,7 @@ delete[] c;}
           }
         }
       }
+      code {w->resizable(0);} {}
       code {w->show();} {}
     }
     Function {~UserInterface(void)} {} {

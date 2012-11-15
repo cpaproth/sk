@@ -20,31 +20,49 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #include <fltk/events.h>
 #include <opencv/highgui.h>
 #include <stdexcept>
+#include <fltk/xpmImage.h>
+#include "../images/cards.xpm"
 
 
 using namespace SK;
 
 
 GlTable::GlTable(int x, int y, int w ,int h, const char* l) : GlWindow(x, y, w, h, l) {
-	cv::Mat img = cv::imread("cards.png");
-	if (!img.size().area())
-		throw runtime_error("cards.png not found or invalid");
-	width = img.cols;
-	height = img.rows;
+	uchar* data;
+	unsigned depth;
+	cv::Mat pngimg = cv::imread("cards.png");
+	fltk::xpmImage xpmimg(cards_xpm);
+
+	if (pngimg.size().area() != 0) {
+		width = pngimg.cols;
+		height = pngimg.rows;
+		data = pngimg.data;
+		depth = pngimg.elemSize();
+	} else {
+		xpmimg.fetch();
+		width = xpmimg.buffer_width();
+		height = xpmimg.buffer_height();
+		data = xpmimg.buffer();
+		depth = xpmimg.buffer_depth();
+	}
+
+	if (width == 0 || height == 0 || depth < 3)
+		throw runtime_error("loading card images failed");
+
 	mem.resize(width * height * 4);
 	for (unsigned y = 0; y < height; y++)
 		for (unsigned x = 0; x < width; x++) {
 			unsigned mpos = (height - 1 - y) * width * 4 + x * 4;
-			unsigned ipos = y * width * 3 + x * 3;
-			if (img.data[ipos] == 255 && img.data[ipos + 1] == 0 && img.data[ipos + 2] == 255) {
+			unsigned ipos = y * width * depth + x * depth;
+			if (data[ipos] == 255 && data[ipos + 1] == 0 && data[ipos + 2] == 255) {
 				mem[mpos] = 128;
 				mem[mpos + 1] = 128;
 				mem[mpos + 2] = 128;
 				mem[mpos + 3] = 0;
 			} else {
-				mem[mpos] = img.data[ipos + 2];
-				mem[mpos + 1] = img.data[ipos + 1];
-				mem[mpos + 2] = img.data[ipos];
+				mem[mpos] = data[ipos + 2];
+				mem[mpos + 1] = data[ipos + 1];
+				mem[mpos + 2] = data[ipos];
 				mem[mpos + 3] = 255;
 			}
 		}
@@ -97,7 +115,7 @@ void GlTable::draw(void) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, &mem[0]);
-		//glEnable(GL_TEXTURE_2D);
+		glEnable(GL_TEXTURE_2D);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glClearColor(0.831f, 0.816f, 0.784f, 1.f);
@@ -105,15 +123,16 @@ void GlTable::draw(void) {
 
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	unsigned vals[] = {10, 29, 24, 7, 6, 5, 1, 0, 19, 3};
+	unsigned vals[] = {3, 19, 0, 1, 5, 6, 7, 24, 29, 10};
+	//unsigned vals[] = {25,26,27,28,9,10,11,12,4,6};
 
 	glBegin(GL_QUADS);
 
 	float a = -4.f * 50.f / w() / w();
 	float b = -a * w();
 	for (unsigned i = 0; i < sizeof(vals) / sizeof(unsigned); i++) {
-		float x = 550 - i * 50.f;
-		float angle = -0.3f + i * 0.06f;
+		float x = 100 + i * 50.f;
+		float angle = 0.3f - i * 0.06f;
 		float sx = i != selected? 0.f: -50.f * sin(angle);
 		float sy = i != selected? 0.f: 50.f * cos(angle);
 		draw_card(vals[i] % 8, vals[i] / 8, x + sx, a * x * x + b * x + sy, angle, 200.f);
@@ -144,8 +163,8 @@ int GlTable::handle(int event) {
 	case MOVE:
 		if (h() - event_y() - 1 < a * event_x() * event_x() + b * event_x() + 150.f)
 			for (unsigned i = 0; i < 10; i++) {
-				float x = 550 - i * 50.f;
-				float angle = -0.3f + i * 0.06f;
+				float x = 100 + i * 50.f;
+				float angle = 0.3f - i * 0.06f;
 				float sx = i != selected? 0.f: -50.f * sin(angle);
 				float sy = i != selected? 0.f: 50.f * cos(angle);
 				if (inside_card(event_x(), h() - event_y() - 1, x + sx, a * x * x + b * x + sy, angle, 200.f))

@@ -51,11 +51,11 @@ UIsbuf::~UIsbuf(void) {
 }
 int UIsbuf::overflow(int c) {
 	char buf[] = {(char)c, 0};
-	//UILock lock;
+	UILock lock;
 	ui.log->append(buf);
 	if (buf[0] == '\n') {
 		ui.log->scroll(INT_MAX, 0);
-	//	fltk::awake();
+		fltk::awake();
 	}
 	return c;
 }
@@ -93,7 +93,9 @@ Program::Program(void) : sbuf(ui), video(ui, network), audio(network) {
 
 
 void Program::start_network(void) {
+	fltk::unlock();
 	network.start(ui.address->value(), (unsigned short)ui.port->value(), (unsigned)ui.bandwidth->value(), boost::bind(&Program::handle_command, this, _1, _2, _3));
+	fltk::lock();
 }
 
 

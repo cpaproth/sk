@@ -1,6 +1,6 @@
 # *sk*
 
-Skat-Konferenz is the popular german card game Skat played online combined with videoconferencing. Copyright (C) 2012 Carsten Paproth.
+Skat-Konferenz is the popular german card game Skat played online combined with videoconferencing. Copyright (C) 2012 Carsten Paproth (carpa at freenet dot de).
 This program is free software and comes with ABSOLUTELY NO WARRANTY. Licensed under the terms of [GPLv3](http://www.gnu.org/licenses/).
 
 Skat-Konferenz is written in C++ by using only portable libraries, so it should be compatible with UNIX/Linux (X11), MS Windows, and Mac OS X. Till now,
@@ -17,6 +17,9 @@ Following portable open source libraries are used by *sk*:
 * [PortAudio](http://www.portaudio.com) for the audio hardware interface
 * the fast Fourier transform implementation of the GNU scientific library [GSL](http://www.gnu.org/software/gsl/) for a simple audio compression algorithm
 * [Boost](http://www.boost.org) for multithreading (boost::thread) and asynchronous network I/O (boost::asio)
+
+Playing card images are copied from [GNOME Aisleriot](https://live.gnome.org/Aisleriot) and modified to look more like Skat cards:
+![playing cards](/images/cards.png)
 
 
 ## Building

@@ -137,8 +137,8 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
            {fltk::Button* o = new fltk::Button(35, 40, 150, 25, "Neustart Audio Stream");
             o->callback((fltk::Callback*)cb_Neustart);
             o->tooltip("Falls der Audiostream verz\303\266gert l\303\244uft, kann ein Neustart dies e\
-vtl. beheben. Zeigt auch die gegenw\303\244rtige CPU Auslastung des Audiostrea\
-ms im Logfenster an.");
+vtl. beheben. Zeigt zus\303\244tzlich die gegenw\303\244rtige CPU Auslastung d\
+es Audiostreams im Log-Fenster an.");
           }
            {fltk::CheckButton* o = new fltk::CheckButton(35, 90, 150, 25, "Mikrofon abspielen");
             o->callback((fltk::Callback*)cb_Mikrofon);
@@ -185,6 +185,7 @@ s, sonstiger Netzwerkverkehr ist weniger als 1000 Byte/s pro Peer.");
             double d;
             prefs.get("bandwidth", d, 50000);
             bandwidth->value(d);
+            bandwidth->linesize(1000);
           }
            {fltk::Button* o = new fltk::Button(165, 190, 195, 25, "Start");
             o->callback((fltk::Callback*)cb_Start);
@@ -192,8 +193,8 @@ s, sonstiger Netzwerkverkehr ist weniger als 1000 Byte/s pro Peer.");
           }
            {fltk::Button* o = new fltk::Button(165, 240, 195, 25, "Stats");
             o->callback((fltk::Callback*)cb_Stats);
-            o->tooltip("Gibt ein paar Statistiken \303\274""ber die verbundenen Peers im Logfenster a\
-us.");
+            o->tooltip("Gibt ein paar Statistiken \303\274""ber die verbundenen Peers im Log-Fenster \
+aus.");
           }
            {fltk::CheckButton* o = autostart = new fltk::CheckButton(70, 190, 60, 25, "Auto");
             o->callback((fltk::Callback*)cb_autostart);
@@ -232,7 +233,9 @@ sse.");
       o->end();
     }
     o->end();
+    o->resizable(o);
   }
+  w->resizable(0);
   w->show();
 }
 

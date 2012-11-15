@@ -50,13 +50,15 @@ Network::~Network(void) {
 		lock_guard<timed_mutex> lock(netmutex);
 		timer.cancel();
 		socket.close();
-		iothread.join();
+		if (iothread.joinable())
+			iothread.join();
 	} catch (...) {}
 }
 
 
 void Network::start(const string& address, unsigned short port, unsigned bw, handler h) {
 	lock_guard<timed_mutex> lock(netmutex);
+
 	if (iothread.joinable()) {
 		timer.cancel();
 		socket.close();
