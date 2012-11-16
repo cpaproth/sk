@@ -2,6 +2,8 @@
 
 #include "ui.h"
 //Copyright (C) 2012 Carsten Paproth
+#include "../images/diamonds.xpm"
+#include "../images/hearts.xpm"
 using namespace SK;
 
 inline void UserInterface::cb_mainwnd_i(fltk::Window*, void*) {
@@ -79,6 +81,8 @@ inline void UserInterface::cb_name_i(fltk::Input*, void*) {
 void UserInterface::cb_name(fltk::Input* o, void* v) {
   ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_name_i(o,v);
 }
+static fltk::xpmImage dxpm(diamonds_xpm, "diamonds");
+static fltk::xpmImage hxpm(hearts_xpm, "hearts");
 
 UILock::UILock() {
   fltk::lock();
@@ -127,6 +131,19 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
          {fltk::Group* o = new fltk::Group(640, 0, 320, 435);
           o->set_vertical();
           o->box(fltk::DOWN_BOX);
+          o->begin();
+           {fltk::Group* o = new fltk::Group(25, 20, 220, 115);
+            o->box(fltk::DOWN_BOX);
+            o->begin();
+             {fltk::RadioButton* o = diamonds = new fltk::RadioButton(10, 10, 25, 25, "@diamonds");
+              o->align(fltk::ALIGN_BOTTOM|fltk::ALIGN_INSIDE);
+            }
+            hearts = new fltk::RadioButton(55, 10, 25, 25, "@hearts");
+            spades = new fltk::RadioButton(100, 10, 25, 25);
+            clubs = new fltk::RadioButton(150, 10, 25, 25);
+            o->end();
+          }
+          o->end();
         }
         o->end();
       }
@@ -182,7 +199,7 @@ chtig einstellen zu k\303\266nnen, damit z.B. Echos verringert werden. ");
           }
            {fltk::ValueInput* o = bandwidth = new fltk::ValueInput(165, 140, 195, 25, "Video Upload-Bandbreite");
             o->color((fltk::Color)0xffffff00);
-            o->maximum(1e+09);
+            o->maximum(1e+009);
             o->step(1);
             o->callback((fltk::Callback*)cb_bandwidth);
             o->when(fltk::WHEN_RELEASE);

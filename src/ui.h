@@ -12,6 +12,8 @@
 #include "GlTable.h"
 #include <fltk/TabGroup.h>
 #include <fltk/Group.h>
+#include <fltk/RadioButton.h>
+#include <fltk/xpmImage.h>
 #include <fltk/Button.h>
 #include <fltk/CheckButton.h>
 #include <fltk/Input.h>
@@ -46,6 +48,10 @@ public:
         GlImage *leftimage;
         GlImage *rightimage;
         GlImage *midimage;
+            fltk::RadioButton *diamonds;
+            fltk::RadioButton *hearts;
+            fltk::RadioButton *spades;
+            fltk::RadioButton *clubs;
 private:
           inline void cb_Neustart_i(fltk::Button*, void*);
           static void cb_Neustart(fltk::Button*, void*);

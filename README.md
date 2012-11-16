@@ -4,7 +4,7 @@ Skat-Konferenz is the popular german card game Skat played online combined with 
 This program is free software and comes with ABSOLUTELY NO WARRANTY. Licensed under the terms of [GPLv3](http://www.gnu.org/licenses/).
 
 Skat-Konferenz is written in C++ using portable libraries exclusively, so it should be compatible with UNIX/Linux (X11), MS Windows, and Mac OS X. Till now,
-it has been tested on Xubuntu 11.10(32bit and 64bit), Xubuntu 12.04(64bit), and MS Windows 7(32bit).
+it has been tested on Xubuntu 11.10 (32-bit and 64-bit), Xubuntu 12.04 (64-bit), and MS Windows 7 ([32-bit](https://github.com/cpaproth/sk/downloads)).
 
 This software is a work in progress, but the networking and videoconferencing part is already functional [v0.1](https://github.com/cpaproth/sk/tags).
 
@@ -24,9 +24,9 @@ Playing card images are copied from [GNOME Aisleriot](https://live.gnome.org/Ais
 ## Building
 
 To build *sk*, you need to install the dependencies with the corresponding development files first. Probably, they are available from your package manager, if you are using
-some kind of Linux. Unfortunately, FLTK-2.0 is an inactive branch of FLTK, it is likely that you have to install it manually. *sk* comes with a simple CMakeLists.txt file,
-so you can use CMake to generate a makefile. Currently, this procedure works only on Linux, so for other operating systems you have to create appropriate build files by hand.
-After installing all the dependencies and maybe CMake, you can build *sk*:
+some kind of Linux. Unfortunately, FLTK-2.0 is an inactive branch of FLTK, it is likely that you have to install it [manually](https://github.com/cpaproth/sk/downloads).
+*sk* comes with a simple CMakeLists.txt file, so you can use CMake to generate a makefile. Currently, this procedure works only on Linux,
+so for other operating systems you have to create appropriate build files by hand. After installing all the dependencies and maybe CMake, you can build *sk*:
 
     mkdir build-directory
     cd build-directory

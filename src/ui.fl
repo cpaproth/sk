@@ -8,8 +8,14 @@ gridy 5
 snap 3
 decl {//Copyright (C) 2012 Carsten Paproth} {} 
 
+decl {\#include "../images/diamonds.xpm"} {} 
+
+decl {\#include "../images/hearts.xpm"} {} 
+
 namespace SK {open
 } {
+  decl {fltk::xpmImage dxpm(diamonds_xpm, "diamonds");} {}
+  decl {fltk::xpmImage hxpm(hearts_xpm, "hearts");} {}
   class UILock {} {
     Function {UILock()} {} {
       code {fltk::lock();} {}
@@ -71,7 +77,27 @@ namespace SK {open
             }
             {fltk::Group} {} {open
               xywh {640 0 320 435} box DOWN_BOX
-            } {}
+            } {
+              {fltk::Group} {} {open
+                xywh {25 20 220 115} box DOWN_BOX
+              } {
+                {fltk::RadioButton} diamonds {
+                  label {@diamonds}
+                  xywh {10 10 25 25} align 34
+                  extra_code {\#include <fltk/xpmImage.h>}
+                }
+                {fltk::RadioButton} hearts {
+                  label {@hearts} selected
+                  xywh {55 10 25 25}
+                }
+                {fltk::RadioButton} spades {
+                  xywh {100 10 25 25}
+                }
+                {fltk::RadioButton} clubs {
+                  xywh {150 10 25 25}
+                }
+              }
+            }
           }
           {fltk::Group} {} {
             label Liste open
@@ -87,7 +113,7 @@ namespace SK {open
             } {
               {fltk::Button} {} {
                 label {Neustart Audiostream}
-                callback {f["audio restart"]();} selected
+                callback {f["audio restart"]();}
                 tooltip {Falls der Audiostream verzögert läuft, kann ein Neustart dies evtl. beheben. Zeigt zusätzlich die gegenwärtige CPU Auslastung des Audiostreams im Log-Fenster an.}
                 private xywh {35 40 150 25}
               }
@@ -131,7 +157,7 @@ port->value(d);}
   bandwidth->value(0);
 prefs.set("bandwidth", bandwidth->value());}
                 tooltip {Maximale Upload-Bandbreite für Video in Byte/s, wird auf die verbundenen Peers aufgeteilt. Der Audiostream benötigt pro Peer immer 2500 Byte/s, sonstiger Netzwerkverkehr ist weniger als 1000 Byte/s pro Peer.}
-                xywh {165 140 195 25} when RELEASE color 0xffffff00 maximum 1e+09 step 1
+                xywh {165 140 195 25} when RELEASE color 0xffffff00 maximum 1e+009 step 1
                 extra_code {double d;
 prefs.get("bandwidth", d, 50000);
 bandwidth->value(d);
