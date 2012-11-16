@@ -141,7 +141,7 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
           o->labeltype(fltk::ENGRAVED_LABEL);
           o->align(fltk::ALIGN_TOP|fltk::ALIGN_INSIDE);
           o->begin();
-           {fltk::Button* o = new fltk::Button(35, 40, 150, 25, "Neustart Audio Stream");
+           {fltk::Button* o = new fltk::Button(35, 40, 150, 25, "Neustart Audiostream");
             o->callback((fltk::Callback*)cb_Neustart);
             o->tooltip("Falls der Audiostream verz\303\266gert l\303\244uft, kann ein Neustart dies e\
 vtl. beheben. Zeigt zus\303\244tzlich die gegenw\303\244rtige CPU Auslastung d\
@@ -182,7 +182,7 @@ chtig einstellen zu k\303\266nnen, damit z.B. Echos verringert werden. ");
           }
            {fltk::ValueInput* o = bandwidth = new fltk::ValueInput(165, 140, 195, 25, "Video Upload-Bandbreite");
             o->color((fltk::Color)0xffffff00);
-            o->maximum(1e+009);
+            o->maximum(1e+09);
             o->step(1);
             o->callback((fltk::Callback*)cb_bandwidth);
             o->when(fltk::WHEN_RELEASE);

@@ -3,10 +3,10 @@
 Skat-Konferenz is the popular german card game Skat played online combined with videoconferencing. Copyright (C) 2012 Carsten Paproth (carpa at freenet dot de).
 This program is free software and comes with ABSOLUTELY NO WARRANTY. Licensed under the terms of [GPLv3](http://www.gnu.org/licenses/).
 
-Skat-Konferenz is written in C++ by using only portable libraries, so it should be compatible with UNIX/Linux (X11), MS Windows, and Mac OS X. Till now,
+Skat-Konferenz is written in C++ using portable libraries exclusively, so it should be compatible with UNIX/Linux (X11), MS Windows, and Mac OS X. Till now,
 it has been tested on Xubuntu 11.10(32bit and 64bit), Xubuntu 12.04(64bit), and MS Windows 7(32bit).
 
-This software is a work in progress, but the networking and videoconferencing part is already functional.
+This software is a work in progress, but the networking and videoconferencing part is already functional (v0.1).
 
 
 ## Dependencies
@@ -18,9 +18,7 @@ Following portable open source libraries are used by *sk*:
 * the fast Fourier transform implementation of the GNU scientific library [GSL](http://www.gnu.org/software/gsl/) for a simple audio compression algorithm
 * [Boost](http://www.boost.org) for multithreading (boost::thread) and asynchronous network I/O (boost::asio)
 
-Playing card images are copied from [GNOME Aisleriot](https://live.gnome.org/Aisleriot) and modified to look more like Skat cards:
-
-![playing cards](https://github.com/cpaproth/sk/raw/master/images/cards.png)
+Playing card images are copied from [GNOME Aisleriot](https://live.gnome.org/Aisleriot) and modified to look more like Skat cards.
 
 
 ## Building
@@ -41,3 +39,5 @@ After installing all the dependencies and maybe CMake, you can build *sk*:
 Skat is a card game played by three people. One starts *sk* as server and tells the other two his or her publicly reachable IP address per e-mail, telephone, or whatever.
 Now the other two can start *sk* as client and connect to this disclosed IP address. Then, the server initiates UDP hole punching bewteen the two clients and the
 videoconferencing starts. Now the game could start. To be implemented...
+
+![playing cards](https://github.com/cpaproth/sk/raw/master/images/cards.png)

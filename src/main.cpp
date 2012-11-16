@@ -62,18 +62,10 @@ class Program {
 
 	void handle_command(unsigned, const string&, const string&);
 public:
-	Program(UserInterface&, Network&, Video&, Audio&);
+	Program(UserInterface& ui, Network& nw, Video& v, Audio& a) : ui(ui), network(nw), video(v), audio(a) {}
 
 	void start_network(void);
 };
-
-
-Program::Program(UserInterface& ui, Network& nw, Video& v, Audio& a) : ui(ui), network(nw), video(v), audio(a) {
-	audio.restart();
-
-	if (ui.autostart->value())
-		start_network();
-}
 
 
 void Program::start_network(void) {
@@ -109,14 +101,23 @@ int main(void) {
 		Network		network;
 		Video		video(ui, network);
 		Audio		audio(network);
-		UILock		lock;
 		Program		program(ui, network, video, audio);
+		UILock		lock;
+
+
+		audio.restart();
 
 		ui.f["audio restart"] = boost::bind(&Audio::restart, &audio);
 		ui.f["audio toggle"] = boost::bind(&Audio::toggle_playmic, &audio);
 		ui.f["network stats"] = boost::bind(&Network::stats, &network);
 		ui.f["network start"] = boost::bind(&Program::start_network, &program);
 
+		try {
+			if (ui.autostart->value())
+				program.start_network();
+		} catch (exception& e) {
+			cout << "autostarting network failed: " << e.what() << endl;
+		}
 
 		while(true)
 			try {
@@ -125,7 +126,7 @@ int main(void) {
 				cout << "error: " << e.what() << endl;
 			}
 	} catch (exception& e) {
-		cout << "error: " << e.what() << endl;
+		cout << "initialization error: " << e.what() << endl;
 	}
 
 	return 1;

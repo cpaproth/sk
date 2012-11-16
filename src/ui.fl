@@ -36,7 +36,7 @@ namespace SK {open
       code {UILock lock;} {}
       {fltk::Window} mainwnd {
         label {Skat-Konferenz}
-        callback {mainwnd->hide();} open selected
+        callback {mainwnd->hide();} open
         private xywh {251 32 960 700} resizable
         extra_code {\#include <map>
 \#include <string>
@@ -86,8 +86,8 @@ namespace SK {open
               xywh {630 85 220 145} align 33 box DOWN_BOX labeltype ENGRAVED_LABEL
             } {
               {fltk::Button} {} {
-                label {Neustart Audio Stream}
-                callback {f["audio restart"]();}
+                label {Neustart Audiostream}
+                callback {f["audio restart"]();} selected
                 tooltip {Falls der Audiostream verzögert läuft, kann ein Neustart dies evtl. beheben. Zeigt zusätzlich die gegenwärtige CPU Auslastung des Audiostreams im Log-Fenster an.}
                 private xywh {35 40 150 25}
               }
@@ -131,7 +131,7 @@ port->value(d);}
   bandwidth->value(0);
 prefs.set("bandwidth", bandwidth->value());}
                 tooltip {Maximale Upload-Bandbreite für Video in Byte/s, wird auf die verbundenen Peers aufgeteilt. Der Audiostream benötigt pro Peer immer 2500 Byte/s, sonstiger Netzwerkverkehr ist weniger als 1000 Byte/s pro Peer.}
-                xywh {165 140 195 25} when RELEASE color 0xffffff00 maximum 1e+009 step 1
+                xywh {165 140 195 25} when RELEASE color 0xffffff00 maximum 1e+09 step 1
                 extra_code {double d;
 prefs.get("bandwidth", d, 50000);
 bandwidth->value(d);
