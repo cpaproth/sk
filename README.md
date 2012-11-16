@@ -6,7 +6,7 @@ This program is free software and comes with ABSOLUTELY NO WARRANTY. Licensed un
 Skat-Konferenz is written in C++ using portable libraries exclusively, so it should be compatible with UNIX/Linux (X11), MS Windows, and Mac OS X. Till now,
 it has been tested on Xubuntu 11.10(32bit and 64bit), Xubuntu 12.04(64bit), and MS Windows 7(32bit).
 
-This software is a work in progress, but the networking and videoconferencing part is already functional (v0.1).
+This software is a work in progress, but the networking and videoconferencing part is already functional [v0.1](https://github.com/cpaproth/sk/tags).
 
 
 ## Dependencies
