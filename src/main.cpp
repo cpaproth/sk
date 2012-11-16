@@ -17,14 +17,14 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 
 #include "ui.h"
-
-#include "Convenience.h"
-
 #include "Network.h"
 #include "Audio.h"
 #include "Video.h"
 
+#include <fltk/ask.h>
 #include <iostream>
+#include "Convenience.h"
+
 
 using namespace CPLib;
 using namespace SK;
@@ -126,9 +126,8 @@ int main(void) {
 				cout << "error: " << e.what() << endl;
 			}
 	} catch (exception& e) {
-		cout << "initialization error: " << e.what() << endl;
+		fltk::alert(ss("initialization error: ") << e.what() | c_str);
 	}
 
 	return 1;
-
 }

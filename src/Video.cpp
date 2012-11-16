@@ -31,11 +31,11 @@ using namespace boost;
 
 
 Video::Video(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
-	capture = shared_ptr<VideoCapture>(new VideoCapture(0));
+	capture = shared_ptr<VideoCapture>(new VideoCapture(1));
 
 	if (!capture->isOpened() && !capture->open("webcam.avi"))
 		throw runtime_error("open webcam failed");
-
+	
 	working = true;
 	videothread = thread(bind(&Video::worker, this));
 
@@ -45,6 +45,8 @@ Video::Video(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 
 Video::~Video(void) {
 	try {
+		cout << "stop video capture" << endl;
+
 		working = false;
 		videothread.join();
 
@@ -105,12 +107,12 @@ void Video::worker(void) {
 		vector<unsigned char>		encbuf;
 		vector<vector<unsigned char> >	decbuf;
 		vector<int>			params;
+		GlImage::Guard			midguard(ui.midimage, &img);
+		GlImage::Guard			leftguard(ui.leftimage, &limg);
+		GlImage::Guard			rightguard(ui.rightimage, &rimg);
 
 		params.push_back(CV_IMWRITE_JPEG_QUALITY);
 		params.push_back(25);
-		ui.midimage->set(&img);
-		ui.leftimage->set(&limg);
-		ui.rightimage->set(&rimg);
 
 		while (working) {
 			*capture >> cap;

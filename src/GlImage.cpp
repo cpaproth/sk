@@ -23,6 +23,16 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 using namespace SK;
 
 
+GlImage::Guard::Guard(GlImage* glimg, cv::Mat* img) : glimg(glimg) {
+	glimg->set(img);
+}
+
+
+GlImage::Guard::~Guard(void) {
+	glimg->set(0);
+}
+
+
 GlImage::GlImage(int x, int y, int w ,int h, const char* l) : GlWindow(x, y, w, h, l) {
 	img = 0;
 }
