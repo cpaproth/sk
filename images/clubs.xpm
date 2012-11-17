@@ -1,5 +1,5 @@
 /* XPM */
-static char * clubs_xpm[] = {
+static const char * clubs_xpm[] = {
 "26 24 2 1",
 " 	c None",
 ".	c #000000",
@@ -26,4 +26,4 @@ static char * clubs_xpm[] = {
 "           ....           ",
 "           ....           ",
 "          ......          ",
-"          ..  ..          "};
+"          ......          "};

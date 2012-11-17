@@ -1,6 +1,6 @@
 # data file for the FLTK User Interface Designer (FLUID)
 version 2.1000 
-images_dir D:/Install/sk/src/ui.fl 
+images_dir ../images/ 
 header_name {.h} 
 code_name {.cpp} 
 gridx 5 
@@ -8,14 +8,18 @@ gridy 5
 snap 3
 decl {//Copyright (C) 2012 Carsten Paproth} {} 
 
-decl {\#include "../images/diamonds.xpm"} {} 
-
-decl {\#include "../images/hearts.xpm"} {} 
-
 namespace SK {open
 } {
-  decl {fltk::xpmImage dxpm(diamonds_xpm, "diamonds");} {}
-  decl {fltk::xpmImage hxpm(hearts_xpm, "hearts");} {}
+  namespace images {} {
+    decl {\#include "../images/diamonds.xpm"} {}
+    decl {\#include "../images/hearts.xpm"} {}
+    decl {\#include "../images/spades.xpm"} {}
+    decl {\#include "../images/clubs.xpm"} {}
+    decl {fltk::xpmImage dia(diamonds_xpm, "dia");} {}
+    decl {fltk::xpmImage hea(hearts_xpm, "hea");} {}
+    decl {fltk::xpmImage spa(spades_xpm, "spa");} {}
+    decl {fltk::xpmImage clu(clubs_xpm, "clu");} {}
+  }
   class UILock {} {
     Function {UILock()} {} {
       code {fltk::lock();} {}
@@ -43,12 +47,13 @@ namespace SK {open
       {fltk::Window} mainwnd {
         label {Skat-Konferenz}
         callback {mainwnd->hide();} open
-        private xywh {251 32 960 700} resizable
+        private xywh {234 98 960 700} resizable
         extra_code {\#include <map>
 \#include <string>
 \#include <boost/function/function0.hpp>
 \#include <fltk/run.h>
 \#include <fltk/Preferences.h>
+\#include <fltk/xpmImage.h>
 \#include "GlImage.h"
 \#include "GlTable.h"} visible
       } {
@@ -75,27 +80,113 @@ namespace SK {open
               xywh {640 435 320 240} box FLAT_BOX color 56
               class GlImage
             }
-            {fltk::Group} {} {open
+            {fltk::Group} {} {open selected
               xywh {640 0 320 435} box DOWN_BOX
             } {
-              {fltk::Group} {} {open
-                xywh {25 20 220 115} box DOWN_BOX
+              {fltk::Group} trump {
+                callback {if (null->value() || nullouvert->value()) {
+  extra->deactivate();
+  extra->do_callback();
+} else if (extra->user_data() == 0)
+  extra->activate();} open
+                tooltip Trumpf
+                xywh {45 20 225 150} when NEVER box DOWN_BOX
               } {
                 {fltk::RadioButton} diamonds {
-                  label {@diamonds}
-                  xywh {10 10 25 25} align 34
-                  extra_code {\#include <fltk/xpmImage.h>}
+                  label {@dia}
+                  callback {trump->do_callback();}
+                  tooltip {Karo ist Trumpf.}
+                  xywh {35 5 65 35} value 1
                 }
                 {fltk::RadioButton} hearts {
-                  label {@hearts} selected
-                  xywh {55 10 25 25}
+                  label {@hea}
+                  callback {trump->do_callback();}
+                  tooltip {Herz ist Trumpf.}
+                  xywh {35 40 65 35}
                 }
                 {fltk::RadioButton} spades {
-                  xywh {100 10 25 25}
+                  label {@spa}
+                  callback {trump->do_callback();}
+                  tooltip {Pik ist Trumpf.}
+                  xywh {35 75 65 35}
                 }
                 {fltk::RadioButton} clubs {
-                  xywh {150 10 25 25}
+                  label {@clu}
+                  callback {trump->do_callback();}
+                  tooltip {Kreuz ist Trumpf.}
+                  xywh {35 110 65 35}
                 }
+                {fltk::RadioButton} grand {
+                  label Grand
+                  callback {trump->do_callback();}
+                  tooltip {Buben sind Trumpf.}
+                  xywh {110 5 65 35} labelfont 1
+                }
+                {fltk::RadioButton} null {
+                  label Null
+                  callback {trump->do_callback();}
+                  tooltip {Nullspiel, es gibt kein Trumpf.}
+                  xywh {110 60 50 35} labelfont 1
+                }
+                {fltk::RadioButton} nullouvert {
+                  label {Null Ouvert}
+                  callback {trump->do_callback();}
+                  tooltip {Offenes Nullspiel.}
+                  xywh {110 110 110 35} labelfont 1
+                }
+              }
+              {fltk::Button} hand {
+                label {Skat aufnehmen}
+                callback {extra->deactivate();
+extra->do_callback();
+extra->user_data((void*)1);
+hand->deactivate();}
+                tooltip {Kein Handspiel.}
+                xywh {75 190 165 25} labelfont 1
+              }
+              {fltk::Group} extra {
+                callback {schneider->value(false);
+schwarz->value(false);
+ouvert->value(false);} open
+                tooltip Handspiel
+                xywh {45 235 225 100} when NEVER box DOWN_BOX
+                extra_code {extra->user_data(0);}
+              } {
+                {fltk::CheckButton} schneider {
+                  label Schneider
+                  callback {if (!schneider->value()) {
+  schwarz->value(false);
+  ouvert->value(false);
+}}
+                  tooltip {Handspiel, Schneider angesagt.}
+                  xywh {65 10 125 25} labelfont 1
+                }
+                {fltk::CheckButton} schwarz {
+                  label Schwarz
+                  callback {if (schwarz->value())
+  schneider->value(true);
+else
+  ouvert->value(false);}
+                  tooltip {Handspiel, Schwarz angesagt.}
+                  xywh {65 40 110 25} labelfont 1
+                }
+                {fltk::CheckButton} ouvert {
+                  label Ouvert
+                  callback {if (ouvert->value()) {
+  schwarz->value(true);
+  schneider->value(true);
+}}
+                  tooltip {Offenes Handspiel.}
+                  xywh {65 70 105 25} labelfont 1
+                }
+              }
+              {fltk::Button} play {
+                label {Spiel ansagen}
+                callback {trump->deactivate();
+hand->deactivate();
+extra->deactivate();
+play->deactivate();}
+                xywh {75 355 165 25} labelfont 1
               }
             }
           }
@@ -157,7 +248,7 @@ port->value(d);}
   bandwidth->value(0);
 prefs.set("bandwidth", bandwidth->value());}
                 tooltip {Maximale Upload-Bandbreite für Video in Byte/s, wird auf die verbundenen Peers aufgeteilt. Der Audiostream benötigt pro Peer immer 2500 Byte/s, sonstiger Netzwerkverkehr ist weniger als 1000 Byte/s pro Peer.}
-                xywh {165 140 195 25} when RELEASE color 0xffffff00 maximum 1e+009 step 1
+                xywh {165 140 195 25} when RELEASE color 0xffffff00 maximum 1e+09 step 1
                 extra_code {double d;
 prefs.get("bandwidth", d, 50000);
 bandwidth->value(d);
@@ -214,13 +305,12 @@ delete[] c;}
       code {w->resizable(0);} {}
       code {w->show();} {}
     }
-    Function {~UserInterface(void)} {open
-    } {
+    Function {~UserInterface(void)} {} {
       code {delete mainwnd;} {}
     }
-    Function {UserInterface(const UserInterface&):prefs("", "", "")} {open private
+    Function {UserInterface(const UserInterface&):prefs("", "", "")} {private
     } {}
-    Function {operator=(const UserInterface&)} {open private
+    Function {operator=(const UserInterface&)} {private
     } {}
   }
 } 

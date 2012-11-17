@@ -8,12 +8,12 @@
 #include <boost/function/function0.hpp>
 #include <fltk/run.h>
 #include <fltk/Preferences.h>
+#include <fltk/xpmImage.h>
 #include "GlImage.h"
 #include "GlTable.h"
 #include <fltk/TabGroup.h>
 #include <fltk/Group.h>
 #include <fltk/RadioButton.h>
-#include <fltk/xpmImage.h>
 #include <fltk/Button.h>
 #include <fltk/CheckButton.h>
 #include <fltk/Input.h>
@@ -21,6 +21,9 @@
 #include <fltk/TextDisplay.h>
 
 namespace SK  {
+
+namespace images  {
+}
 
 class UILock  {
 public:
@@ -48,11 +51,75 @@ public:
         GlImage *leftimage;
         GlImage *rightimage;
         GlImage *midimage;
+          fltk::Group *trump;
+private:
+          inline void cb_trump_i(fltk::Group*, void*);
+          static void cb_trump(fltk::Group*, void*);
+public:
             fltk::RadioButton *diamonds;
+private:
+            inline void cb_diamonds_i(fltk::RadioButton*, void*);
+            static void cb_diamonds(fltk::RadioButton*, void*);
+public:
             fltk::RadioButton *hearts;
+private:
+            inline void cb_hearts_i(fltk::RadioButton*, void*);
+            static void cb_hearts(fltk::RadioButton*, void*);
+public:
             fltk::RadioButton *spades;
+private:
+            inline void cb_spades_i(fltk::RadioButton*, void*);
+            static void cb_spades(fltk::RadioButton*, void*);
+public:
             fltk::RadioButton *clubs;
 private:
+            inline void cb_clubs_i(fltk::RadioButton*, void*);
+            static void cb_clubs(fltk::RadioButton*, void*);
+public:
+            fltk::RadioButton *grand;
+private:
+            inline void cb_grand_i(fltk::RadioButton*, void*);
+            static void cb_grand(fltk::RadioButton*, void*);
+public:
+            fltk::RadioButton *null;
+private:
+            inline void cb_null_i(fltk::RadioButton*, void*);
+            static void cb_null(fltk::RadioButton*, void*);
+public:
+            fltk::RadioButton *nullouvert;
+private:
+            inline void cb_nullouvert_i(fltk::RadioButton*, void*);
+            static void cb_nullouvert(fltk::RadioButton*, void*);
+public:
+          fltk::Button *hand;
+private:
+          inline void cb_hand_i(fltk::Button*, void*);
+          static void cb_hand(fltk::Button*, void*);
+public:
+          fltk::Group *extra;
+private:
+          inline void cb_extra_i(fltk::Group*, void*);
+          static void cb_extra(fltk::Group*, void*);
+public:
+            fltk::CheckButton *schneider;
+private:
+            inline void cb_schneider_i(fltk::CheckButton*, void*);
+            static void cb_schneider(fltk::CheckButton*, void*);
+public:
+            fltk::CheckButton *schwarz;
+private:
+            inline void cb_schwarz_i(fltk::CheckButton*, void*);
+            static void cb_schwarz(fltk::CheckButton*, void*);
+public:
+            fltk::CheckButton *ouvert;
+private:
+            inline void cb_ouvert_i(fltk::CheckButton*, void*);
+            static void cb_ouvert(fltk::CheckButton*, void*);
+public:
+          fltk::Button *play;
+private:
+          inline void cb_play_i(fltk::Button*, void*);
+          static void cb_play(fltk::Button*, void*);
           inline void cb_Neustart_i(fltk::Button*, void*);
           static void cb_Neustart(fltk::Button*, void*);
           inline void cb_Mikrofon_i(fltk::CheckButton*, void*);

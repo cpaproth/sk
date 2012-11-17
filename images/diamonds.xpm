@@ -1,5 +1,5 @@
 /* XPM */
-static char * diamonds_xpm[] = {
+static const char * diamonds_xpm[] = {
 "24 24 4 1",
 " 	c None",
 ".	c #DF0000",
