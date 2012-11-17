@@ -45,6 +45,10 @@ Video::Video(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 
 Video::~Video(void) {
 	try {
+		ui.midimage->set(0);
+		ui.leftimage->set(0);
+		ui.rightimage->set(0);
+
 		cout << "stop video capture" << endl;
 
 		working = false;
@@ -100,16 +104,17 @@ void Video::deblock(Mat& img) {
 
 void Video::worker(void) {
 	try {
-		Mat				img(imageheight, imagewidth, CV_8UC3);
-		Mat				limg(imageheight, imagewidth, CV_8UC3, Scalar());
-		Mat				rimg(imageheight, imagewidth, CV_8UC3, Scalar());
 		Mat				cap(imageheight, imagewidth, CV_8UC3);
 		vector<unsigned char>		encbuf;
 		vector<vector<unsigned char> >	decbuf;
 		vector<int>			params;
-		GlImage::Guard			midguard(ui.midimage, &img);
-		GlImage::Guard			leftguard(ui.leftimage, &limg);
-		GlImage::Guard			rightguard(ui.rightimage, &rimg);
+
+		img = shared_ptr<Mat>(new Mat(imageheight, imagewidth, CV_8UC3, Scalar()));
+		limg = shared_ptr<Mat>(new Mat(imageheight, imagewidth, CV_8UC3, Scalar()));
+		rimg = shared_ptr<Mat>(new Mat(imageheight, imagewidth, CV_8UC3, Scalar()));
+		ui.midimage->set(img.get());
+		ui.leftimage->set(limg.get());
+		ui.rightimage->set(rimg.get());
 
 		params.push_back(CV_IMWRITE_JPEG_QUALITY);
 		params.push_back(25);
@@ -124,18 +129,18 @@ void Video::worker(void) {
 			if (cap.size().area() == 0)
 				throw runtime_error("empty captured image");
 
-			resize(cap, img, img.size());
-			imencode(".jpg", img, encbuf, params);
+			resize(cap, *img, img->size());
+			imencode(".jpg", *img, encbuf, params);
 			
 			network.broadcast(encbuf, decbuf, maxlatency);
 			
 			if (decbuf.size() > 0 && decbuf[0].size() > 0) {
-				limg = imdecode(Mat(decbuf[0]), 1);
-				deblock(limg);
+				*limg = imdecode(Mat(decbuf[0]), 1);
+				deblock(*limg);
 			}
 			if (decbuf.size() > 1 && decbuf[1].size() > 0) {
-				rimg = imdecode(Mat(decbuf[1]), 1);
-				deblock(rimg);
+				*rimg = imdecode(Mat(decbuf[1]), 1);
+				deblock(*rimg);
 			}
 			
 			UILock lock;

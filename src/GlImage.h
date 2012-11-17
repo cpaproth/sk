@@ -35,12 +35,6 @@ class GlImage : public fltk::GlWindow {
 	void draw(void);
 
 public:
-	struct Guard {
-		GlImage* glimg;
-		Guard(GlImage*, cv::Mat*);
-		~Guard(void);
-	};
-
 	GlImage(int, int, int, int, const char* = 0);
 	
 	void set(cv::Mat*);

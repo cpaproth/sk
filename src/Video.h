@@ -38,6 +38,9 @@ class Video {
 	static const unsigned maxlatency = 200;
 
 	boost::shared_ptr<cv::VideoCapture>	capture;
+	boost::shared_ptr<cv::Mat>		img;
+	boost::shared_ptr<cv::Mat>		limg;
+	boost::shared_ptr<cv::Mat>		rimg;
 	boost::thread				videothread;
 	bool					working;
 	UserInterface&				ui;

@@ -28,35 +28,25 @@ bool CPLib::Progress(size_t i, size_t n) {
 }
 
 
-Audio::PaInit::PaInit(void) {
-	if (Pa_Initialize() != paNoError)
-		throw runtime_error("audio initialization failed");
-}
-
-
-Audio::PaInit::~PaInit(void) {
-	Pa_Terminate();
-}
-
-
 Audio::Audio(Network& nw) : fft(framesize), network(nw) {
 	data.resize(framesize);
 	encbuf.resize(encodesize);
 	stream = 0;
 	playmic = false;
 
-	cout << "open audio stream" << endl;
-
-	if (Pa_OpenDefaultStream(&stream, 1, 1, paInt16, samplerate, framesize, &callback, this) != paNoError)
-		throw runtime_error("open audio stream failed");
+	if (Pa_Initialize() != paNoError)
+		throw runtime_error("audio initialization failed");
 }
 
 
 Audio::~Audio(void) {
 	try {
-		if (!Pa_IsStreamStopped(stream))
-			Pa_StopStream(stream);
-		Pa_CloseStream(stream);
+		if (stream) {
+			if (!Pa_IsStreamStopped(stream))
+				Pa_StopStream(stream);
+			Pa_CloseStream(stream);
+		}
+		Pa_Terminate();
 
 		cout << "audio stream closed" << endl;
 	} catch (...) {}
@@ -64,13 +54,15 @@ Audio::~Audio(void) {
 
 
 void Audio::restart(void) {
+	if (!stream && Pa_OpenDefaultStream(&stream, 1, 1, paInt16, samplerate, framesize, &callback, this) != paNoError)
+		throw runtime_error("open audio stream failed");
 	if (!Pa_IsStreamStopped(stream)) {
 		cout << "audio cpu load: " << Pa_GetStreamCpuLoad(stream) << endl;
-		Pa_StopStream(stream);
-		cout << "audio stream stopped" << endl;
+		if (Pa_StopStream(stream) == paNoError)
+			cout << "audio stream stopped" << endl;
 	}
-	Pa_StartStream(stream);
-	cout << "audio stream started" << endl;
+	if (Pa_StartStream(stream) == paNoError)
+		cout << "audio stream started" << endl;
 }
 
 

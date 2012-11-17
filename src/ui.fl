@@ -10,7 +10,8 @@ decl {//Copyright (C) 2012 Carsten Paproth} {}
 
 namespace SK {open
 } {
-  namespace images {} {
+  namespace images {selected
+  } {
     decl {\#include "../images/diamonds.xpm"} {}
     decl {\#include "../images/hearts.xpm"} {}
     decl {\#include "../images/spades.xpm"} {}
@@ -80,7 +81,7 @@ namespace SK {open
               xywh {640 435 320 240} box FLAT_BOX color 56
               class GlImage
             }
-            {fltk::Group} {} {open selected
+            {fltk::Group} {} {open
               xywh {640 0 320 435} box DOWN_BOX
             } {
               {fltk::Group} trump {
