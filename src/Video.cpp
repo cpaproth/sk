@@ -31,7 +31,7 @@ using namespace boost;
 
 
 Video::Video(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
-	capture = shared_ptr<VideoCapture>(new VideoCapture(1));
+	capture = shared_ptr<VideoCapture>(new VideoCapture(0));
 
 	if (!capture->isOpened() && !capture->open("webcam.avi"))
 		throw runtime_error("open webcam failed");

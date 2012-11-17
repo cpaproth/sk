@@ -26,11 +26,12 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "Convenience.h"
 
 
+using namespace boost;
 using namespace CPLib;
 using namespace SK;
 
 
-class UIsbuf : public streambuf {
+class UISbuf : public streambuf {
 	UserInterface&	ui;
 	streambuf*	oldsbuf;
 	
@@ -45,36 +46,16 @@ class UIsbuf : public streambuf {
 		return c;
 	}
 public:
-	UIsbuf(UserInterface& ui) : ui(ui) {
+	UISbuf(UserInterface& ui) : ui(ui) {
 		oldsbuf = cout.rdbuf(this);
 	}
-	~UIsbuf(void) {
+	~UISbuf(void) {
 		cout.rdbuf(oldsbuf);
 	}
 };
 
 
-class Program {
-	UserInterface&	ui;
-	Network&	network;
-	Video&		video;
-	Audio&		audio;
-
-	void handle_command(unsigned, const string&, const string&);
-public:
-	Program(UserInterface& ui, Network& nw, Video& v, Audio& a) : ui(ui), network(nw), video(v), audio(a) {}
-
-	void start_network(void);
-};
-
-
-void Program::start_network(void) {
-	UIUnlock lock;
-	network.start(ui.address->value(), (unsigned short)ui.port->value(), (unsigned)ui.bandwidth->value(), boost::bind(&Program::handle_command, this, _1, _2, _3));
-}
-
-
-void Program::handle_command(unsigned i, const string& command, const string& data) {
+void handle_command(Network& network, unsigned i, const string& command, const string& data) {
 	if (command == "peersconnected") {
 		cout << "juhu " << data << endl;
 		if (data == "2")
@@ -89,10 +70,16 @@ void Program::handle_command(unsigned i, const string& command, const string& da
 }
 
 
+void start_network(UserInterface& ui, Network& network) {
+	UIUnlock lock;
+	network.start(ui.address->value(), (unsigned short)ui.port->value(), (unsigned)ui.bandwidth->value(), bind(&handle_command, ref(network), _1, _2, _3));
+}
+
+
 int main(void) {
 	try {
 		UserInterface	ui;
-		UIsbuf		sbuf(ui);
+		UISbuf		sbuf(ui);
 
 		cout << "Skat-Konferenz Copyright (C) 2012 Carsten Paproth." << endl;
 		cout << "This program is free software and comes with ABSOLUTELY NO WARRANTY." << endl;
@@ -101,31 +88,30 @@ int main(void) {
 		Network		network;
 		Video		video(ui, network);
 		Audio		audio(network);
-		Program		program(ui, network, video, audio);
 		UILock		lock;
 
 
 		audio.restart();
 
-		ui.f["audio restart"] = boost::bind(&Audio::restart, &audio);
-		ui.f["audio toggle"] = boost::bind(&Audio::toggle_playmic, &audio);
-		ui.f["network stats"] = boost::bind(&Network::stats, &network);
-		ui.f["network start"] = boost::bind(&Program::start_network, &program);
+		ui.f["audio restart"] = bind(&Audio::restart, &audio);
+		ui.f["audio toggle"] = bind(&Audio::toggle_playmic, &audio);
+		ui.f["network stats"] = bind(&Network::stats, &network);
+		ui.f["network start"] = bind(&start_network, ref(ui), ref(network));
 
 		try {
 			if (ui.autostart->value())
-				program.start_network();
-		} catch (exception& e) {
+				start_network(ui, network);
+		} catch (std::exception& e) {
 			cout << "autostarting network failed: " << e.what() << endl;
 		}
 
 		while(true)
 			try {
 				return fltk::run();
-			} catch (exception& e) {
+			} catch (std::exception& e) {
 				cout << "error: " << e.what() << endl;
 			}
-	} catch (exception& e) {
+	} catch (std::exception& e) {
 		fltk::alert(ss("initialization error: ") << e.what() | c_str);
 	}
 
