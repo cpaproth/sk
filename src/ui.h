@@ -13,6 +13,7 @@
 #include "GlTable.h"
 #include <fltk/TabGroup.h>
 #include <fltk/Group.h>
+#include <fltk/InvisibleBox.h>
 #include <fltk/RadioButton.h>
 #include <fltk/Button.h>
 #include <fltk/CheckButton.h>
@@ -51,6 +52,12 @@ public:
         GlImage *leftimage;
         GlImage *rightimage;
         GlImage *midimage;
+        fltk::Group *game;
+private:
+        inline void cb_game_i(fltk::Group*, void*);
+        static void cb_game(fltk::Group*, void*);
+public:
+          fltk::InvisibleBox *position;
           fltk::Group *trump;
 private:
           inline void cb_trump_i(fltk::Group*, void*);
@@ -91,15 +98,15 @@ private:
             inline void cb_nullouvert_i(fltk::RadioButton*, void*);
             static void cb_nullouvert(fltk::RadioButton*, void*);
 public:
-          fltk::Button *hand;
+          fltk::Button *skat;
 private:
-          inline void cb_hand_i(fltk::Button*, void*);
-          static void cb_hand(fltk::Button*, void*);
+          inline void cb_skat_i(fltk::Button*, void*);
+          static void cb_skat(fltk::Button*, void*);
 public:
-          fltk::Group *extra;
+          fltk::Group *hand;
 private:
-          inline void cb_extra_i(fltk::Group*, void*);
-          static void cb_extra(fltk::Group*, void*);
+          inline void cb_hand_i(fltk::Group*, void*);
+          static void cb_hand(fltk::Group*, void*);
 public:
             fltk::CheckButton *schneider;
 private:
@@ -116,10 +123,10 @@ private:
             inline void cb_ouvert_i(fltk::CheckButton*, void*);
             static void cb_ouvert(fltk::CheckButton*, void*);
 public:
-          fltk::Button *play;
+          fltk::Button *announce;
 private:
-          inline void cb_play_i(fltk::Button*, void*);
-          static void cb_play(fltk::Button*, void*);
+          inline void cb_announce_i(fltk::Button*, void*);
+          static void cb_announce(fltk::Button*, void*);
           inline void cb_Neustart_i(fltk::Button*, void*);
           static void cb_Neustart(fltk::Button*, void*);
           inline void cb_Mikrofon_i(fltk::CheckButton*, void*);

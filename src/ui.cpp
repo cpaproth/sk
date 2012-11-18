@@ -3,7 +3,7 @@
 #include "ui.h"
 //Copyright (C) 2012 Carsten Paproth
 using namespace SK;
-using namespace images;
+using namespace SK::images;
 
 inline void UserInterface::cb_mainwnd_i(fltk::Window*, void*) {
   mainwnd->hide();
@@ -12,12 +12,45 @@ void UserInterface::cb_mainwnd(fltk::Window* o, void* v) {
   ((UserInterface*)(o->user_data()))->cb_mainwnd_i(o,v);
 }
 
+inline void UserInterface::cb_game_i(fltk::Group*, void*) {
+  std::string str;
+  if (diamonds->value())
+    str = "Karo";
+  else if (hearts->value())
+    str = "Herz";
+  else if (spades->value())
+    str = "Pik";
+  else if (clubs->value())
+    str = "Kreuz";
+  else if (grand->value())
+    str = "Grand";
+  else if (null->value())
+    str = "Null";
+  else if (nullouvert->value())
+    str = "Null Ouvert";
+  if (ouvert->value())
+    str += " Ouvert";
+  else if (schwarz->value())
+    str += " Schwarz";
+  else if (schneider->value())
+    str += " Schneider";
+  else if (hand->user_data() == 0)
+    str += " Hand";
+  str += " ansagen";
+  announce->copy_label(str.c_str());
+  announce->redraw();
+}
+void UserInterface::cb_game(fltk::Group* o, void* v) {
+  ((UserInterface*)(o->parent()->parent()->parent()->user_data()))->cb_game_i(o,v);
+}
+
 inline void UserInterface::cb_trump_i(fltk::Group*, void*) {
   if (null->value() || nullouvert->value()) {
-    extra->deactivate();
-    extra->do_callback();
-  } else if (extra->user_data() == 0)
-    extra->activate();
+    hand->deactivate();
+    hand->do_callback();
+  } else if (hand->user_data() == 0)
+    hand->activate();
+  game->do_callback();
 }
 void UserInterface::cb_trump(fltk::Group* o, void* v) {
   ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_trump_i(o,v);
@@ -72,23 +105,24 @@ void UserInterface::cb_nullouvert(fltk::RadioButton* o, void* v) {
   ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_nullouvert_i(o,v);
 }
 
-inline void UserInterface::cb_hand_i(fltk::Button*, void*) {
-  extra->deactivate();
-  extra->do_callback();
-  extra->user_data((void*)1);
+inline void UserInterface::cb_skat_i(fltk::Button*, void*) {
   hand->deactivate();
+  hand->do_callback();
+  hand->user_data((void*)1);
+  skat->deactivate();
+  game->do_callback();
 }
-void UserInterface::cb_hand(fltk::Button* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_hand_i(o,v);
+void UserInterface::cb_skat(fltk::Button* o, void* v) {
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_skat_i(o,v);
 }
 
-inline void UserInterface::cb_extra_i(fltk::Group*, void*) {
+inline void UserInterface::cb_hand_i(fltk::Group*, void*) {
   schneider->value(false);
   schwarz->value(false);
   ouvert->value(false);
 }
-void UserInterface::cb_extra(fltk::Group* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_extra_i(o,v);
+void UserInterface::cb_hand(fltk::Group* o, void* v) {
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_hand_i(o,v);
 }
 
 inline void UserInterface::cb_schneider_i(fltk::CheckButton*, void*) {
@@ -96,7 +130,8 @@ inline void UserInterface::cb_schneider_i(fltk::CheckButton*, void*) {
     schwarz->value(false);
     ouvert->value(false);
   }
-;}
+  game->do_callback();
+}
 void UserInterface::cb_schneider(fltk::CheckButton* o, void* v) {
   ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_schneider_i(o,v);
 }
@@ -106,6 +141,7 @@ inline void UserInterface::cb_schwarz_i(fltk::CheckButton*, void*) {
     schneider->value(true);
   else
     ouvert->value(false);
+  game->do_callback();
 }
 void UserInterface::cb_schwarz(fltk::CheckButton* o, void* v) {
   ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_schwarz_i(o,v);
@@ -116,19 +152,20 @@ inline void UserInterface::cb_ouvert_i(fltk::CheckButton*, void*) {
     schwarz->value(true);
     schneider->value(true);
   }
-;}
+  game->do_callback();
+}
 void UserInterface::cb_ouvert(fltk::CheckButton* o, void* v) {
   ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_ouvert_i(o,v);
 }
 
-inline void UserInterface::cb_play_i(fltk::Button*, void*) {
+inline void UserInterface::cb_announce_i(fltk::Button*, void*) {
   trump->deactivate();
+  skat->deactivate();
   hand->deactivate();
-  extra->deactivate();
-  play->deactivate();
+  announce->deactivate();
 }
-void UserInterface::cb_play(fltk::Button* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_play_i(o,v);
+void UserInterface::cb_announce(fltk::Button* o, void* v) {
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_announce_i(o,v);
 }
 
 inline void UserInterface::cb_Neustart_i(fltk::Button*, void*) {
@@ -252,30 +289,36 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
           o->box(fltk::FLAT_BOX);
           o->color((fltk::Color)56);
         }
-         {fltk::Group* o = new fltk::Group(640, 0, 320, 435);
+         {fltk::Group* o = game = new fltk::Group(640, 0, 320, 435);
           o->set_vertical();
           o->box(fltk::DOWN_BOX);
+          o->callback((fltk::Callback*)cb_game);
+          o->when(fltk::WHEN_NEVER);
           o->begin();
-           {fltk::Group* o = trump = new fltk::Group(45, 20, 225, 150);
+           {fltk::InvisibleBox* o = position = new fltk::InvisibleBox(45, 15, 225, 25, "Startposition");
+            o->labelfont(fltk::HELVETICA_BOLD);
+            o->align(fltk::ALIGN_INSIDE);
+          }
+           {fltk::Group* o = trump = new fltk::Group(45, 50, 225, 150);
             o->box(fltk::DOWN_BOX);
             o->callback((fltk::Callback*)cb_trump);
             o->when(fltk::WHEN_NEVER);
             o->tooltip("Trumpf");
             o->begin();
-             {fltk::RadioButton* o = diamonds = new fltk::RadioButton(35, 5, 65, 35, "@dia");
+             {fltk::RadioButton* o = diamonds = new fltk::RadioButton(35, 5, 55, 35, "@dia");
               o->set_flag(fltk::STATE);
               o->callback((fltk::Callback*)cb_diamonds);
               o->tooltip("Karo ist Trumpf.");
             }
-             {fltk::RadioButton* o = hearts = new fltk::RadioButton(35, 40, 65, 35, "@hea");
+             {fltk::RadioButton* o = hearts = new fltk::RadioButton(35, 40, 55, 35, "@hea");
               o->callback((fltk::Callback*)cb_hearts);
               o->tooltip("Herz ist Trumpf.");
             }
-             {fltk::RadioButton* o = spades = new fltk::RadioButton(35, 75, 65, 35, "@spa");
+             {fltk::RadioButton* o = spades = new fltk::RadioButton(35, 75, 55, 35, "@spa");
               o->callback((fltk::Callback*)cb_spades);
               o->tooltip("Pik ist Trumpf.");
             }
-             {fltk::RadioButton* o = clubs = new fltk::RadioButton(35, 110, 65, 35, "@clu");
+             {fltk::RadioButton* o = clubs = new fltk::RadioButton(35, 110, 55, 35, "@clu");
               o->callback((fltk::Callback*)cb_clubs);
               o->tooltip("Kreuz ist Trumpf.");
             }
@@ -289,45 +332,45 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
               o->callback((fltk::Callback*)cb_null);
               o->tooltip("Nullspiel, es gibt kein Trumpf.");
             }
-             {fltk::RadioButton* o = nullouvert = new fltk::RadioButton(110, 110, 110, 35, "Null Ouvert");
+             {fltk::RadioButton* o = nullouvert = new fltk::RadioButton(110, 110, 100, 35, "Null Ouvert");
               o->labelfont(fltk::HELVETICA_BOLD);
               o->callback((fltk::Callback*)cb_nullouvert);
               o->tooltip("Offenes Nullspiel.");
             }
             o->end();
           }
-           {fltk::Button* o = hand = new fltk::Button(75, 190, 165, 25, "Skat aufnehmen");
+           {fltk::Button* o = skat = new fltk::Button(45, 220, 225, 25, "Skat aufnehmen");
             o->labelfont(fltk::HELVETICA_BOLD);
-            o->callback((fltk::Callback*)cb_hand);
+            o->callback((fltk::Callback*)cb_skat);
             o->tooltip("Kein Handspiel.");
           }
-           {fltk::Group* o = extra = new fltk::Group(45, 235, 225, 100);
+           {fltk::Group* o = hand = new fltk::Group(45, 270, 225, 100);
             o->box(fltk::DOWN_BOX);
-            o->callback((fltk::Callback*)cb_extra);
+            o->callback((fltk::Callback*)cb_hand);
             o->when(fltk::WHEN_NEVER);
             o->tooltip("Handspiel");
             o->begin();
-             {fltk::CheckButton* o = schneider = new fltk::CheckButton(65, 10, 125, 25, "Schneider");
+             {fltk::CheckButton* o = schneider = new fltk::CheckButton(65, 10, 90, 25, "Schneider");
               o->labelfont(fltk::HELVETICA_BOLD);
               o->callback((fltk::Callback*)cb_schneider);
               o->tooltip("Handspiel, Schneider angesagt.");
             }
-             {fltk::CheckButton* o = schwarz = new fltk::CheckButton(65, 40, 110, 25, "Schwarz");
+             {fltk::CheckButton* o = schwarz = new fltk::CheckButton(65, 40, 80, 25, "Schwarz");
               o->labelfont(fltk::HELVETICA_BOLD);
               o->callback((fltk::Callback*)cb_schwarz);
               o->tooltip("Handspiel, Schwarz angesagt.");
             }
-             {fltk::CheckButton* o = ouvert = new fltk::CheckButton(65, 70, 105, 25, "Ouvert");
+             {fltk::CheckButton* o = ouvert = new fltk::CheckButton(65, 70, 70, 25, "Ouvert");
               o->labelfont(fltk::HELVETICA_BOLD);
               o->callback((fltk::Callback*)cb_ouvert);
               o->tooltip("Offenes Handspiel.");
             }
             o->end();
-            extra->user_data(0);
+            hand->user_data(0);
           }
-           {fltk::Button* o = play = new fltk::Button(75, 355, 165, 25, "Spiel ansagen");
+           {fltk::Button* o = announce = new fltk::Button(45, 390, 225, 25, "Spiel ansagen");
             o->labelfont(fltk::HELVETICA_BOLD);
-            o->callback((fltk::Callback*)cb_play);
+            o->callback((fltk::Callback*)cb_announce);
           }
           o->end();
         }
