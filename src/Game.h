@@ -42,6 +42,7 @@ public:
 	Game(UserInterface&, Network&);
 	~Game(void);
 	
+	void shuffle(void);
 	void send_name(void);
 	bool handle_command(unsigned, const std::string&, const std::string&);
 

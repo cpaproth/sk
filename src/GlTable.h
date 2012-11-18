@@ -32,8 +32,8 @@ class GlTable : public fltk::GlWindow {
 	unsigned		texture;
 	unsigned		width;
 	unsigned		height;
-	vector<unsigned char>	mem;
-	vector<unsigned char>	hand;
+	vector<uchar>		mem;
+	vector<uchar>		cards;
 	unsigned		selected;
 
 	void draw_card(unsigned, unsigned, float, float, float, float);
@@ -45,6 +45,8 @@ class GlTable : public fltk::GlWindow {
 public:
 	GlTable(int, int, int, int, const char* = 0);
 	
+	
+	void set_cards(const vector<uchar>&);
 
 };
 

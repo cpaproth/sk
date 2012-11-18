@@ -66,6 +66,7 @@ void handle_command(Network& network, Video& video, Game& game, unsigned i, cons
 			network.command(0, "seat", "left");
 			network.command(1, "seat", "right");
 			game.send_name();
+			game.shuffle();
 		}
 		handled = true;
 	}

@@ -72,6 +72,11 @@ GlTable::GlTable(int x, int y, int w ,int h, const char* l) : GlWindow(x, y, w, 
 }
 
 
+void GlTable::set_cards(const vector<uchar>& c) {
+	cards = c;
+}
+
+
 void GlTable::draw_card(unsigned c, unsigned r, float x, float y, float a, float sy) {
 	float sx = sy / height * width / 4.f;
 	sy /= 2.f;
@@ -123,19 +128,17 @@ void GlTable::draw(void) {
 
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	unsigned vals[] = {3, 19, 0, 1, 5, 6, 7, 24, 29, 10};
-	//unsigned vals[] = {25,26,27,28,9,10,11,12,4,6};
 
 	glBegin(GL_QUADS);
 
 	float a = -4.f * 50.f / w() / w();
 	float b = -a * w();
-	for (unsigned i = 0; i < sizeof(vals) / sizeof(unsigned); i++) {
+	for (unsigned i = 0; i < cards.size(); i++) {
 		float x = 100 + i * 50.f;
 		float angle = 0.3f - i * 0.06f;
 		float sx = i != selected? 0.f: -50.f * sin(angle);
 		float sy = i != selected? 0.f: 50.f * cos(angle);
-		draw_card(vals[i] % 8, vals[i] / 8, x + sx, a * x * x + b * x + sy, angle, 200.f);
+		draw_card((cards[i] - 33) % 8, (cards[i] - 33) / 8, x + sx, a * x * x + b * x + sy, angle, 200.f);
 	}
 	
 	draw_card(4, 2, 200.f, 330.f, rand() * 0.4f / RAND_MAX - 0.2f, 160.f);
@@ -162,7 +165,7 @@ int GlTable::handle(int event) {
 		return 1;
 	case MOVE:
 		if (h() - event_y() - 1 < a * event_x() * event_x() + b * event_x() + 150.f)
-			for (unsigned i = 0; i < 10; i++) {
+			for (unsigned i = 0; i < cards.size(); i++) {
 				float x = 100 + i * 50.f;
 				float angle = 0.3f - i * 0.06f;
 				float sx = i != selected? 0.f: -50.f * sin(angle);

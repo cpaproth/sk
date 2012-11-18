@@ -37,6 +37,22 @@ Game::~Game(void) {
 }
 
 
+void Game::shuffle(void) {
+	vector<uchar> cards(32);
+	for (unsigned i = 0; i < cards.size(); i++)
+		cards[i] = i + 33;
+	random_shuffle(cards.begin(), cards.end());
+	
+	network.command(left, "cards", string(cards.begin(), cards.begin() + 10));
+	network.command(right, "cards", string(cards.begin() + 10, cards.begin() + 20));
+	
+	UILock lock;
+	ui.table->set_cards(vector<uchar>(cards.begin() + 20, cards.begin() + 30));
+	ui.table->redraw();
+	fltk::awake();
+}
+
+
 void Game::send_name(void) {
 	network.command(left, "name", ui.name->text());
 	network.command(right, "name", ui.name->text());
@@ -58,6 +74,11 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 			right = 1;
 		}
 		send_name();
+	} else if (command == "cards") {
+		UILock lock;
+		ui.table->set_cards(vector<uchar>(data.begin(), data.end()));
+		ui.table->redraw();
+		fltk::awake();
 	} else
 		return false;
 	return true;
