@@ -69,12 +69,6 @@ Video::~Video(void) {
 }
 
 
-void Video::send_name(void) {
-	network.command(left, "name", ui.name->text());
-	network.command(right, "name", ui.name->text());
-}
-
-
 bool Video::handle_command(unsigned i, const string& command, const string& data) {
 	if (command == "name") {
 		UILock lock;
@@ -90,7 +84,6 @@ bool Video::handle_command(unsigned i, const string& command, const string& data
 			left = 0;
 			right = 1;
 		}
-		send_name(); 
 	} else
 		return false;
 	return true;

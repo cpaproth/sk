@@ -64,7 +64,6 @@ public:
 	Video(UserInterface&, Network&);
 	~Video(void);
 	
-	void send_name(void);
 	bool handle_command(unsigned, const std::string&, const std::string&);
 
 };

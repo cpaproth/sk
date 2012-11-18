@@ -20,6 +20,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "Network.h"
 #include "Audio.h"
 #include "Video.h"
+#include "Game.h"
 
 #include <fltk/ask.h>
 #include <iostream>
@@ -55,23 +56,29 @@ public:
 };
 
 
-void handle_command(Network& network, Video& video, unsigned i, const string& command, const string& data) {
+void handle_command(Network& network, Video& video, Game& game, unsigned i, const string& command, const string& data) {
+	bool handled = video.handle_command(i, command, data);
+	handled |= game.handle_command(i, command, data);
+	
 	if (command == "peersconnected") {
 		if (data == "2") {
 			cout << "2 peers connected, the game can start!" << endl;
 			network.command(0, "seat", "left");
 			network.command(1, "seat", "right");
-			video.send_name();
+			game.send_name();
 		}
-	} else if (!video.handle_command(i, command, data))
+		handled = true;
+	}
+	
+	if (!handled)
 		cout << "unknown command: " << command << endl;
 }
 
 
-void start_network(UserInterface& ui, Network& network, Video& video) {
+void start_network(UserInterface& ui, Network& network, Video& video, Game& game) {
 	UIUnlock lock;
 	network.start(ui.address->value(), (unsigned short)ui.port->value(), (unsigned)ui.bandwidth->value(),
-		bind(&handle_command, ref(network), ref(video), _1, _2, _3));
+		bind(&handle_command, ref(network), ref(video), ref(game), _1, _2, _3));
 }
 
 
@@ -87,6 +94,7 @@ int main(void) {
 		Network		network;
 		Video		video(ui, network);
 		Audio		audio(network);
+		Game		game(ui, network);
 		UILock		lock;
 
 
@@ -95,12 +103,12 @@ int main(void) {
 		ui.f["audio restart"] = bind(&Audio::restart, &audio);
 		ui.f["audio toggle"] = bind(&Audio::toggle_playmic, &audio);
 		ui.f["network stats"] = bind(&Network::stats, &network);
-		ui.f["network start"] = bind(&start_network, ref(ui), ref(network), ref(video));
-		ui.f["name change"] = bind(&Video::send_name, &video);
+		ui.f["network start"] = bind(&start_network, ref(ui), ref(network), ref(video), ref(game));
+		ui.f["name change"] = bind(&Game::send_name, &game);
 
 		try {
 			if (ui.autostart->value())
-				start_network(ui, network, video);
+				start_network(ui, network, video, game);
 		} catch (std::exception& e) {
 			cout << "autostarting network failed: " << e.what() << endl;
 		}
