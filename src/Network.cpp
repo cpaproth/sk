@@ -127,6 +127,11 @@ void Network::command(unsigned i, const string& command, const string& data) {
 		
 	peers[i].messages.push_back(ss(msgid++) << ' ' << command << ' ' << data);
 	
+	if (peers[i].messages.back().length() >= fifosize) {
+		peers[i].messages.pop_back();
+		return;
+	}
+	
 	if (peers[i].messages.size() == 1) {
 		shared_ptr<ucharbuf> buf(new ucharbuf(peers[i].messages[0].begin(), peers[i].messages[0].end()));
 		socket.async_send_to(buffer(*buf), peers[i].endpoint, bind(&Network::sender, this, buf, _1, _2));

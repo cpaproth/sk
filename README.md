@@ -37,7 +37,7 @@ so for other operating systems you have to create appropriate build files by han
 ## Usage
 
 Skat is a card game played by three people. One starts *sk* as server and tells the other two his or her publicly reachable IP address per e-mail, telephone, or whatever.
-Now the other two can start *sk* as client and connect to this disclosed IP address. Then, the server initiates UDP hole punching bewteen the two clients and the
+Now the other two can start *sk* as client and connect to this disclosed IP address. Then, the server initiates UDP hole punching between the two clients and the
 videoconferencing starts. Now the game could start. To be implemented...
 
 ![playing cards](https://github.com/cpaproth/sk/raw/master/images/cards.png)
