@@ -31,6 +31,16 @@ using namespace boost;
 
 
 Video::Video(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
+	midname[0] = 0;
+	leftname[0] = 0;
+	rightname[0] = 0;
+	left = 0;
+	right = 1;
+
+	ui.midimage->tooltip(midname);
+	ui.leftimage->tooltip(leftname);
+	ui.rightimage->tooltip(rightname);
+
 	capture = shared_ptr<VideoCapture>(new VideoCapture(0));
 
 	if (!capture->isOpened() && !capture->open("webcam.avi"))
@@ -48,6 +58,9 @@ Video::~Video(void) {
 		ui.midimage->set(0);
 		ui.leftimage->set(0);
 		ui.rightimage->set(0);
+		ui.midimage->tooltip(0);
+		ui.leftimage->tooltip(0);
+		ui.rightimage->tooltip(0);
 
 		cout << "stop video capture" << endl;
 
@@ -56,6 +69,34 @@ Video::~Video(void) {
 
 		cout << "video capture stopped" << endl;
 	} catch (...) {}
+}
+
+
+void Video::change_name(void) {
+	midname[string(ui.name->text()).copy(midname, namesize - 1)] = 0;
+	network.command(left, "name", ui.name->text());
+	network.command(right, "name", ui.name->text());
+}
+
+
+bool Video::handle_command(unsigned i, const string& command, const string& data) {
+	if (command == "name") {
+		UILock lock;
+		if (i == left)
+			leftname[data.copy(leftname, namesize - 1)] = 0;
+		else if (i == right)
+			rightname[data.copy(rightname, namesize - 1)] = 0;
+	} else if (command == "seat") {
+		if (data == "left") {
+			left = 1;
+			right = 0;
+		} else if (data == "right") {
+			left = 0;
+			right = 1;
+		}
+	} else
+		return false;
+	return true;
 }
 
 
@@ -131,15 +172,15 @@ void Video::worker(void) {
 
 			resize(cap, *img, img->size());
 			imencode(".jpg", *img, encbuf, params);
-			
+
 			network.broadcast(encbuf, decbuf, maxlatency);
 			
-			if (decbuf.size() > 0 && decbuf[0].size() > 0) {
-				*limg = imdecode(Mat(decbuf[0]), 1);
+			if (decbuf.size() > left && decbuf[left].size() > 0) {
+				*limg = imdecode(Mat(decbuf[left]), 1);
 				deblock(*limg);
 			}
-			if (decbuf.size() > 1 && decbuf[1].size() > 0) {
-				*rimg = imdecode(Mat(decbuf[1]), 1);
+			if (decbuf.size() > right && decbuf[right].size() > 0) {
+				*rimg = imdecode(Mat(decbuf[right]), 1);
 				deblock(*rimg);
 			}
 			

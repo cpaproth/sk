@@ -21,6 +21,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 #include <boost/thread/thread.hpp>
 
+
 namespace cv {
 class VideoCapture;
 class Mat;
@@ -36,12 +37,18 @@ class Video {
 	static const unsigned imagewidth = 320;
 	static const unsigned imageheight = 240;
 	static const unsigned maxlatency = 200;
+	static const size_t namesize = 100;
 
 	boost::shared_ptr<cv::VideoCapture>	capture;
 	boost::shared_ptr<cv::Mat>		img;
 	boost::shared_ptr<cv::Mat>		limg;
 	boost::shared_ptr<cv::Mat>		rimg;
 	boost::thread				videothread;
+	char					midname[namesize];
+	char					leftname[namesize];
+	char					rightname[namesize];
+	unsigned				left;
+	unsigned				right;
 	bool					working;
 	UserInterface&				ui;
 	Network&				network;
@@ -58,6 +65,8 @@ public:
 	Video(UserInterface&, Network&);
 	~Video(void);
 	
+	void change_name(void);
+	bool handle_command(unsigned, const std::string&, const std::string&);
 
 };
 

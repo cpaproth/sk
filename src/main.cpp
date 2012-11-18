@@ -55,24 +55,22 @@ public:
 };
 
 
-void handle_command(Network& network, unsigned i, const string& command, const string& data) {
+void handle_command(Network& network, Video& video, unsigned i, const string& command, const string& data) {
 	if (command == "peersconnected") {
-		cout << "juhu " << data << endl;
-		if (data == "2")
-			network.command(0, "roundtrip", "0");
-	} else if (command == "roundtrip") {
-		unsigned trip;
-		ss(data) >> trip;
-		if (trip < 30)
-			network.command((i+1)%2, "roundtrip", ss(++trip));
-	} else
+		if (data == "2") {
+			cout << "2 peers connected, the game can start!" << endl;
+			network.command(0, "seat", "left");
+			network.command(1, "seat", "right");
+		}
+	} else if (!video.handle_command(i, command, data))
 		cout << "unknown command: " << command << endl;
 }
 
 
-void start_network(UserInterface& ui, Network& network) {
+void start_network(UserInterface& ui, Network& network, Video& video) {
 	UIUnlock lock;
-	network.start(ui.address->value(), (unsigned short)ui.port->value(), (unsigned)ui.bandwidth->value(), bind(&handle_command, ref(network), _1, _2, _3));
+	network.start(ui.address->value(), (unsigned short)ui.port->value(), (unsigned)ui.bandwidth->value(),
+		bind(&handle_command, ref(network), ref(video), _1, _2, _3));
 }
 
 
@@ -92,15 +90,17 @@ int main(void) {
 
 
 		audio.restart();
+		video.change_name();
 
 		ui.f["audio restart"] = bind(&Audio::restart, &audio);
 		ui.f["audio toggle"] = bind(&Audio::toggle_playmic, &audio);
 		ui.f["network stats"] = bind(&Network::stats, &network);
-		ui.f["network start"] = bind(&start_network, ref(ui), ref(network));
+		ui.f["network start"] = bind(&start_network, ref(ui), ref(network), ref(video));
+		ui.f["name change"] = bind(&Video::change_name, &video);
 
 		try {
 			if (ui.autostart->value())
-				start_network(ui, network);
+				start_network(ui, network, video);
 		} catch (std::exception& e) {
 			cout << "autostarting network failed: " << e.what() << endl;
 		}

@@ -80,6 +80,9 @@ namespace SK {open
               xywh {640 435 320 240} box FLAT_BOX color 56
               class GlImage
             }
+            {fltk::Group} bidding {open
+              xywh {640 0 320 110} box DOWN_BOX
+            } {}
             {fltk::Group} game {
               callback {std::string str;
 if (diamonds->value())
@@ -106,12 +109,12 @@ else if (hand->user_data() == 0)
   str += " Hand";
 str += " ansagen";
 announce->copy_label(str.c_str());
-announce->redraw();} open
-              xywh {640 0 320 435} when NEVER box DOWN_BOX
+announce->redraw();}
+              xywh {640 110 320 240} when NEVER box DOWN_BOX
             } {
               {fltk::InvisibleBox} position {
                 label Startposition
-                xywh {45 15 225 25} align 32 labelfont 1
+                xywh {60 10 200 25} align 32 labelfont 1
               }
               {fltk::Group} trump {
                 callback {if (null->value() || nullouvert->value()) {
@@ -120,50 +123,87 @@ announce->redraw();} open
 } else if (hand->user_data() == 0)
   hand->activate();
 game->do_callback();}
-                tooltip Trumpf
-                xywh {45 50 225 150} when NEVER box DOWN_BOX
+                xywh {60 45 200 70} when NEVER
               } {
-                {fltk::RadioButton} diamonds {
+                {fltk::Button} diamonds {
                   label {@dia}
                   callback {trump->do_callback();}
                   tooltip {Karo ist Trumpf.}
-                  xywh {35 5 55 35} value 1
+                  xywh {0 0 50 35} type RADIO value 1
                 }
-                {fltk::RadioButton} hearts {
+                {fltk::Button} hearts {
                   label {@hea}
                   callback {trump->do_callback();}
                   tooltip {Herz ist Trumpf.}
-                  xywh {35 40 55 35}
+                  xywh {50 0 50 35} type RADIO
                 }
-                {fltk::RadioButton} spades {
+                {fltk::Button} spades {
                   label {@spa}
                   callback {trump->do_callback();}
                   tooltip {Pik ist Trumpf.}
-                  xywh {35 75 55 35}
+                  xywh {100 0 50 35} type RADIO
                 }
-                {fltk::RadioButton} clubs {
+                {fltk::Button} clubs {
                   label {@clu}
                   callback {trump->do_callback();}
                   tooltip {Kreuz ist Trumpf.}
-                  xywh {35 110 55 35}
+                  xywh {150 0 50 35} type RADIO
                 }
-                {fltk::RadioButton} grand {
+                {fltk::Button} grand {
                   label Grand
                   callback {trump->do_callback();}
                   tooltip {Buben sind Trumpf.}
-                  xywh {110 5 65 35} labelfont 1
+                  xywh {0 35 60 35} type RADIO labelfont 1
                 }
-                {fltk::RadioButton} null {
+                {fltk::Button} null {
                   label Null
                   callback {trump->do_callback();}
-                  tooltip {Nullspiel, es gibt kein Trumpf.}
-                  xywh {110 60 50 35} labelfont 1
+                  tooltip {Nullspiel, nichts ist Trumpf.}
+                  xywh {60 35 45 35} type RADIO labelfont 1
                 }
-                {fltk::RadioButton} nullouvert {
+                {fltk::Button} nullouvert {
                   label {Null Ouvert}
                   callback {trump->do_callback();}
                   tooltip {Offenes Nullspiel.}
-                  xywh {110 110 100 35} labelfont 1
+                  xywh {105 35 95 35} type RADIO labelfont 1
+                }
+              }
+              {fltk::Group} hand {
+                callback {schneider->value(false);
+schwarz->value(false);
+ouvert->value(false);}
+                xywh {60 115 200 35} when NEVER
+                extra_code {hand->user_data(0);}
+              } {
+                {fltk::Button} schneider {
+                  label Schneider
+                  callback {if (!schneider->value()) {
+  schwarz->value(false);
+  ouvert->value(false);
+}
+game->do_callback();}
+                  tooltip {Handspiel, Schneider angesagt.}
+                  xywh {0 0 80 35} type TOGGLE labelfont 1
+                }
+                {fltk::Button} schwarz {
+                  label Schwarz
+                  callback {if (schwarz->value())
+  schneider->value(true);
+else
+  ouvert->value(false);
+game->do_callback();}
+                  tooltip {Handspiel, Schwarz angesagt.}
+                  xywh {80 0 65 35} type TOGGLE labelfont 1
+                }
+                {fltk::Button} ouvert {
+                  label Ouvert
+                  callback {if (ouvert->value()) {
+  schwarz->value(true);
+  schneider->value(true);
+}
+game->do_callback();}
+                  tooltip {Offenes Handspiel.}
+                  xywh {145 0 55 35} type TOGGLE labelfont 1
                 }
               }
               {fltk::Button} skat {
@@ -172,56 +212,16 @@ game->do_callback();}
 hand->do_callback();
 hand->user_data((void*)1);
 skat->deactivate();
-game->do_callback();} selected
+game->do_callback();}
                 tooltip {Kein Handspiel.}
-                xywh {45 220 225 25} labelfont 1
-              }
-              {fltk::Group} hand {
-                callback {schneider->value(false);
-schwarz->value(false);
-ouvert->value(false);}
-                tooltip Handspiel
-                xywh {45 270 225 100} when NEVER box DOWN_BOX
-                extra_code {hand->user_data(0);}
-              } {
-                {fltk::CheckButton} schneider {
-                  label Schneider
-                  callback {if (!schneider->value()) {
-  schwarz->value(false);
-  ouvert->value(false);
-}
-game->do_callback();}
-                  tooltip {Handspiel, Schneider angesagt.}
-                  xywh {65 10 90 25} labelfont 1
-                }
-                {fltk::CheckButton} schwarz {
-                  label Schwarz
-                  callback {if (schwarz->value())
-  schneider->value(true);
-else
-  ouvert->value(false);
-game->do_callback();}
-                  tooltip {Handspiel, Schwarz angesagt.}
-                  xywh {65 40 80 25} labelfont 1
-                }
-                {fltk::CheckButton} ouvert {
-                  label Ouvert
-                  callback {if (ouvert->value()) {
-  schwarz->value(true);
-  schneider->value(true);
-}
-game->do_callback();}
-                  tooltip {Offenes Handspiel.}
-                  xywh {65 70 70 25} labelfont 1
-                }
+                xywh {60 160 200 25} labelfont 1
               }
               {fltk::Button} announce {
                 label {Spiel ansagen}
-                callback {trump->deactivate();
-skat->deactivate();
-hand->deactivate();
-announce->deactivate();}
-                xywh {45 390 225 25} labelfont 1
+                callback {skat->activate();
+hand->activate();
+game->deactivate();}
+                xywh {60 195 200 25} labelfont 1
               }
             }
           }
@@ -230,7 +230,7 @@ announce->deactivate();}
             xywh {0 25 960 675} hide
           } {}
           {fltk::Group} {} {
-            label System
+            label System open
             xywh {0 25 960 675} hide
           } {
             {fltk::Group} {} {
@@ -312,12 +312,13 @@ autostart->value(i != 0);}
               }
             }
             {fltk::Group} {} {
-              label Spiel
+              label Spiel open
               xywh {525 295 265 150} align 33 box DOWN_BOX labeltype ENGRAVED_LABEL
             } {
               {fltk::Input} name {
                 label Spielername
-                callback {prefs.set("username", name->value());}
+                callback {prefs.set("username", name->value());
+f["name change"]();} selected
                 tooltip {Dein Spielername.}
                 xywh {85 40 165 25}
                 extra_code {char* c;

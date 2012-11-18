@@ -14,7 +14,6 @@
 #include <fltk/TabGroup.h>
 #include <fltk/Group.h>
 #include <fltk/InvisibleBox.h>
-#include <fltk/RadioButton.h>
 #include <fltk/Button.h>
 #include <fltk/CheckButton.h>
 #include <fltk/Input.h>
@@ -52,6 +51,7 @@ public:
         GlImage *leftimage;
         GlImage *rightimage;
         GlImage *midimage;
+        fltk::Group *bidding;
         fltk::Group *game;
 private:
         inline void cb_game_i(fltk::Group*, void*);
@@ -63,65 +63,65 @@ private:
           inline void cb_trump_i(fltk::Group*, void*);
           static void cb_trump(fltk::Group*, void*);
 public:
-            fltk::RadioButton *diamonds;
+            fltk::Button *diamonds;
 private:
-            inline void cb_diamonds_i(fltk::RadioButton*, void*);
-            static void cb_diamonds(fltk::RadioButton*, void*);
+            inline void cb_diamonds_i(fltk::Button*, void*);
+            static void cb_diamonds(fltk::Button*, void*);
 public:
-            fltk::RadioButton *hearts;
+            fltk::Button *hearts;
 private:
-            inline void cb_hearts_i(fltk::RadioButton*, void*);
-            static void cb_hearts(fltk::RadioButton*, void*);
+            inline void cb_hearts_i(fltk::Button*, void*);
+            static void cb_hearts(fltk::Button*, void*);
 public:
-            fltk::RadioButton *spades;
+            fltk::Button *spades;
 private:
-            inline void cb_spades_i(fltk::RadioButton*, void*);
-            static void cb_spades(fltk::RadioButton*, void*);
+            inline void cb_spades_i(fltk::Button*, void*);
+            static void cb_spades(fltk::Button*, void*);
 public:
-            fltk::RadioButton *clubs;
+            fltk::Button *clubs;
 private:
-            inline void cb_clubs_i(fltk::RadioButton*, void*);
-            static void cb_clubs(fltk::RadioButton*, void*);
+            inline void cb_clubs_i(fltk::Button*, void*);
+            static void cb_clubs(fltk::Button*, void*);
 public:
-            fltk::RadioButton *grand;
+            fltk::Button *grand;
 private:
-            inline void cb_grand_i(fltk::RadioButton*, void*);
-            static void cb_grand(fltk::RadioButton*, void*);
+            inline void cb_grand_i(fltk::Button*, void*);
+            static void cb_grand(fltk::Button*, void*);
 public:
-            fltk::RadioButton *null;
+            fltk::Button *null;
 private:
-            inline void cb_null_i(fltk::RadioButton*, void*);
-            static void cb_null(fltk::RadioButton*, void*);
+            inline void cb_null_i(fltk::Button*, void*);
+            static void cb_null(fltk::Button*, void*);
 public:
-            fltk::RadioButton *nullouvert;
+            fltk::Button *nullouvert;
 private:
-            inline void cb_nullouvert_i(fltk::RadioButton*, void*);
-            static void cb_nullouvert(fltk::RadioButton*, void*);
-public:
-          fltk::Button *skat;
-private:
-          inline void cb_skat_i(fltk::Button*, void*);
-          static void cb_skat(fltk::Button*, void*);
+            inline void cb_nullouvert_i(fltk::Button*, void*);
+            static void cb_nullouvert(fltk::Button*, void*);
 public:
           fltk::Group *hand;
 private:
           inline void cb_hand_i(fltk::Group*, void*);
           static void cb_hand(fltk::Group*, void*);
 public:
-            fltk::CheckButton *schneider;
+            fltk::Button *schneider;
 private:
-            inline void cb_schneider_i(fltk::CheckButton*, void*);
-            static void cb_schneider(fltk::CheckButton*, void*);
+            inline void cb_schneider_i(fltk::Button*, void*);
+            static void cb_schneider(fltk::Button*, void*);
 public:
-            fltk::CheckButton *schwarz;
+            fltk::Button *schwarz;
 private:
-            inline void cb_schwarz_i(fltk::CheckButton*, void*);
-            static void cb_schwarz(fltk::CheckButton*, void*);
+            inline void cb_schwarz_i(fltk::Button*, void*);
+            static void cb_schwarz(fltk::Button*, void*);
 public:
-            fltk::CheckButton *ouvert;
+            fltk::Button *ouvert;
 private:
-            inline void cb_ouvert_i(fltk::CheckButton*, void*);
-            static void cb_ouvert(fltk::CheckButton*, void*);
+            inline void cb_ouvert_i(fltk::Button*, void*);
+            static void cb_ouvert(fltk::Button*, void*);
+public:
+          fltk::Button *skat;
+private:
+          inline void cb_skat_i(fltk::Button*, void*);
+          static void cb_skat(fltk::Button*, void*);
 public:
           fltk::Button *announce;
 private:
