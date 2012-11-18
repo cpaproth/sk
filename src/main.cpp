@@ -61,6 +61,7 @@ void handle_command(Network& network, Video& video, unsigned i, const string& co
 			cout << "2 peers connected, the game can start!" << endl;
 			network.command(0, "seat", "left");
 			network.command(1, "seat", "right");
+			video.send_name();
 		}
 	} else if (!video.handle_command(i, command, data))
 		cout << "unknown command: " << command << endl;
@@ -90,13 +91,12 @@ int main(void) {
 
 
 		audio.restart();
-		video.change_name();
 
 		ui.f["audio restart"] = bind(&Audio::restart, &audio);
 		ui.f["audio toggle"] = bind(&Audio::toggle_playmic, &audio);
 		ui.f["network stats"] = bind(&Network::stats, &network);
 		ui.f["network start"] = bind(&start_network, ref(ui), ref(network), ref(video));
-		ui.f["name change"] = bind(&Video::change_name, &video);
+		ui.f["name change"] = bind(&Video::send_name, &video);
 
 		try {
 			if (ui.autostart->value())

@@ -84,7 +84,7 @@ void Audio::encode(const short* in) {
 
 	map<unsigned, double> channels;
 	unsigned i = 0;
-	for (multimap<double, unsigned>::reverse_iterator it = greatest.rbegin(); i < 128; it++, i++)
+	for (multimap<double, unsigned>::reverse_iterator it = greatest.rbegin(); i + 32 < encbuf.size(); it++, i++)
 		channels[it->second] = it->first;
 
 	i = 0;
@@ -104,7 +104,7 @@ void Audio::decode(short* out) {
 		data[0] = data[data.size() / 2] = 0.;
 		unsigned i = 0;
 		for (unsigned j = 1; j < data.size() / 2; j++) {
-			if (decbuf[k][j >> 3] & (1 << (j & 7)) && i < 128) {
+			if (decbuf[k][j >> 3] & (1 << (j & 7)) && i + 32 < decbuf[k].size()) {
 				double rho = (pow(10001., (decbuf[k][32 + i] >> 4) / 15.) - 1.) / 10000.;
 				double phi = (decbuf[k][32 + i] & 15) / 8. * M_PI - M_PI;
 				data[j] = 0.5 * polar<double>(rho, phi);

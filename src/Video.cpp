@@ -31,13 +31,11 @@ using namespace boost;
 
 
 Video::Video(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
-	midname[0] = 0;
 	leftname[0] = 0;
 	rightname[0] = 0;
 	left = 0;
 	right = 1;
 
-	ui.midimage->tooltip(midname);
 	ui.leftimage->tooltip(leftname);
 	ui.rightimage->tooltip(rightname);
 
@@ -58,7 +56,6 @@ Video::~Video(void) {
 		ui.midimage->set(0);
 		ui.leftimage->set(0);
 		ui.rightimage->set(0);
-		ui.midimage->tooltip(0);
 		ui.leftimage->tooltip(0);
 		ui.rightimage->tooltip(0);
 
@@ -72,8 +69,7 @@ Video::~Video(void) {
 }
 
 
-void Video::change_name(void) {
-	midname[string(ui.name->text()).copy(midname, namesize - 1)] = 0;
+void Video::send_name(void) {
 	network.command(left, "name", ui.name->text());
 	network.command(right, "name", ui.name->text());
 }
@@ -83,9 +79,9 @@ bool Video::handle_command(unsigned i, const string& command, const string& data
 	if (command == "name") {
 		UILock lock;
 		if (i == left)
-			leftname[data.copy(leftname, namesize - 1)] = 0;
+			leftname[("@b " + data).copy(leftname, namesize - 1)] = 0;
 		else if (i == right)
-			rightname[data.copy(rightname, namesize - 1)] = 0;
+			rightname[("@b " + data).copy(rightname, namesize - 1)] = 0;
 	} else if (command == "seat") {
 		if (data == "left") {
 			left = 1;
@@ -94,6 +90,7 @@ bool Video::handle_command(unsigned i, const string& command, const string& data
 			left = 0;
 			right = 1;
 		}
+		send_name(); 
 	} else
 		return false;
 	return true;
@@ -167,27 +164,31 @@ void Video::worker(void) {
 				capture->open("webcam.avi");
 				*capture >> cap;
 			}
+
 			if (cap.size().area() == 0)
 				throw runtime_error("empty captured image");
+			else {
+				UILock lock;
+				resize(cap, *img, img->size());
+				ui.midimage->redraw();
+			}
 
-			resize(cap, *img, img->size());
 			imencode(".jpg", *img, encbuf, params);
-
 			network.broadcast(encbuf, decbuf, maxlatency);
 			
 			if (decbuf.size() > left && decbuf[left].size() > 0) {
+				UILock lock;
 				*limg = imdecode(Mat(decbuf[left]), 1);
 				deblock(*limg);
+				ui.leftimage->redraw();
 			}
 			if (decbuf.size() > right && decbuf[right].size() > 0) {
+				UILock lock;
 				*rimg = imdecode(Mat(decbuf[right]), 1);
 				deblock(*rimg);
+				ui.rightimage->redraw();
 			}
 			
-			UILock lock;
-			ui.midimage->redraw();
-			ui.leftimage->redraw();
-			ui.rightimage->redraw();
 			fltk::awake();
 		}
 	} catch (std::exception& e) {

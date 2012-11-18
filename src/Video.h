@@ -44,7 +44,6 @@ class Video {
 	boost::shared_ptr<cv::Mat>		limg;
 	boost::shared_ptr<cv::Mat>		rimg;
 	boost::thread				videothread;
-	char					midname[namesize];
 	char					leftname[namesize];
 	char					rightname[namesize];
 	unsigned				left;
@@ -65,7 +64,7 @@ public:
 	Video(UserInterface&, Network&);
 	~Video(void);
 	
-	void change_name(void);
+	void send_name(void);
 	bool handle_command(unsigned, const std::string&, const std::string&);
 
 };
