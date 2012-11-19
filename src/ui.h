@@ -161,6 +161,11 @@ private:
           inline void cb_name_i(fltk::Input*, void*);
           static void cb_name(fltk::Input*, void*);
 public:
+          fltk::Input *secret;
+private:
+          inline void cb_secret_i(fltk::Input*, void*);
+          static void cb_secret(fltk::Input*, void*);
+public:
         fltk::TextDisplay *log;
   ~UserInterface(void);
 private:

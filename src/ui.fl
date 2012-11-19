@@ -62,7 +62,7 @@ namespace SK {open
         } {
           {fltk::Group} {} {
             label Spiel open
-            xywh {0 25 960 675}
+            xywh {0 25 960 675} hide
           } {
             {fltk::InvisibleBox} table {
               xywh {0 240 640 435} box FLAT_BOX color 0x71c67100
@@ -231,7 +231,7 @@ game->deactivate();}
           } {}
           {fltk::Group} {} {
             label System open
-            xywh {0 25 960 675} hide
+            xywh {0 25 960 675}
           } {
             {fltk::Group} {} {
               label Audio open
@@ -318,12 +318,22 @@ autostart->value(i != 0);}
               {fltk::Input} name {
                 label Spielername
                 callback {prefs.set("username", name->value());
-f["name change"]();} selected
+f["name change"]();}
                 tooltip {Dein Spielername.}
                 xywh {85 40 165 25}
                 extra_code {char* c;
 prefs.get("username", c, "nobody");
 name->value(c);
+delete[] c;}
+              }
+              {fltk::Input} secret {
+                label Geheimnis
+                callback {prefs.set("secret", secret->value());} selected
+                tooltip {Wird zusätzlich zur Zeit verwendet um den Zufallsgenerator zu initialisieren.}
+                xywh {85 85 165 25}
+                extra_code {char* c;
+prefs.get("secret", c, "");
+secret->value(c);
 delete[] c;}
               }
             }

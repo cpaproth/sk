@@ -236,6 +236,13 @@ inline void UserInterface::cb_name_i(fltk::Input*, void*) {
 void UserInterface::cb_name(fltk::Input* o, void* v) {
   ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_name_i(o,v);
 }
+
+inline void UserInterface::cb_secret_i(fltk::Input*, void*) {
+  prefs.set("secret", secret->value());
+}
+void UserInterface::cb_secret(fltk::Input* o, void* v) {
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_secret_i(o,v);
+}
 #include "../images/diamonds.xpm"
 #include "../images/hearts.xpm"
 #include "../images/spades.xpm"
@@ -272,6 +279,7 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
      {fltk::TabGroup* o = new fltk::TabGroup(0, 0, 960, 700);
       o->begin();
        {fltk::Group* o = new fltk::Group(0, 25, 960, 675, "Spiel");
+        o->hide();
         o->begin();
          {GlTable* o = table = new GlTable(0, 240, 640, 435);
           o->box(fltk::FLAT_BOX);
@@ -388,7 +396,6 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
         o->hide();
       }
        {fltk::Group* o = new fltk::Group(0, 25, 960, 675, "System");
-        o->hide();
         o->begin();
          {fltk::Group* o = new fltk::Group(630, 85, 220, 145, "Audio");
           o->box(fltk::DOWN_BOX);
@@ -479,6 +486,15 @@ sse.");
             char* c;
             prefs.get("username", c, "nobody");
             name->value(c);
+            delete[] c;
+          }
+           {fltk::Input* o = secret = new fltk::Input(85, 85, 165, 25, "Geheimnis");
+            o->callback((fltk::Callback*)cb_secret);
+            o->tooltip("Wird zus\303\244tzlich zur Zeit verwendet um den Zufallsgenerator zu initiali\
+sieren.");
+            char* c;
+            prefs.get("secret", c, "");
+            secret->value(c);
             delete[] c;
           }
           o->end();

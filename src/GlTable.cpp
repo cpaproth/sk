@@ -138,7 +138,7 @@ void GlTable::draw(void) {
 		float angle = 0.3f - i * 0.06f;
 		float sx = i != selected? 0.f: -50.f * sin(angle);
 		float sy = i != selected? 0.f: 50.f * cos(angle);
-		draw_card((cards[i] - 33) % 8, (cards[i] - 33) / 8, x + sx, a * x * x + b * x + sy, angle, 200.f);
+		draw_card(cards[i] % 8, cards[i] / 8, x + sx, a * x * x + b * x + sy, angle, 200.f);
 	}
 	
 	draw_card(4, 2, 200.f, 330.f, rand() * 0.4f / RAND_MAX - 0.2f, 160.f);

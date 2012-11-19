@@ -20,20 +20,36 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 
 #include <boost/thread/thread.hpp>
+#include "Mathlib.h"
 
 
 namespace SK {
+
+using namespace std;
 
 class UserInterface;
 class Network;
 
 class Game {
-	std::string				leftname;
-	std::string				rightname;
-	unsigned				left;
-	unsigned				right;
-	UserInterface&				ui;
-	Network&				network;
+	typedef unsigned char uchar;
+
+	CPLib::RanGen	rangen;
+	vector<uchar>	cards;
+	vector<uchar>	hand;
+	string		leftname;
+	string		rightname;
+	unsigned	left;
+	unsigned	right;
+	UserInterface&	ui;
+	Network&	network;
+	boost::mutex	gamemutex;
+
+
+	void shuffle(void);
+	string cards_string(const vector<uchar>&);
+	vector<uchar> string_cards(const string&);
+
+	void show_cards(const vector<uchar>&);
 
 
 	Game(const Game&);
@@ -42,9 +58,10 @@ public:
 	Game(UserInterface&, Network&);
 	~Game(void);
 	
-	void shuffle(void);
+	void begin_shuffle(void);
+
 	void send_name(void);
-	bool handle_command(unsigned, const std::string&, const std::string&);
+	bool handle_command(unsigned, const string&, const string&);
 
 };
 

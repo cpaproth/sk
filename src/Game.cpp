@@ -27,6 +27,14 @@ Game::Game(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 	left = 0;
 	right = 1;
 
+	cards.resize(32);
+	for (unsigned i = 0; i < cards.size(); i++)
+		cards[i] = i;
+
+	unsigned secret = 0;
+	string(ui.secret->text()).copy((char*)&secret, sizeof(unsigned));
+	rangen.seed(secret ^ (unsigned)time(0));
+	shuffle();
 }
 
 
@@ -38,18 +46,47 @@ Game::~Game(void) {
 
 
 void Game::shuffle(void) {
-	vector<uchar> cards(32);
-	for (unsigned i = 0; i < cards.size(); i++)
-		cards[i] = i + 33;
-	random_shuffle(cards.begin(), cards.end());
-	
-	network.command(left, "cards", string(cards.begin(), cards.begin() + 10));
-	network.command(right, "cards", string(cards.begin() + 10, cards.begin() + 20));
-	
+	for (ptrdiff_t i = cards.size() - 1; i > 0; i--)
+		swap(cards[i], cards[(ptrdiff_t)(rangen.uniform() * (i + 1))]);
+}
+
+
+
+string Game::cards_string(const vector<uchar>& c) {
+	string str(c.size(), 0);
+	for (unsigned i = 0; i < c.size(); i++)
+		str[i] = c[i] + 33;
+	return str;
+}
+
+
+vector<uchar> Game::string_cards(const string& str) {
+	vector<uchar> c(str.begin(), str.end());
+	for (unsigned i = 0; i < c.size(); i++)
+		c[i] -= 33;
+	return c;
+}
+
+
+void Game::show_cards(const vector<uchar>& c) {
 	UILock lock;
-	ui.table->set_cards(vector<uchar>(cards.begin() + 20, cards.begin() + 30));
+	ui.table->set_cards(c);
 	ui.table->redraw();
 	fltk::awake();
+}
+
+
+void Game::begin_shuffle(void) {
+	shuffle();
+
+	vector<uchar> lefthand(cards.begin(), cards.begin() + 10);
+	vector<uchar> righthand(cards.begin() + 10, cards.begin() + 20);
+	vector<uchar> myhand(cards.begin() + 20, cards.begin() + 30);
+
+	network.command(left, "cards", cards_string(lefthand));
+	network.command(right, "cards", cards_string(righthand));
+
+	show_cards(myhand);
 }
 
 
@@ -75,10 +112,7 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 		}
 		send_name();
 	} else if (command == "cards") {
-		UILock lock;
-		ui.table->set_cards(vector<uchar>(data.begin(), data.end()));
-		ui.table->redraw();
-		fltk::awake();
+		show_cards(string_cards(data));
 	} else
 		return false;
 	return true;
