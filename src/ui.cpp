@@ -279,7 +279,6 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
      {fltk::TabGroup* o = new fltk::TabGroup(0, 0, 960, 700);
       o->begin();
        {fltk::Group* o = new fltk::Group(0, 25, 960, 675, "Spiel");
-        o->hide();
         o->begin();
          {GlTable* o = table = new GlTable(0, 240, 640, 435);
           o->box(fltk::FLAT_BOX);
@@ -396,6 +395,7 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
         o->hide();
       }
        {fltk::Group* o = new fltk::Group(0, 25, 960, 675, "System");
+        o->hide();
         o->begin();
          {fltk::Group* o = new fltk::Group(630, 85, 220, 145, "Audio");
           o->box(fltk::DOWN_BOX);

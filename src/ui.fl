@@ -61,8 +61,8 @@ namespace SK {open
           xywh {0 0 960 700}
         } {
           {fltk::Group} {} {
-            label Spiel open
-            xywh {0 25 960 675} hide
+            label Spiel open selected
+            xywh {0 25 960 675}
           } {
             {fltk::InvisibleBox} table {
               xywh {0 240 640 435} box FLAT_BOX color 0x71c67100
@@ -231,7 +231,7 @@ game->deactivate();}
           } {}
           {fltk::Group} {} {
             label System open
-            xywh {0 25 960 675}
+            xywh {0 25 960 675} hide
           } {
             {fltk::Group} {} {
               label Audio open
@@ -328,7 +328,7 @@ delete[] c;}
               }
               {fltk::Input} secret {
                 label Geheimnis
-                callback {prefs.set("secret", secret->value());} selected
+                callback {prefs.set("secret", secret->value());}
                 tooltip {Wird zusätzlich zur Zeit verwendet um den Zufallsgenerator zu initialisieren.}
                 xywh {85 85 165 25}
                 extra_code {char* c;
