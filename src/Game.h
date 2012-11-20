@@ -20,7 +20,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 
 #include <boost/thread/thread.hpp>
-#include "Mathlib.h"
+#include "MathLib.h"
 
 
 namespace SK {
@@ -34,8 +34,13 @@ class Game {
 	typedef unsigned char uchar;
 
 	CPLib::RanGen	rangen;
-	vector<uchar>	cards;
+	vector<uchar>	deck;
 	vector<uchar>	hand;
+	vector<uchar>	skat;
+	
+	vector<uchar>	secretdeck;
+	vector<uchar>	secretcards;
+	
 	string		leftname;
 	string		rightname;
 	unsigned	left;
@@ -58,7 +63,7 @@ public:
 	Game(UserInterface&, Network&);
 	~Game(void);
 	
-	void begin_shuffle(void);
+	void start_dealing(void);
 
 	void send_name(void);
 	bool handle_command(unsigned, const string&, const string&);

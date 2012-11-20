@@ -77,13 +77,8 @@ bool Video::handle_command(unsigned i, const string& command, const string& data
 		else if (i == right)
 			rightname[("@b " + data).copy(rightname, namesize - 1)] = 0;
 	} else if (command == "seat") {
-		if (data == "left") {
-			left = 1;
-			right = 0;
-		} else if (data == "right") {
-			left = 0;
-			right = 1;
-		}
+		left = data == "left"? 1: 0;
+		right = data == "right"? 1: 0;
 	} else
 		return false;
 	return true;

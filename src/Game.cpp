@@ -18,18 +18,20 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "Game.h"
 #include "Network.h"
 #include "ui.h"
+#include "Convenience.h"
 
 
 using namespace SK;
+using namespace CPLib;
 
 
 Game::Game(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 	left = 0;
 	right = 1;
 
-	cards.resize(32);
-	for (unsigned i = 0; i < cards.size(); i++)
-		cards[i] = i;
+	deck.resize(32);
+	for (unsigned i = 0; i < deck.size(); i++)
+		deck[i] = i;
 
 	unsigned secret = 0;
 	string(ui.secret->text()).copy((char*)&secret, sizeof(unsigned));
@@ -46,8 +48,8 @@ Game::~Game(void) {
 
 
 void Game::shuffle(void) {
-	for (ptrdiff_t i = cards.size() - 1; i > 0; i--)
-		swap(cards[i], cards[(ptrdiff_t)(rangen.uniform() * (i + 1))]);
+	for (ptrdiff_t i = deck.size() - 1; i > 0; i--)
+		swap(deck[i], deck[(ptrdiff_t)(rangen.uniform() * (i + 1))]);
 }
 
 
@@ -76,17 +78,19 @@ void Game::show_cards(const vector<uchar>& c) {
 }
 
 
-void Game::begin_shuffle(void) {
+void Game::start_dealing(void) {
 	shuffle();
 
-	vector<uchar> lefthand(cards.begin(), cards.begin() + 10);
-	vector<uchar> righthand(cards.begin() + 10, cards.begin() + 20);
-	vector<uchar> myhand(cards.begin() + 20, cards.begin() + 30);
+	network.command(right, "cutdeck", "");
+	
+	vector<uchar> lefthand(deck.begin(), deck.begin() + 10);
+	vector<uchar> righthand(deck.begin() + 10, deck.begin() + 20);
+	hand.assign(deck.begin() + 20, deck.begin() + 30);
 
 	network.command(left, "cards", cards_string(lefthand));
 	network.command(right, "cards", cards_string(righthand));
 
-	show_cards(myhand);
+	show_cards(hand);
 }
 
 
@@ -98,21 +102,38 @@ void Game::send_name(void) {
 
 bool Game::handle_command(unsigned i, const string& command, const string& data) {
 	if (command == "name") {
-		if (i == left)
-			leftname = data;
-		else if (i == right)
-			rightname = data;
+		leftname = i == left? data: leftname;
+		rightname = i == right? data: rightname;
 	} else if (command == "seat") {
-		if (data == "left") {
-			left = 1;
-			right = 0;
-		} else if (data == "right") {
-			left = 0;
-			right = 1;
-		}
+		left = data == "left"? 1: 0;
+		right = data == "right"? 1: 0;
 		send_name();
+		
 	} else if (command == "cards") {
 		show_cards(string_cards(data));
+	} else if (command == "cutdeck") {
+		shuffle();
+		network.command(i, "cipherdeck", cards_string(deck));
+
+		vector<uchar> c(deck);
+		shuffle();
+		vector<uchar> draw;
+		for (unsigned j = 0; j < 10 ; j++)
+			draw.push_back(c[deck[j]]);
+		network.command(i? 0: 1, "secretcards", cards_string(vector<uchar>(deck.begin(), deck.begin() + 10)) + " " + cards_string(draw));
+	} else if (command == "cipherdeck") {
+		vector<uchar> c(string_cards(data));
+		for (unsigned j = 0; j < c.size(); j++)
+			c[j] = deck[c[j]];
+		network.command(i? 0: 1, "secretdeck", cards_string(c));
+	} else if (command == "secretdeck") {
+		secretdeck = string_cards(data);
+		
+	} else if (command == "secretcards") {
+		string secret;
+		vector<uchar> c(string_cards(ss(data) >> secret));
+		secretcards = string_cards(secret);
+
 	} else
 		return false;
 	return true;
