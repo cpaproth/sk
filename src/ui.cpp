@@ -167,6 +167,13 @@ void UserInterface::cb_announce(fltk::Button* o, void* v) {
   ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_announce_i(o,v);
 }
 
+inline void UserInterface::cb_Mischen_i(fltk::Button*, void*) {
+  f["dealing start"]();
+}
+void UserInterface::cb_Mischen(fltk::Button* o, void* v) {
+  ((UserInterface*)(o->parent()->parent()->parent()->user_data()))->cb_Mischen_i(o,v);
+}
+
 inline void UserInterface::cb_Neustart_i(fltk::Button*, void*) {
   f["audio restart"]();
 }
@@ -388,6 +395,9 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
             o->callback((fltk::Callback*)cb_announce);
           }
           o->end();
+        }
+         {fltk::Button* o = new fltk::Button(735, 380, 105, 25, "Mischen");
+          o->callback((fltk::Callback*)cb_Mischen);
         }
         o->end();
       }

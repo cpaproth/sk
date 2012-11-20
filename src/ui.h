@@ -127,6 +127,8 @@ public:
 private:
           inline void cb_announce_i(fltk::Button*, void*);
           static void cb_announce(fltk::Button*, void*);
+        inline void cb_Mischen_i(fltk::Button*, void*);
+        static void cb_Mischen(fltk::Button*, void*);
           inline void cb_Neustart_i(fltk::Button*, void*);
           static void cb_Neustart(fltk::Button*, void*);
           inline void cb_Mikrofon_i(fltk::CheckButton*, void*);

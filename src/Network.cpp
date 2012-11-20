@@ -41,6 +41,7 @@ Network::Network(void) : socket(io, ip::udp::v4()), timer(io) {
 	msgid = 0;
 	bandwidth = 0;
 	mutexbusy = 0;
+	ignoredmsg = 0;
 	recvbuf.resize(recvsize);
 }
 
@@ -141,7 +142,7 @@ void Network::command(unsigned i, const string& command, const string& data) {
 
 void Network::stats(void) {
 	lock_guard<timed_mutex> lock(netmutex);
-	cout << "known peers: " << peers.size() << ", network mutex busy: " << mutexbusy << endl;
+	cout << "known peers: " << peers.size() << ", network mutex busy: " << mutexbusy << ", messages ignored: " << ignoredmsg << endl;
 	for (unsigned i = 0; i < peers.size(); i++)
 		cout << "peer " << i << " fifo empty/full: " << peers[i].fifoempty << '/' << peers[i].fifofull << endl;
 }
@@ -154,6 +155,8 @@ void Network::processmessage(unsigned i, const string& message) {
 	if (command == "reply") {
 		if (peers[i].messages.size() > 0 && peers[i].messages[0].compare(0, id.length() + 1, id + ' ') == 0)
 			peers[i].messages.pop_front();
+		else
+			ignoredmsg++;
 		return;
 	} else {
 		string reply = id + " reply";
@@ -164,8 +167,10 @@ void Network::processmessage(unsigned i, const string& message) {
 	unsigned curmsgid;
 	ss(id) >> curmsgid;
 
-	if ((command != "hello" && curmsgid <= peers[i].lastmsgid) || (command == "hello" && peers[i].lastmsgid == curmsgid))
+	if ((command != "hello" && curmsgid <= peers[i].lastmsgid) || (command == "hello" && peers[i].lastmsgid == curmsgid)) {
+		ignoredmsg++;
 		return;
+	}
 		
 	peers[i].lastmsgid = curmsgid;
 	cout << i << ": " << command << ' ' << data << endl;

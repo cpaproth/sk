@@ -40,6 +40,7 @@ class Game {
 	
 	vector<uchar>	secretdeck;
 	vector<uchar>	secretcards;
+	vector<uchar>	drawncards;
 	
 	string		leftname;
 	string		rightname;
@@ -55,6 +56,7 @@ class Game {
 	vector<uchar> string_cards(const string&);
 
 	void show_cards(const vector<uchar>&);
+	void draw_cards(void);
 
 
 	Game(const Game&);
@@ -63,11 +65,10 @@ public:
 	Game(UserInterface&, Network&);
 	~Game(void);
 	
-	void start_dealing(void);
-
 	void send_name(void);
 	bool handle_command(unsigned, const string&, const string&);
 
+	void start_dealing(void);
 };
 
 

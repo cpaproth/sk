@@ -61,7 +61,7 @@ namespace SK {open
           xywh {0 0 960 700}
         } {
           {fltk::Group} {} {
-            label Spiel open selected
+            label Spiel open
             xywh {0 25 960 675}
           } {
             {fltk::InvisibleBox} table {
@@ -223,6 +223,11 @@ hand->activate();
 game->deactivate();}
                 xywh {60 195 200 25} labelfont 1
               }
+            }
+            {fltk::Button} {} {
+              label Mischen
+              callback {f["dealing start"]();} selected
+              xywh {735 380 105 25}
             }
           }
           {fltk::Group} {} {

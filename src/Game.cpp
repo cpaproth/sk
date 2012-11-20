@@ -19,6 +19,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "Network.h"
 #include "ui.h"
 #include "Convenience.h"
+#include <iostream>
 
 
 using namespace SK;
@@ -79,18 +80,56 @@ void Game::show_cards(const vector<uchar>& c) {
 
 
 void Game::start_dealing(void) {
+	if (secretdeck.size() != 0)
+		return;
+
+
 	shuffle();
 
+	secretdeck = deck;
 	network.command(right, "cutdeck", "");
 	
-	vector<uchar> lefthand(deck.begin(), deck.begin() + 10);
-	vector<uchar> righthand(deck.begin() + 10, deck.begin() + 20);
-	hand.assign(deck.begin() + 20, deck.begin() + 30);
+}
 
-	network.command(left, "cards", cards_string(lefthand));
-	network.command(right, "cards", cards_string(righthand));
+
+void Game::draw_cards(void) {
+	if (secretdeck.size() == 0 || secretcards.size() == 0)
+		return;
+
+	hand = secretcards;
+	for (unsigned i = 0; i < hand.size(); i++)
+		hand[i] = secretdeck[hand[i]];
 
 	show_cards(hand);
+
+	if (drawncards.size() == 10) {
+		shuffle();
+		network.command(right, "cipherdeck", cards_string(deck));
+
+		vector<uchar> c(deck);
+		shuffle();
+		
+		vector<uchar> deal;
+		for (unsigned i = 0; deal.size() != 10; i++) {
+			if (find(drawncards.begin(), drawncards.end(), c[deck[i]]) == drawncards.end()) {
+				deal.push_back(deck[i]);
+				drawncards.push_back(c[deck[i]]);
+			}
+		}
+		network.command(left, "secretcards", cards_string(deal) + " " + cards_string(drawncards));
+
+	} else if (drawncards.size() == 20) {
+		vector<uchar> deal;
+		for (unsigned i = 0; deal.size() != 12; i++) {
+			if (find(drawncards.begin(), drawncards.end(), deck[i]) == drawncards.end())
+				deal.push_back(deck[i]);
+		}
+		network.command(left, "secretcards", cards_string(deal));
+	}
+
+	secretdeck.clear();
+	secretcards.clear();
+	drawncards.clear();
 }
 
 
@@ -101,26 +140,32 @@ void Game::send_name(void) {
 
 
 bool Game::handle_command(unsigned i, const string& command, const string& data) {
-	if (command == "name") {
+	if (command == "peersconnected" && data == "2") {
+		cout << "2 peers connected, the game can start!" << endl;
+		network.command(0, "seat", "left");
+		network.command(1, "seat", "right");
+		send_name();
+		start_dealing();
+	} else if (command == "name") {
 		leftname = i == left? data: leftname;
 		rightname = i == right? data: rightname;
 	} else if (command == "seat") {
 		left = data == "left"? 1: 0;
 		right = data == "right"? 1: 0;
 		send_name();
-		
-	} else if (command == "cards") {
-		show_cards(string_cards(data));
+
+
+
 	} else if (command == "cutdeck") {
 		shuffle();
-		network.command(i, "cipherdeck", cards_string(deck));
+		network.command(left, "cipherdeck", cards_string(deck));
 
 		vector<uchar> c(deck);
 		shuffle();
-		vector<uchar> draw;
+		vector<uchar> drawn;
 		for (unsigned j = 0; j < 10 ; j++)
-			draw.push_back(c[deck[j]]);
-		network.command(i? 0: 1, "secretcards", cards_string(vector<uchar>(deck.begin(), deck.begin() + 10)) + " " + cards_string(draw));
+			drawn.push_back(c[deck[j]]);
+		network.command(right, "secretcards", cards_string(vector<uchar>(deck.begin(), deck.begin() + 10)) + " " + cards_string(drawn));
 	} else if (command == "cipherdeck") {
 		vector<uchar> c(string_cards(data));
 		for (unsigned j = 0; j < c.size(); j++)
@@ -128,11 +173,12 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 		network.command(i? 0: 1, "secretdeck", cards_string(c));
 	} else if (command == "secretdeck") {
 		secretdeck = string_cards(data);
-		
+		draw_cards();
 	} else if (command == "secretcards") {
 		string secret;
-		vector<uchar> c(string_cards(ss(data) >> secret));
+		drawncards = string_cards(ss(data) >> secret >> ws);
 		secretcards = string_cards(secret);
+		draw_cards();
 
 	} else
 		return false;

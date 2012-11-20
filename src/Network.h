@@ -65,6 +65,7 @@ class Network {
 	unsigned			msgid;
 	unsigned			bandwidth;
 	unsigned			mutexbusy;
+	unsigned			ignoredmsg;
 	handler				cmdfunc;
 	boost::asio::io_service		io;
 	boost::asio::ip::udp::socket	socket;
