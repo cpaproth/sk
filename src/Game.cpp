@@ -77,8 +77,6 @@ void Game::sort_hand(void) {
 	map<uchar, set<uchar> > suits;
 	set<uchar> jacks;
 	bool trump = !ui.null->value() && !ui.nullouvert->value();
-	//vector<vector<uchar> > suits(4);
-	//vector<uchar> diamonds, hearts, spades, clubs, jacks;
 
 	for (unsigned i = 0; i < hand.size(); i++) {
 		if (trump && (hand[i] & 7) == 3)
@@ -87,36 +85,30 @@ void Game::sort_hand(void) {
 			suits[hand[i] & 24].insert(1);
 		else
 			suits[hand[i] & 24].insert((hand[i] & 7) * 2);
-
-		//if ((hand[i] & 24) > 8)
-		//	red[hand[i] & 24].insert(hand[i]);
-		//else
-		//	black[hand[i] & 24].insert(hand[i]);
-		//suits[(hand[i] & 24) >> 3].push_back(hand[i] & 7);
 	}
 
+	size_t size = hand.size();
 	hand.assign(jacks.begin(), jacks.end());
 	
+	uchar nextsuit = suits[0].size() > 0 && suits[8].size() > 0? 0: 16;
 	uchar trumpsuit = ui.diamonds->value()? 24: ui.hearts->value()? 16: ui.spades->value()? 8: ui.clubs->value()? 0: 32;
 	if (trumpsuit != 32) {
 		for (set<uchar>::iterator it = suits[trumpsuit].begin(); it != suits[trumpsuit].end(); it++)
 			hand.push_back(trumpsuit + (*it == 1? 4: *it / 2));
 		suits.erase(trumpsuit);
+		nextsuit = trumpsuit < 16? 16: 0;
 	}
-
-
-	//if (ui.null->value() || ui.nullouvert->value()) {
-	//	while (black.size
-	//	if (red.size() > black.size())
-	//	
-
-	//}
-
-	//uchar trump[] = {3, 11, 19, 27, 0, 4, 1, 2, 5, 6, 7};
-	//uchar null[] = {0, 1, 2, 3, 4, 5, 6, 7};
-
-
-
+	
+	while (hand.size() < size) {
+		if (suits[nextsuit].size() == 0) {
+			nextsuit = (nextsuit + 8) & 24;
+			continue;
+		}
+		for (set<uchar>::iterator it = suits[nextsuit].begin(); it != suits[nextsuit].end(); it++)
+			hand.push_back(nextsuit + (*it == 1? 4: *it / 2));
+		suits.erase(nextsuit);
+		nextsuit = (nextsuit + 16) & 24;
+	}
 }
 
 
