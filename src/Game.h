@@ -55,6 +55,7 @@ class Game {
 	void shuffle(void);
 	string cards_string(const vector<uchar>&);
 	vector<uchar> string_cards(const string&);
+	void sort_hand(void);
 	void reset_game(void);
 
 	void show_cards(const vector<uchar>&);

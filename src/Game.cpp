@@ -20,6 +20,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "ui.h"
 #include "Convenience.h"
 #include <iostream>
+#include <set>
 
 
 using namespace SK;
@@ -71,6 +72,54 @@ vector<uchar> Game::string_cards(const string& str) {
 }
 
 
+void Game::sort_hand(void) {
+	UILock lock;
+	map<uchar, set<uchar> > suits;
+	set<uchar> jacks;
+	bool trump = !ui.null->value() && !ui.nullouvert->value();
+	//vector<vector<uchar> > suits(4);
+	//vector<uchar> diamonds, hearts, spades, clubs, jacks;
+
+	for (unsigned i = 0; i < hand.size(); i++) {
+		if (trump && (hand[i] & 7) == 3)
+			jacks.insert(hand[i]);
+		else if (trump && (hand[i] & 7) == 4)
+			suits[hand[i] & 24].insert(1);
+		else
+			suits[hand[i] & 24].insert((hand[i] & 7) * 2);
+
+		//if ((hand[i] & 24) > 8)
+		//	red[hand[i] & 24].insert(hand[i]);
+		//else
+		//	black[hand[i] & 24].insert(hand[i]);
+		//suits[(hand[i] & 24) >> 3].push_back(hand[i] & 7);
+	}
+
+	hand.assign(jacks.begin(), jacks.end());
+	
+	uchar trumpsuit = ui.diamonds->value()? 24: ui.hearts->value()? 16: ui.spades->value()? 8: ui.clubs->value()? 0: 32;
+	if (trumpsuit != 32) {
+		for (set<uchar>::iterator it = suits[trumpsuit].begin(); it != suits[trumpsuit].end(); it++)
+			hand.push_back(trumpsuit + (*it == 1? 4: *it / 2));
+		suits.erase(trumpsuit);
+	}
+
+
+	//if (ui.null->value() || ui.nullouvert->value()) {
+	//	while (black.size
+	//	if (red.size() > black.size())
+	//	
+
+	//}
+
+	//uchar trump[] = {3, 11, 19, 27, 0, 4, 1, 2, 5, 6, 7};
+	//uchar null[] = {0, 1, 2, 3, 4, 5, 6, 7};
+
+
+
+}
+
+
 void Game::reset_game(void) {
 	hand.clear();
 	secretdeck.clear();
@@ -93,6 +142,9 @@ void Game::show_cards(const vector<uchar>& c) {
 
 
 void Game::start_dealing(void) {
+	if (dealer == UINT_MAX)
+		return;
+
 	reset_game();
 	dealer = UINT_MAX;
 
@@ -132,6 +184,7 @@ void Game::decipher(void) {
 	for (unsigned i = 0; i < secretcards.size(); i++)
 		hand.push_back(secretdeck[secretcards[i]]);
 
+	sort_hand();
 	show_cards(hand);
 	
 	secretdeck.clear();
@@ -148,8 +201,10 @@ void Game::decipher(void) {
 		network.command(left, "secretcards", cards_string(dealtcards));
 		network.command(right, "drawncards", cards_string(drawncards));
 
-	} else if (drawncards.size() == 0)
+	} else if (drawncards.size() == 0) {
 		secretdeck = deck;
+		dealer = left;
+	}
 }
 
 
@@ -208,6 +263,8 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 
 	} else if (command == "drawncards" && i != dealer) {
 		drawncards = string_cards(data);
+		if (drawncards.size() == 30)
+			network.command(left, "saying", "");
 
 	} else if (command == "dealskat" && drawncards.size() == 30) {
 		if (i == dealer) {
