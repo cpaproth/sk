@@ -6,7 +6,16 @@ This program is free software and comes with ABSOLUTELY NO WARRANTY. Licensed un
 Skat-Konferenz is written in C++ using portable libraries exclusively, so it should be compatible with UNIX/Linux (X11), MS Windows, and Mac OS X. Till now,
 it has been tested on Xubuntu 11.10 (32-bit and 64-bit), Xubuntu 12.04 (64-bit), and MS Windows 7 ([32-bit](https://github.com/cpaproth/sk/downloads)).
 
-This software is a work in progress, but the networking and videoconferencing part is already functional [v0.1](https://github.com/cpaproth/sk/tags).
+This software is a work in progress, the goals for version 1.0 are:
+* videoconferencing between 3 people with audio and video compression (is implemented) [v0.1](https://github.com/cpaproth/sk/tags)
+* starting the game and dealing the cards secretly, so one player alone cannot find out the other players cards by analyzing network traffic and source code (under development)
+* bidding procedure, dealing the Skat secretly, and then play the game according to the international Skat Order rules
+* add some unofficial but popular rules (Kontra, Re, Bock, Ramsch) and keep a list of the scores of played games
+
+Desirable features for version 2.0 are:
+* echo cancellation to improve audio quality
+* speech recognition, this would be really cool during the bidding procedure or for saying Kontra
+* integrate other but similar games, for example Doppelkopf
 
 
 ## Dependencies
