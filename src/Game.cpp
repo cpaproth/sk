@@ -71,10 +71,16 @@ vector<uchar> Game::string_cards(const string& str) {
 }
 
 
-void Game::reset_secret(void) {
+void Game::reset_game(void) {
+	hand.clear();
 	secretdeck.clear();
 	secretcards.clear();
+	dealtcards.clear();
 	drawncards.clear();
+
+	UILock lock;
+	ui.game->activate();
+	fltk::awake();
 }
 
 
@@ -87,28 +93,35 @@ void Game::show_cards(const vector<uchar>& c) {
 
 
 void Game::start_dealing(void) {
-	reset_secret();
+	reset_game();
+	dealer = UINT_MAX;
 
 	shuffle();
 
 	secretdeck = deck;
-	network.command(right, "cutdeck", "");
-	
+	network.command(left, "newdeal", "");
 }
 
 
-vector<uchar> Game::deal_cards(unsigned n, bool s) {
-	vector<uchar> deal;
-	vector<uchar> cards(deck);
+void Game::take_skat(void) {
+	if (dealer == UINT_MAX || dealer == left)
+		network.command(right, "dealskat", "");
+	else
+		network.command(left, "dealskat", "");
+}
 
+
+void Game::deal_cards(unsigned n, bool cipher) {
+	vector<uchar> cards(deck);
 	shuffle();
-	for (unsigned i = 0; deal.size() != n; i++) {
+
+	dealtcards.clear();
+	for (unsigned i = 0; dealtcards.size() != n && drawncards.size() < 32; i++) {
 		if (find(drawncards.begin(), drawncards.end(), cards[deck[i]]) == drawncards.end()) {
-			deal.push_back(s? deck[i]: cards[deck[i]]);
+			dealtcards.push_back(cipher? deck[i]: cards[deck[i]]);
 			drawncards.push_back(cards[deck[i]]);
 		}
 	}
-	return deal;
 }
 
 
@@ -116,46 +129,27 @@ void Game::decipher(void) {
 	if (secretdeck.size() == 0 || secretcards.size() == 0)
 		return;
 
-	if (secretcards.size() == 10)
-		hand.clear();
 	for (unsigned i = 0; i < secretcards.size(); i++)
 		hand.push_back(secretdeck[secretcards[i]]);
 
 	show_cards(hand);
+	
+	secretdeck.clear();
+	secretcards.clear();
 
 	if (drawncards.size() == 10) {
 		shuffle();
 		network.command(right, "cipherdeck", cards_string(deck));
-
-		//~ vector<uchar> c(deck);
-		//~ shuffle();
-		//~ 
-		//~ vector<uchar> deal;
-		//~ for (unsigned i = 0; deal.size() != 10; i++) {
-			//~ if (find(drawncards.begin(), drawncards.end(), c[deck[i]]) == drawncards.end()) {
-				//~ deal.push_back(deck[i]);
-				//~ drawncards.push_back(c[deck[i]]);
-			//~ }
-		//~ }
-		//~ network.command(left, "secretcards", cards_string(deal) + " " + cards_string(drawncards));
-		vector<uchar> deal = deal_cards(10, true);
-		network.command(left, "secretcards", cards_string(deal) + " " + cards_string(drawncards));
+		deal_cards(10, true);
+		network.command(left, "secretcards", cards_string(dealtcards) + " " + cards_string(drawncards));
 
 	} else if (drawncards.size() == 20) {
-		//~ vector<uchar> deal;
-		//~ for (unsigned i = 0; deal.size() != 12; i++) {
-			//~ if (find(drawncards.begin(), drawncards.end(), deck[i]) == drawncards.end())
-				//~ deal.push_back(deck[i]);
-		//~ }
-		//~ network.command(left, "secretcards", cards_string(deal));
-		network.command(left, "secretcards", cards_string(deal_cards(10, false)));
+		deal_cards(10, false);
+		network.command(left, "secretcards", cards_string(dealtcards));
 		network.command(right, "drawncards", cards_string(drawncards));
-	} else
-		return;
 
-	secretdeck.clear();
-	secretcards.clear();
-	//drawncards.clear();
+	} else if (drawncards.size() == 0)
+		secretdeck = deck;
 }
 
 
@@ -172,41 +166,61 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 		network.command(1, "seat", "right");
 		send_name();
 		start_dealing();
+
 	} else if (command == "name") {
 		leftname = i == left? data: leftname;
 		rightname = i == right? data: rightname;
+
 	} else if (command == "seat") {
 		left = data == "left"? 1: 0;
 		right = data == "right"? 1: 0;
 		send_name();
 
 
+	} else if (command == "newdeal") {
+		reset_game();
+		dealer = right;
+		network.command(left, "cutdeck", "");
+
 	} else if (command == "cutdeck") {
+		reset_game();
+		dealer = left;
 		shuffle();
 		network.command(left, "cipherdeck", cards_string(deck));
+		deal_cards(10, true);
+		network.command(right, "secretcards", cards_string(dealtcards) + " " + cards_string(drawncards));
 
-		
-		//~ vector<uchar> c(deck);
-		//~ shuffle();
-		//~ vector<uchar> drawn;
-		//~ for (unsigned j = 0; j < 10 ; j++)
-			//~ drawn.push_back(c[deck[j]]);
-		//~ network.command(right, "secretcards", cards_string(vector<uchar>(deck.begin(), deck.begin() + 10)) + " " + cards_string(drawn));
-		vector<uchar> deal = deal_cards(10, true);
-		network.command(right, "secretcards", cards_string(deal) + " " + cards_string(drawncards));
 	} else if (command == "cipherdeck") {
-		vector<uchar> c(string_cards(data));
-		for (unsigned j = 0; j < c.size(); j++)
-			c[j] = deck[c[j]];
-		network.command(i? 0: 1, "secretdeck", cards_string(c));
-	} else if (command == "secretdeck") {
+		vector<uchar> cards(string_cards(data));
+		for (unsigned j = 0; j < cards.size(); j++)
+			cards[j] = deck[cards[j]];
+		network.command(i? 0: 1, "secretdeck", cards_string(cards));
+
+	} else if (command == "secretdeck" && i == dealer) {
 		secretdeck = string_cards(data);
 		decipher();
-	} else if (command == "secretcards") {
+
+	} else if (command == "secretcards" && i != dealer) {
 		string secret;
 		drawncards = string_cards(ss(data) >> secret >> ws);
 		secretcards = string_cards(secret);
 		decipher();
+
+	} else if (command == "drawncards" && i != dealer) {
+		drawncards = string_cards(data);
+
+	} else if (command == "dealskat" && drawncards.size() == 30) {
+		if (i == dealer) {
+			deal_cards(2, false);
+			network.command(i, "secretcards", cards_string(dealtcards));
+			network.command(i? 0: 1, "drawncards", cards_string(drawncards));
+		} else {
+			shuffle();
+			network.command(dealer, "cipherdeck", cards_string(deck));
+			deal_cards(2, true);
+			network.command(i, "secretcards", cards_string(dealtcards) + " " + cards_string(drawncards));
+		}
+
 
 	} else
 		return false;

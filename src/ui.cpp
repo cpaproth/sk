@@ -153,6 +153,7 @@ inline void UserInterface::cb_skat_i(fltk::Button*, void*) {
   hand->user_data((void*)1);
   skat->deactivate();
   game->do_callback();
+  f["skat take"]();
 }
 void UserInterface::cb_skat(fltk::Button* o, void* v) {
   ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_skat_i(o,v);

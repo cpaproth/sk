@@ -8,8 +8,8 @@ it has been tested on Xubuntu 11.10 (32-bit and 64-bit), Xubuntu 12.04 (64-bit),
 
 This software is a work in progress, the goals for version 1.0 are:
 * videoconferencing between 3 people with audio and video compression (is implemented) [v0.1](https://github.com/cpaproth/sk/tags)
-* starting the game and dealing the cards secretly, so one player alone cannot find out the other players cards by analyzing network traffic and source code (under development)
-* bidding procedure, dealing the Skat secretly, and then play the game according to the international Skat Order rules
+* dealing the cards securely, so one player alone cannot manipulate the deal or identify the other players cards (under development)
+* bidding procedure and gameplay according to the international Skat Order rules
 * add some unofficial but popular rules (Kontra, Re, Bock, Ramsch) and keep a list of the scores of played games
 
 Desirable features for version 2.0 are:

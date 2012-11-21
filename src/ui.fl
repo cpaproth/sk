@@ -109,7 +109,7 @@ else if (hand->user_data() == 0)
   str += " Hand";
 str += " ansagen";
 announce->copy_label(str.c_str());
-announce->redraw();}
+announce->redraw();} open
               xywh {640 110 320 240} when NEVER box DOWN_BOX
             } {
               {fltk::InvisibleBox} position {
@@ -171,7 +171,7 @@ game->do_callback();}
               {fltk::Group} hand {
                 callback {schneider->value(false);
 schwarz->value(false);
-ouvert->value(false);}
+ouvert->value(false);} open
                 xywh {60 115 200 35} when NEVER
                 extra_code {hand->user_data(0);}
               } {
@@ -212,7 +212,8 @@ game->do_callback();}
 hand->do_callback();
 hand->user_data((void*)1);
 skat->deactivate();
-game->do_callback();}
+game->do_callback();
+f["skat take"]();} selected
                 tooltip {Kein Handspiel.}
                 xywh {60 160 200 25} labelfont 1
               }
@@ -226,7 +227,7 @@ game->deactivate();}
             }
             {fltk::Button} {} {
               label Mischen
-              callback {f["dealing start"]();} selected
+              callback {f["dealing start"]();}
               xywh {735 380 105 25}
             }
           }

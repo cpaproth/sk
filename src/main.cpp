@@ -61,7 +61,7 @@ void handle_command(Video& video, Game& game, unsigned i, const string& command,
 	handled |= game.handle_command(i, command, data);
 	
 	if (!handled)
-		cout << "unknown command: " << command << endl;
+		cout << "unhandled command: " << command << endl;
 }
 
 
@@ -97,6 +97,7 @@ int main(void) {
 		ui.f["name change"] = bind(&Game::send_name, &game);
 
 		ui.f["dealing start"] = bind(&Game::start_dealing, &game);
+		ui.f["skat take"] = bind(&Game::take_skat, &game);
 
 		try {
 			if (ui.autostart->value())

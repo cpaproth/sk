@@ -39,7 +39,9 @@ class Game {
 	
 	vector<uchar>	secretdeck;
 	vector<uchar>	secretcards;
+	vector<uchar>	dealtcards;
 	vector<uchar>	drawncards;
+	unsigned	dealer;
 	
 	string		leftname;
 	string		rightname;
@@ -53,10 +55,10 @@ class Game {
 	void shuffle(void);
 	string cards_string(const vector<uchar>&);
 	vector<uchar> string_cards(const string&);
-	void reset_secret(void);
+	void reset_game(void);
 
 	void show_cards(const vector<uchar>&);
-	vector<uchar> deal_cards(unsigned, bool);
+	void deal_cards(unsigned, bool);
 	void decipher(void);
 
 
@@ -70,6 +72,7 @@ public:
 	bool handle_command(unsigned, const string&, const string&);
 
 	void start_dealing(void);
+	void take_skat(void);
 };
 
 
