@@ -220,7 +220,7 @@ f["game select"]();}
               {fltk::Input} address {
                 label {IP-Adresse}
                 callback {prefs.set("ipaddress", address->value());}
-                tooltip {Das Feld leer lassen, um beim Verbinden des Netzwerks als Server zu dienen. Damit sich andere Spieler als Clients mit ihrem Server verbinden können, müssen sie ihnen ihre öffentlich erreichbare IP-Adresse mitteilen.}
+                tooltip {Das Feld leer lassen, um beim Verbinden des Netzwerks als Server zu dienen. Damit sich andere Spieler als Clients mit ihrem Server verbinden können, müssen sie ihnen ihre öffentlich erreichbare IP-Adresse und den ausgewählten UDP-Port mitteilen.}
                 xywh {165 40 195 25}
                 extra_code {char* c;
 prefs.get("ipaddress", c, "");
@@ -254,8 +254,8 @@ bandwidth->linesize(1000);}
               }
               {fltk::Button} {} {
                 label Verbinden
-                callback {f["network start"]();}
-                tooltip {Wenn keine IP-Adresse angegeben ist, dann starten sie hiermit die Skat-Konferenz als Server, ansonsten wird eine Verbindung zu der angegebenen IP-Adresse aufgebaut. Wenn die Verbindung erfolgreich ist, dann beginnt die Videokonferenz. Wenn 3 Peers miteinander verbunden sind, dann startet das Spiel.}
+                callback {f["network start"]();} selected
+                tooltip {Wenn keine IP-Adresse angegeben ist, dann starten sie hiermit die Skat-Konferenz als Server, ansonsten wird eine Verbindung zu der angegebenen IP-Adresse und UDP-Port aufgebaut. Wenn die Verbindung erfolgreich ist, dann beginnt die Videokonferenz. Wenn 3 Peers miteinander verbunden sind, dann startet das Spiel.}
                 xywh {165 190 195 25}
               }
               {fltk::Button} {} {
@@ -266,7 +266,7 @@ bandwidth->linesize(1000);}
               }
               {fltk::CheckButton} autostart {
                 label Auto
-                callback {prefs.set("autostart", autostart->value());} selected
+                callback {prefs.set("autostart", autostart->value());}
                 tooltip {Wenn aktiviert, dann wird das Netzwerk beim nächsten Programmstart automatisch verbunden. Nur sinnvoll beim Start als Server oder bei Verbindung zu statischer IP-Adresse.}
                 xywh {70 190 60 25}
                 extra_code {int i;
@@ -282,7 +282,7 @@ autostart->value(i != 0);}
                 label Spielername
                 callback {prefs.set("username", name->value());
 f["name change"]();}
-                tooltip {Dein Spielername.}
+                tooltip {Ihr Spielername.}
                 xywh {85 40 165 25}
                 extra_code {char* c;
 prefs.get("username", c, "nobody");
