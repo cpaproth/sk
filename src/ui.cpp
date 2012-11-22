@@ -3,7 +3,7 @@
 #include "ui.h"
 //Copyright (C) 2012 Carsten Paproth
 using namespace SK;
-using namespace SK::images;
+using namespace images;
 
 inline void UserInterface::cb_mainwnd_i(fltk::Window*, void*) {
   mainwnd->hide();
@@ -156,11 +156,11 @@ void UserInterface::cb_bandwidth(fltk::ValueInput* o, void* v) {
   ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_bandwidth_i(o,v);
 }
 
-inline void UserInterface::cb_Start_i(fltk::Button*, void*) {
+inline void UserInterface::cb_Verbinden_i(fltk::Button*, void*) {
   f["network start"]();
 }
-void UserInterface::cb_Start(fltk::Button* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_Start_i(o,v);
+void UserInterface::cb_Verbinden(fltk::Button* o, void* v) {
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_Verbinden_i(o,v);
 }
 
 inline void UserInterface::cb_Stats_i(fltk::Button*, void*) {
@@ -370,7 +370,10 @@ chtig einstellen zu k\303\266nnen, damit z.B. Echos verringert werden. ");
           o->begin();
            {fltk::Input* o = address = new fltk::Input(165, 40, 195, 25, "IP-Adresse");
             o->callback((fltk::Callback*)cb_address);
-            o->tooltip("Feld leer lassen um die Skat-Konferenz als Server zu starten.");
+            o->tooltip("Das Feld leer lassen, um beim Verbinden des Netzwerks als Server zu dienen. D\
+amit sich andere Spieler als Clients mit ihrem Server verbinden k\303\266nnen,\
+ m\303\274ssen sie ihnen ihre \303\266""ffentlich erreichbare IP-Adresse mitte\
+ilen.");
             char* c;
             prefs.get("ipaddress", c, "");
             address->value(c);
@@ -402,9 +405,12 @@ s, sonstiger Netzwerkverkehr ist weniger als 1000 Byte/s pro Peer.");
             bandwidth->value(d);
             bandwidth->linesize(1000);
           }
-           {fltk::Button* o = new fltk::Button(165, 190, 195, 25, "Start");
-            o->callback((fltk::Callback*)cb_Start);
-            o->tooltip("Startet die Skat-Konferenz als Server oder Client.");
+           {fltk::Button* o = new fltk::Button(165, 190, 195, 25, "Verbinden");
+            o->callback((fltk::Callback*)cb_Verbinden);
+            o->tooltip("Wenn keine IP-Adresse angegeben ist, dann starten sie hiermit die Skat-Konfer\
+enz als Server, ansonsten wird eine Verbindung zu der angegebenen IP-Adresse a\
+ufgebaut. Wenn die Verbindung erfolgreich ist, dann beginnt die Videokonferenz\
+. Wenn 3 Peers miteinander verbunden sind, dann startet das Spiel.");
           }
            {fltk::Button* o = new fltk::Button(165, 240, 195, 25, "Stats");
             o->callback((fltk::Callback*)cb_Stats);
@@ -414,8 +420,8 @@ aus.");
            {fltk::CheckButton* o = autostart = new fltk::CheckButton(70, 190, 60, 25, "Auto");
             o->callback((fltk::Callback*)cb_autostart);
             o->tooltip("Wenn aktiviert, dann wird das Netzwerk beim n\303\244""chsten Programmstart a\
-utomatisch mitgestartet. Nur sinnvoll f\303\274r Server oder statische IP-Adre\
-sse.");
+utomatisch verbunden. Nur sinnvoll beim Start als Server oder bei Verbindung z\
+u statischer IP-Adresse.");
             int i;
             prefs.get("autostart", i, 0);
             autostart->value(i != 0);

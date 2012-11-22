@@ -6,16 +6,16 @@ This program is free software and comes with ABSOLUTELY NO WARRANTY. Licensed un
 Skat-Konferenz is written in C++ using portable libraries exclusively, so it should be compatible with UNIX/Linux (X11), MS Windows, and Mac OS X. Till now,
 it has been tested on Xubuntu 11.10 (32-bit and 64-bit), Xubuntu 12.04 (64-bit), and MS Windows 7 ([32-bit](https://github.com/cpaproth/sk/downloads)).
 
-This software is a work in progress, the goals for version 1.0 are:
+This software is a work in progress, the features of version 1.0 will be:
 * videoconferencing between 3 people with audio and video compression: [v0.1](https://github.com/cpaproth/sk/tags)
 * dealing the cards securely, so one player alone cannot manipulate the deal or identify the other players cards: [v0.3](https://github.com/cpaproth/sk/tags)
 * bidding procedure and gameplay according to the international Skat Order rules: under development
-* add some unofficial but popular rules (Kontra, Re, Bock, Ramsch) and keep a list of the played games: missing
+* some unofficial but popular rules (Kontra, Re, Bock, Ramsch) and a list of the played games: missing
 
-Desirable features for version 2.0 are:
+Desirable features of version 2.0 are:
 * echo cancellation to improve audio quality
 * speech recognition, this would be really cool during the bidding procedure or for saying Kontra
-* integrate other but similar games, for example Doppelkopf
+* integration of other but similar games, for example Doppelkopf
 
 
 ## Dependencies
@@ -45,8 +45,9 @@ so for other operating systems you have to create appropriate build files by han
 
 ## Usage
 
-Skat is a card game played by three people. One starts *sk* as server and tells the other two his or her publicly reachable IP address per e-mail, telephone, or whatever.
-Now the other two can start *sk* as client and connect to this disclosed IP address. Then, the server initiates UDP hole punching between the two clients and the
-videoconferencing starts. Now the game could start. To be implemented...
+Skat is a card game played by three people. If you want to start *sk* as server, go to the system tab, leave the IP address field empty, and click connect. Then tell
+the other two players your publicly reachable IP address per e-mail, telephone, or whatever. Now, the other two can start *sk* as client and connect to this disclosed
+IP address. If a connection can be established, the videoconferencing starts. If two clients are connected to the server, the server initiates UDP hole punching
+between the two clients and the game can start. To be implemented...
 
 ![playing cards](https://github.com/cpaproth/sk/raw/master/images/cards.png)

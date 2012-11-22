@@ -135,8 +135,8 @@ public:
 private:
           inline void cb_bandwidth_i(fltk::ValueInput*, void*);
           static void cb_bandwidth(fltk::ValueInput*, void*);
-          inline void cb_Start_i(fltk::Button*, void*);
-          static void cb_Start(fltk::Button*, void*);
+          inline void cb_Verbinden_i(fltk::Button*, void*);
+          static void cb_Verbinden(fltk::Button*, void*);
           inline void cb_Stats_i(fltk::Button*, void*);
           static void cb_Stats(fltk::Button*, void*);
 public:
