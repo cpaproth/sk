@@ -98,6 +98,7 @@ int main(void) {
 
 		ui.f["dealing start"] = bind(&Game::start_dealing, &game);
 		ui.f["skat take"] = bind(&Game::take_skat, &game);
+		ui.f["game select"] = bind(&Game::select_game, &game);
 
 		try {
 			if (ui.autostart->value())

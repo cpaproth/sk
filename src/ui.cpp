@@ -3,7 +3,7 @@
 #include "ui.h"
 //Copyright (C) 2012 Carsten Paproth
 using namespace SK;
-using namespace images;
+using namespace SK::images;
 
 inline void UserInterface::cb_mainwnd_i(fltk::Window*, void*) {
   mainwnd->hide();
@@ -12,106 +12,53 @@ void UserInterface::cb_mainwnd(fltk::Window* o, void* v) {
   ((UserInterface*)(o->user_data()))->cb_mainwnd_i(o,v);
 }
 
-inline void UserInterface::cb_game_i(fltk::Group*, void*) {
-  std::string str;
-  if (diamonds->value())
-    str = "Karo";
-  else if (hearts->value())
-    str = "Herz";
-  else if (spades->value())
-    str = "Pik";
-  else if (clubs->value())
-    str = "Kreuz";
-  else if (grand->value())
-    str = "Grand";
-  else if (null->value())
-    str = "Null";
-  else if (nullouvert->value())
-    str = "Null Ouvert";
-  if (ouvert->value())
-    str += " Ouvert";
-  else if (schwarz->value())
-    str += " Schwarz";
-  else if (schneider->value())
-    str += " Schneider";
-  else if (hand->user_data() == 0)
-    str += " Hand";
-  str += " ansagen";
-  announce->copy_label(str.c_str());
-  announce->redraw();
-}
-void UserInterface::cb_game(fltk::Group* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->user_data()))->cb_game_i(o,v);
-}
-
-inline void UserInterface::cb_trump_i(fltk::Group*, void*) {
-  if (null->value() || nullouvert->value()) {
-    hand->deactivate();
-    hand->do_callback();
-  } else if (hand->user_data() == 0)
-    hand->activate();
-  game->do_callback();
-}
-void UserInterface::cb_trump(fltk::Group* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_trump_i(o,v);
-}
-
 inline void UserInterface::cb_diamonds_i(fltk::Button*, void*) {
-  trump->do_callback();
+  f["game select"]();
 }
 void UserInterface::cb_diamonds(fltk::Button* o, void* v) {
   ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_diamonds_i(o,v);
 }
 
 inline void UserInterface::cb_hearts_i(fltk::Button*, void*) {
-  trump->do_callback();
+  f["game select"]();
 }
 void UserInterface::cb_hearts(fltk::Button* o, void* v) {
   ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_hearts_i(o,v);
 }
 
 inline void UserInterface::cb_spades_i(fltk::Button*, void*) {
-  trump->do_callback();
+  f["game select"]();
 }
 void UserInterface::cb_spades(fltk::Button* o, void* v) {
   ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_spades_i(o,v);
 }
 
 inline void UserInterface::cb_clubs_i(fltk::Button*, void*) {
-  trump->do_callback();
+  f["game select"]();
 }
 void UserInterface::cb_clubs(fltk::Button* o, void* v) {
   ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_clubs_i(o,v);
 }
 
 inline void UserInterface::cb_grand_i(fltk::Button*, void*) {
-  trump->do_callback();
+  f["game select"]();
 }
 void UserInterface::cb_grand(fltk::Button* o, void* v) {
   ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_grand_i(o,v);
 }
 
 inline void UserInterface::cb_null_i(fltk::Button*, void*) {
-  trump->do_callback();
+  f["game select"]();
 }
 void UserInterface::cb_null(fltk::Button* o, void* v) {
   ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_null_i(o,v);
 }
 
 inline void UserInterface::cb_nullouvert_i(fltk::Button*, void*) {
-  trump->do_callback();
+  f["game select"]();
 }
 void UserInterface::cb_nullouvert(fltk::Button* o, void* v) {
   ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_nullouvert_i(o,v);
-}
-
-inline void UserInterface::cb_hand_i(fltk::Group*, void*) {
-  schneider->value(false);
-  schwarz->value(false);
-  ouvert->value(false);
-}
-void UserInterface::cb_hand(fltk::Group* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_hand_i(o,v);
 }
 
 inline void UserInterface::cb_schneider_i(fltk::Button*, void*) {
@@ -119,7 +66,7 @@ inline void UserInterface::cb_schneider_i(fltk::Button*, void*) {
     schwarz->value(false);
     ouvert->value(false);
   }
-  game->do_callback();
+  f["game select"]();
 }
 void UserInterface::cb_schneider(fltk::Button* o, void* v) {
   ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_schneider_i(o,v);
@@ -130,7 +77,7 @@ inline void UserInterface::cb_schwarz_i(fltk::Button*, void*) {
     schneider->value(true);
   else
     ouvert->value(false);
-  game->do_callback();
+  f["game select"]();
 }
 void UserInterface::cb_schwarz(fltk::Button* o, void* v) {
   ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_schwarz_i(o,v);
@@ -138,21 +85,16 @@ void UserInterface::cb_schwarz(fltk::Button* o, void* v) {
 
 inline void UserInterface::cb_ouvert_i(fltk::Button*, void*) {
   if (ouvert->value()) {
-    schwarz->value(true);
     schneider->value(true);
+    schwarz->value(true);
   }
-  game->do_callback();
+  f["game select"]();
 }
 void UserInterface::cb_ouvert(fltk::Button* o, void* v) {
   ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_ouvert_i(o,v);
 }
 
 inline void UserInterface::cb_skat_i(fltk::Button*, void*) {
-  hand->deactivate();
-  hand->do_callback();
-  hand->user_data((void*)1);
-  skat->deactivate();
-  game->do_callback();
   f["skat take"]();
 }
 void UserInterface::cb_skat(fltk::Button* o, void* v) {
@@ -160,9 +102,7 @@ void UserInterface::cb_skat(fltk::Button* o, void* v) {
 }
 
 inline void UserInterface::cb_announce_i(fltk::Button*, void*) {
-  skat->activate();
-  hand->activate();
-  game->deactivate();
+  f["game announce"]();
 }
 void UserInterface::cb_announce(fltk::Button* o, void* v) {
   ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_announce_i(o,v);
@@ -307,9 +247,8 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
          {fltk::Group* o = bidding = new fltk::Group(640, 0, 320, 110);
           o->box(fltk::DOWN_BOX);
         }
-         {fltk::Group* o = game = new fltk::Group(640, 110, 320, 240);
+         {fltk::Group* o = new fltk::Group(640, 110, 320, 240);
           o->box(fltk::DOWN_BOX);
-          o->callback((fltk::Callback*)cb_game);
           o->when(fltk::WHEN_NEVER);
           o->begin();
            {fltk::InvisibleBox* o = position = new fltk::InvisibleBox(60, 10, 200, 25, "Startposition");
@@ -317,7 +256,6 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
             o->align(fltk::ALIGN_INSIDE);
           }
            {fltk::Group* o = trump = new fltk::Group(60, 45, 200, 70);
-            o->callback((fltk::Callback*)cb_trump);
             o->when(fltk::WHEN_NEVER);
             o->begin();
              {fltk::Button* o = diamonds = new fltk::Button(0, 0, 50, 35, "@dia");
@@ -362,7 +300,6 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
             o->end();
           }
            {fltk::Group* o = hand = new fltk::Group(60, 115, 200, 35);
-            o->callback((fltk::Callback*)cb_hand);
             o->when(fltk::WHEN_NEVER);
             o->begin();
              {fltk::Button* o = schneider = new fltk::Button(0, 0, 80, 35, "Schneider");
@@ -384,7 +321,6 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
               o->tooltip("Offenes Handspiel.");
             }
             o->end();
-            hand->user_data(0);
           }
            {fltk::Button* o = skat = new fltk::Button(60, 160, 200, 25, "Skat aufnehmen");
             o->labelfont(fltk::HELVETICA_BOLD);

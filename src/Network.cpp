@@ -153,9 +153,10 @@ void Network::processmessage(unsigned i, const string& message) {
 	data = ss(message) >> id >> command >> ws;
 
 	if (command == "reply") {
-		if (peers[i].messages.size() > 0 && peers[i].messages[0].compare(0, id.length() + 1, id + ' ') == 0)
+		if (peers[i].messages.size() > 0 && peers[i].messages[0].compare(0, id.length() + 1, id + ' ') == 0) {
+			cout << "->" << i << ": " << string(ss(peers[i].messages[0]) >> id >> ws) << endl;
 			peers[i].messages.pop_front();
-		else
+		} else
 			ignoredmsg++;
 		return;
 	} else {
@@ -171,9 +172,9 @@ void Network::processmessage(unsigned i, const string& message) {
 		ignoredmsg++;
 		return;
 	}
-		
+
 	peers[i].lastmsgid = curmsgid;
-	cout << i << ": " << command << ' ' << data << endl;
+	cout << i << "->: " << command << ' ' << data << endl;
 	
 	if (command == "hello") {
 		if (data.find("from server") != string::npos) {

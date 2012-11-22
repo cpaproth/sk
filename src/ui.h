@@ -52,17 +52,8 @@ public:
         GlImage *rightimage;
         GlImage *midimage;
         fltk::Group *bidding;
-        fltk::Group *game;
-private:
-        inline void cb_game_i(fltk::Group*, void*);
-        static void cb_game(fltk::Group*, void*);
-public:
           fltk::InvisibleBox *position;
           fltk::Group *trump;
-private:
-          inline void cb_trump_i(fltk::Group*, void*);
-          static void cb_trump(fltk::Group*, void*);
-public:
             fltk::Button *diamonds;
 private:
             inline void cb_diamonds_i(fltk::Button*, void*);
@@ -99,10 +90,6 @@ private:
             static void cb_nullouvert(fltk::Button*, void*);
 public:
           fltk::Group *hand;
-private:
-          inline void cb_hand_i(fltk::Group*, void*);
-          static void cb_hand(fltk::Group*, void*);
-public:
             fltk::Button *schneider;
 private:
             inline void cb_schneider_i(fltk::Button*, void*);

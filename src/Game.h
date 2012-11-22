@@ -73,6 +73,8 @@ public:
 	bool handle_command(unsigned, const string&, const string&);
 
 	void start_dealing(void);
+	void select_game(void);
+	void announce_game(void);
 	void take_skat(void);
 };
 

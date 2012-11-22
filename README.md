@@ -7,10 +7,10 @@ Skat-Konferenz is written in C++ using portable libraries exclusively, so it sho
 it has been tested on Xubuntu 11.10 (32-bit and 64-bit), Xubuntu 12.04 (64-bit), and MS Windows 7 ([32-bit](https://github.com/cpaproth/sk/downloads)).
 
 This software is a work in progress, the goals for version 1.0 are:
-* videoconferencing between 3 people with audio and video compression (is implemented) [v0.1](https://github.com/cpaproth/sk/tags)
-* dealing the cards securely, so one player alone cannot manipulate the deal or identify the other players cards (under development)
-* bidding procedure and gameplay according to the international Skat Order rules
-* add some unofficial but popular rules (Kontra, Re, Bock, Ramsch) and keep a list of the played games
+* videoconferencing between 3 people with audio and video compression: [v0.1](https://github.com/cpaproth/sk/tags)
+* dealing the cards securely, so one player alone cannot manipulate the deal or identify the other players cards: [v0.3](https://github.com/cpaproth/sk/tags)
+* bidding procedure and gameplay according to the international Skat Order rules: under development
+* add some unofficial but popular rules (Kontra, Re, Bock, Ramsch) and keep a list of the played games: missing
 
 Desirable features for version 2.0 are:
 * echo cancellation to improve audio quality

@@ -112,6 +112,31 @@ void Game::sort_hand(void) {
 }
 
 
+void Game::select_game(void) {
+	if (ui.null->value() || ui.nullouvert->value())
+		ui.hand->deactivate();
+	else
+		ui.hand->activate();
+
+	if (!ui.hand->active()) {
+		ui.ouvert->value(false);
+		ui.schwarz->value(false);
+		ui.schneider->value(false);
+	}
+
+	string name = ui.diamonds->value()? "Karo": ui.hearts->value()? "Herz": ui.spades->value()? "Pik": ui.clubs->value()? "Kreuz": 
+			ui.grand->value()? "Grand": ui.null->value()? "Null": "Null Ouvert";
+	name += ui.ouvert->value()? " Ouvert": ui.schwarz->value()? " Schwarz": ui.schneider->value()? " Schneider": ui.hand->active()? " Hand": "";	
+
+	ui.announce->copy_label((name + " ansagen").c_str());
+	ui.announce->redraw();
+
+	sort_hand();
+	ui.table->set_cards(hand);
+	ui.table->redraw();
+}
+
+
 void Game::reset_game(void) {
 	hand.clear();
 	secretdeck.clear();
@@ -120,7 +145,8 @@ void Game::reset_game(void) {
 	drawncards.clear();
 
 	UILock lock;
-	ui.game->activate();
+	ui.position->label(dealer == right? "Vorhand": dealer == left? "Mittelhand": "Hinterhand");
+	ui.position->redraw();
 	fltk::awake();
 }
 
@@ -137,8 +163,8 @@ void Game::start_dealing(void) {
 	if (dealer == UINT_MAX)
 		return;
 
-	reset_game();
 	dealer = UINT_MAX;
+	reset_game();
 
 	shuffle();
 
@@ -225,13 +251,13 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 
 
 	} else if (command == "newdeal") {
-		reset_game();
 		dealer = right;
+		reset_game();
 		network.command(left, "cutdeck", "");
 
 	} else if (command == "cutdeck") {
-		reset_game();
 		dealer = left;
+		reset_game();
 		shuffle();
 		network.command(left, "cipherdeck", cards_string(deck));
 		deal_cards(10, true);
@@ -256,7 +282,7 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 	} else if (command == "drawncards" && i != dealer) {
 		drawncards = string_cards(data);
 		if (drawncards.size() == 30)
-			network.command(left, "saying", "");
+			network.command(left, "bidme", "18");
 
 	} else if (command == "dealskat" && drawncards.size() == 30) {
 		if (i == dealer) {
