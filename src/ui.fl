@@ -55,13 +55,14 @@ namespace SK {open
 \#include <fltk/Preferences.h>
 \#include <fltk/xpmImage.h>
 \#include "GlImage.h"
-\#include "GlTable.h"} visible
+\#include "GlTable.h"
+\#include "BidButton.h"} visible
       } {
         {fltk::TabGroup} {} {open
           xywh {0 0 960 700}
         } {
           {fltk::Group} {} {
-            label Spiel
+            label Spiel open
             xywh {0 25 960 675}
           } {
             {fltk::InvisibleBox} table {
@@ -80,9 +81,21 @@ namespace SK {open
               xywh {640 435 320 240} box FLAT_BOX color 56
               class GlImage
             }
-            {fltk::Group} bidding {open
+            {fltk::Group} {} {open
               xywh {640 0 320 110} box DOWN_BOX
-            } {}
+            } {
+              {fltk::Button} bid {
+                label Reizen
+                callback {f["game bid"]();} selected
+                xywh {40 40 105 25} labelfont 1 buttoncolor 0xff0000
+                class BidButton
+              }
+              {fltk::Button} fold {
+                label Passen
+                callback {f["game fold"]();}
+                xywh {175 40 105 25} labelfont 1 buttoncolor 0xff000000
+              }
+            }
             {fltk::Group} {} {open
               xywh {640 110 320 240} when NEVER box DOWN_BOX
             } {
@@ -182,10 +195,14 @@ f["game select"]();}
                 xywh {60 195 200 25} labelfont 1
               }
             }
-            {fltk::Button} {} {
-              label Mischen
-              callback {f["dealing start"]();}
-              xywh {735 380 105 25}
+            {fltk::Group} {} {open
+              xywh {640 350 320 85} box DOWN_BOX
+            } {
+              {fltk::Button} {} {
+                label Mischen
+                callback {f["dealing start"]();}
+                xywh {105 30 105 25}
+              }
             }
           }
           {fltk::Group} {} {
@@ -254,7 +271,7 @@ bandwidth->linesize(1000);}
               }
               {fltk::Button} {} {
                 label Verbinden
-                callback {f["network start"]();} selected
+                callback {f["network start"]();}
                 tooltip {Wenn keine IP-Adresse angegeben ist, dann starten sie hiermit die Skat-Konferenz als Server, ansonsten wird eine Verbindung zu der angegebenen IP-Adresse und UDP-Port aufgebaut. Wenn die Verbindung erfolgreich ist, dann beginnt die Videokonferenz. Wenn 3 Peers miteinander verbunden sind, dann startet das Spiel.}
                 xywh {165 190 195 25}
               }

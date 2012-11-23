@@ -12,6 +12,20 @@ void UserInterface::cb_mainwnd(fltk::Window* o, void* v) {
   ((UserInterface*)(o->user_data()))->cb_mainwnd_i(o,v);
 }
 
+inline void UserInterface::cb_bid_i(BidButton*, void*) {
+  f["game bid"]();
+}
+void UserInterface::cb_bid(BidButton* o, void* v) {
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_bid_i(o,v);
+}
+
+inline void UserInterface::cb_fold_i(fltk::Button*, void*) {
+  f["game fold"]();
+}
+void UserInterface::cb_fold(fltk::Button* o, void* v) {
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_fold_i(o,v);
+}
+
 inline void UserInterface::cb_diamonds_i(fltk::Button*, void*) {
   f["game select"]();
 }
@@ -112,7 +126,7 @@ inline void UserInterface::cb_Mischen_i(fltk::Button*, void*) {
   f["dealing start"]();
 }
 void UserInterface::cb_Mischen(fltk::Button* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->user_data()))->cb_Mischen_i(o,v);
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_Mischen_i(o,v);
 }
 
 inline void UserInterface::cb_Neustart_i(fltk::Button*, void*) {
@@ -244,8 +258,20 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
           o->box(fltk::FLAT_BOX);
           o->color((fltk::Color)56);
         }
-         {fltk::Group* o = bidding = new fltk::Group(640, 0, 320, 110);
+         {fltk::Group* o = new fltk::Group(640, 0, 320, 110);
           o->box(fltk::DOWN_BOX);
+          o->begin();
+           {BidButton* o = bid = new BidButton(40, 40, 105, 25, "Reizen");
+            o->labelfont(fltk::HELVETICA_BOLD);
+            o->buttoncolor((fltk::Color)0xff0000);
+            o->callback((fltk::Callback*)cb_bid);
+          }
+           {fltk::Button* o = fold = new fltk::Button(175, 40, 105, 25, "Passen");
+            o->labelfont(fltk::HELVETICA_BOLD);
+            o->buttoncolor((fltk::Color)0xff000000);
+            o->callback((fltk::Callback*)cb_fold);
+          }
+          o->end();
         }
          {fltk::Group* o = new fltk::Group(640, 110, 320, 240);
           o->box(fltk::DOWN_BOX);
@@ -333,8 +359,13 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
           }
           o->end();
         }
-         {fltk::Button* o = new fltk::Button(735, 380, 105, 25, "Mischen");
-          o->callback((fltk::Callback*)cb_Mischen);
+         {fltk::Group* o = new fltk::Group(640, 350, 320, 85);
+          o->box(fltk::DOWN_BOX);
+          o->begin();
+           {fltk::Button* o = new fltk::Button(105, 30, 105, 25, "Mischen");
+            o->callback((fltk::Callback*)cb_Mischen);
+          }
+          o->end();
         }
         o->end();
       }

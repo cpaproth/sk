@@ -11,10 +11,11 @@
 #include <fltk/xpmImage.h>
 #include "GlImage.h"
 #include "GlTable.h"
+#include "BidButton.h"
 #include <fltk/TabGroup.h>
 #include <fltk/Group.h>
-#include <fltk/InvisibleBox.h>
 #include <fltk/Button.h>
+#include <fltk/InvisibleBox.h>
 #include <fltk/CheckButton.h>
 #include <fltk/Input.h>
 #include <fltk/ValueInput.h>
@@ -51,7 +52,16 @@ public:
         GlImage *leftimage;
         GlImage *rightimage;
         GlImage *midimage;
-        fltk::Group *bidding;
+          BidButton *bid;
+private:
+          inline void cb_bid_i(BidButton*, void*);
+          static void cb_bid(BidButton*, void*);
+public:
+          fltk::Button *fold;
+private:
+          inline void cb_fold_i(fltk::Button*, void*);
+          static void cb_fold(fltk::Button*, void*);
+public:
           fltk::InvisibleBox *position;
           fltk::Group *trump;
             fltk::Button *diamonds;
@@ -114,8 +124,8 @@ public:
 private:
           inline void cb_announce_i(fltk::Button*, void*);
           static void cb_announce(fltk::Button*, void*);
-        inline void cb_Mischen_i(fltk::Button*, void*);
-        static void cb_Mischen(fltk::Button*, void*);
+          inline void cb_Mischen_i(fltk::Button*, void*);
+          static void cb_Mischen(fltk::Button*, void*);
           inline void cb_Neustart_i(fltk::Button*, void*);
           static void cb_Neustart(fltk::Button*, void*);
           inline void cb_Mikrofon_i(fltk::CheckButton*, void*);
