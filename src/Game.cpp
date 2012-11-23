@@ -152,10 +152,8 @@ void Game::choose_game(void) {
 
 	UILock lock;
 	ui.skat->activate();
-	if (!ui.null->value() && !ui.nullouvert->value())
-		ui.hand->activate();
-	ui.announce->copy_label((game_name() + " ansagen").c_str());
 	ui.announce->activate();
+	select_game();
 	fltk::awake();
 }
 
@@ -163,28 +161,29 @@ void Game::choose_game(void) {
 void Game::bid_game(void) {
 	string type = ss(ui.bid->label()) >> bid >> ws;
 	show_bid(false, bid, type == "Reizen");
+	show_info("");
+
 	if (listener == UINT_MAX)
 		choose_game();
 	else if (type == "Reizen")
 		network.command(listener, "bid", ss(bid));
 	else
 		network.command(listener, "hold", ss(bid));
-	show_info("");
 }
 
 
 void Game::fold_game(void) {
 	string type = ss(ui.bid->label()) >> bid >> ws;
+	bid = bid == 0? 264: bid;
 	show_bid(false, -1, false);
+	show_info("");
+
 	if (listener == UINT_MAX)
 		start_dealing();
-	else if (bid == 0)
-		network.command(listener, "fold", ss(bid = 264));
 	else if (type == "Reizen")
 		network.command(listener, "fold", ss(bid));
 	else
 		network.command(listener, "fold", ss(bid + 1));
-	show_info("");
 }
 
 
@@ -281,6 +280,7 @@ void Game::take_skat(void) {
 
 	ui.hand->deactivate();
 	ui.skat->deactivate();
+	select_game();
 }
 
 
