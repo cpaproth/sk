@@ -31,8 +31,7 @@ class BidButton : public fltk::Button {
 	std::set<unsigned>::iterator	minbid;
 	std::set<unsigned>::iterator	maxbid;
 	std::set<unsigned>::iterator	bid;
-	
-
+	bool				bidding;
 
 	int handle(int);
 
@@ -40,7 +39,7 @@ public:
 	BidButton(int, int, int, int, const char* = 0);
 	
 
-	void reset(void);
+	void reset(unsigned, bool);
 };
 
 

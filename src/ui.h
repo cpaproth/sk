@@ -62,7 +62,8 @@ private:
           inline void cb_fold_i(fltk::Button*, void*);
           static void cb_fold(fltk::Button*, void*);
 public:
-          fltk::InvisibleBox *position;
+          fltk::InvisibleBox *info;
+          fltk::InvisibleBox *gameinfo;
           fltk::Group *trump;
             fltk::Button *diamonds;
 private:
@@ -124,8 +125,8 @@ public:
 private:
           inline void cb_announce_i(fltk::Button*, void*);
           static void cb_announce(fltk::Button*, void*);
-          inline void cb_Mischen_i(fltk::Button*, void*);
-          static void cb_Mischen(fltk::Button*, void*);
+          inline void cb_Austeilen_i(fltk::Button*, void*);
+          static void cb_Austeilen(fltk::Button*, void*);
           inline void cb_Neustart_i(fltk::Button*, void*);
           static void cb_Neustart(fltk::Button*, void*);
           inline void cb_Mikrofon_i(fltk::CheckButton*, void*);

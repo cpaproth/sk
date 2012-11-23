@@ -3,7 +3,7 @@
 #include "ui.h"
 //Copyright (C) 2012 Carsten Paproth
 using namespace SK;
-using namespace SK::images;
+using namespace images;
 
 inline void UserInterface::cb_mainwnd_i(fltk::Window*, void*) {
   mainwnd->hide();
@@ -122,11 +122,11 @@ void UserInterface::cb_announce(fltk::Button* o, void* v) {
   ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_announce_i(o,v);
 }
 
-inline void UserInterface::cb_Mischen_i(fltk::Button*, void*) {
+inline void UserInterface::cb_Austeilen_i(fltk::Button*, void*) {
   f["dealing start"]();
 }
-void UserInterface::cb_Mischen(fltk::Button* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_Mischen_i(o,v);
+void UserInterface::cb_Austeilen(fltk::Button* o, void* v) {
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_Austeilen_i(o,v);
 }
 
 inline void UserInterface::cb_Neustart_i(fltk::Button*, void*) {
@@ -261,15 +261,21 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
          {fltk::Group* o = new fltk::Group(640, 0, 320, 110);
           o->box(fltk::DOWN_BOX);
           o->begin();
-           {BidButton* o = bid = new BidButton(40, 40, 105, 25, "Reizen");
+           {BidButton* o = bid = new BidButton(40, 60, 105, 25, "Reizen");
+            o->buttonbox(fltk::PLASTIC_UP_BOX);
             o->labelfont(fltk::HELVETICA_BOLD);
             o->buttoncolor((fltk::Color)0xff0000);
             o->callback((fltk::Callback*)cb_bid);
           }
-           {fltk::Button* o = fold = new fltk::Button(175, 40, 105, 25, "Passen");
+           {fltk::Button* o = fold = new fltk::Button(175, 60, 105, 25, "Passen");
+            o->buttonbox(fltk::PLASTIC_UP_BOX);
             o->labelfont(fltk::HELVETICA_BOLD);
             o->buttoncolor((fltk::Color)0xff000000);
             o->callback((fltk::Callback*)cb_fold);
+          }
+           {fltk::InvisibleBox* o = info = new fltk::InvisibleBox(0, 20, 320, 25, "Information");
+            o->labelfont(fltk::HELVETICA_BOLD);
+            o->align(fltk::ALIGN_INSIDE);
           }
           o->end();
         }
@@ -277,7 +283,7 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
           o->box(fltk::DOWN_BOX);
           o->when(fltk::WHEN_NEVER);
           o->begin();
-           {fltk::InvisibleBox* o = position = new fltk::InvisibleBox(60, 10, 200, 25, "Startposition");
+           {fltk::InvisibleBox* o = gameinfo = new fltk::InvisibleBox(0, 10, 320, 25, "Spielinfo");
             o->labelfont(fltk::HELVETICA_BOLD);
             o->align(fltk::ALIGN_INSIDE);
           }
@@ -362,8 +368,8 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
          {fltk::Group* o = new fltk::Group(640, 350, 320, 85);
           o->box(fltk::DOWN_BOX);
           o->begin();
-           {fltk::Button* o = new fltk::Button(105, 30, 105, 25, "Mischen");
-            o->callback((fltk::Callback*)cb_Mischen);
+           {fltk::Button* o = new fltk::Button(105, 30, 105, 25, "Austeilen");
+            o->callback((fltk::Callback*)cb_Austeilen);
           }
           o->end();
         }

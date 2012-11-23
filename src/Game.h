@@ -42,7 +42,10 @@ class Game {
 	vector<uchar>	dealtcards;
 	vector<uchar>	drawncards;
 	unsigned	dealer;
-	
+	unsigned	listener;
+	unsigned	player;
+	unsigned	bid;
+
 	string		leftname;
 	string		rightname;
 	unsigned	left;
@@ -57,8 +60,14 @@ class Game {
 	vector<uchar> string_cards(const string&);
 	void sort_hand(void);
 	void reset_game(void);
+	void choose_game(void);
+	string game_name(void);
 
 	void show_cards(const vector<uchar>&);
+	void show_bid(bool, unsigned, bool);
+	void show_info(const string&);
+	void show_gameinfo(const string&);
+
 	void deal_cards(unsigned, bool);
 	void decipher(void);
 
@@ -71,6 +80,9 @@ public:
 	
 	void send_name(void);
 	bool handle_command(unsigned, const string&, const string&);
+
+	void bid_game(void);
+	void fold_game(void);
 
 	void start_dealing(void);
 	void select_game(void);

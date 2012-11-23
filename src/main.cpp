@@ -88,18 +88,21 @@ int main(void) {
 		UILock		lock;
 
 
-		audio.restart();
-
 		ui.f["audio restart"] = bind(&Audio::restart, &audio);
 		ui.f["audio toggle"] = bind(&Audio::toggle_playmic, &audio);
 		ui.f["network stats"] = bind(&Network::stats, &network);
 		ui.f["network start"] = bind(&start_network, ref(ui), ref(network), ref(video), ref(game));
 		ui.f["name change"] = bind(&Game::send_name, &game);
 
-		ui.f["dealing start"] = bind(&Game::start_dealing, &game);
-		ui.f["skat take"] = bind(&Game::take_skat, &game);
+		ui.f["game bid"] = bind(&Game::bid_game, &game);
+		ui.f["game fold"] = bind(&Game::fold_game, &game);
 		ui.f["game select"] = bind(&Game::select_game, &game);
+		ui.f["skat take"] = bind(&Game::take_skat, &game);
 
+		ui.f["dealing start"] = bind(&Game::start_dealing, &game);
+
+
+		audio.restart();
 		try {
 			if (ui.autostart->value())
 				start_network(ui, network, video, game);

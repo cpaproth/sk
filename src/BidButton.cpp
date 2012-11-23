@@ -38,15 +38,21 @@ BidButton::BidButton(int x, int y, int w ,int h, const char* l) : Button(x, y, w
 	bidorder.insert(46);
 	bidorder.insert(59);
 	
-	reset();
+	reset(-1, false);
 }
 
 
-void BidButton::reset(void) {
-	minbid = bidorder.begin();
+void BidButton::reset(unsigned min, bool b) {
+	bidding = b;
+	minbid = bidorder.lower_bound(min);
 	maxbid = bidorder.find(264);
 	bid = minbid;
-	copy_label(ss(*bid) << " !" | c_str);
+	if (minbid != bidorder.end())
+		copy_label(ss(*bid) << (bidding? " Reizen": " Halten") | c_str);
+	else {
+		label("Reizen");
+		bidding = false;
+	}
 	redraw();
 }
 
@@ -54,14 +60,15 @@ void BidButton::reset(void) {
 int BidButton::handle(int event) {
 	using namespace fltk;
 	
-	switch(event) {
-	case MOUSEWHEEL:
+	if (bidding && event == MOUSEWHEEL) {
 		for (int i = event_dy(); i < 0 && bid != minbid; i++)
 			bid--;
 		for (int i = event_dy(); i > 0 && bid != maxbid; i--)
 			bid++;
-		copy_label(ss(*bid) << " Halten" | c_str);
+
+		copy_label(ss(*bid) << " Reizen" | c_str);
 		redraw();
+
 		return 1;
 	}
 

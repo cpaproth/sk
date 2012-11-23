@@ -86,22 +86,26 @@ namespace SK {open
             } {
               {fltk::Button} bid {
                 label Reizen
-                callback {f["game bid"]();} selected
-                xywh {40 40 105 25} labelfont 1 buttoncolor 0xff0000
+                callback {f["game bid"]();}
+                xywh {40 60 105 25} buttonbox PLASTIC_UP_BOX labelfont 1 buttoncolor 0xff0000
                 class BidButton
               }
               {fltk::Button} fold {
                 label Passen
                 callback {f["game fold"]();}
-                xywh {175 40 105 25} labelfont 1 buttoncolor 0xff000000
+                xywh {175 60 105 25} buttonbox PLASTIC_UP_BOX labelfont 1 buttoncolor 0xff000000
+              }
+              {fltk::InvisibleBox} info {
+                label Information
+                xywh {0 20 320 25} align 32 labelfont 1
               }
             }
             {fltk::Group} {} {open
               xywh {640 110 320 240} when NEVER box DOWN_BOX
             } {
-              {fltk::InvisibleBox} position {
-                label Startposition
-                xywh {60 10 200 25} align 32 labelfont 1
+              {fltk::InvisibleBox} gameinfo {
+                label Spielinfo selected
+                xywh {0 10 320 25} align 32 labelfont 1
               }
               {fltk::Group} trump {
                 xywh {60 45 200 70} when NEVER
@@ -199,7 +203,7 @@ f["game select"]();}
               xywh {640 350 320 85} box DOWN_BOX
             } {
               {fltk::Button} {} {
-                label Mischen
+                label Austeilen
                 callback {f["dealing start"]();}
                 xywh {105 30 105 25}
               }

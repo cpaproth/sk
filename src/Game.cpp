@@ -39,6 +39,8 @@ Game::Game(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 	string(ui.secret->text()).copy((char*)&secret, sizeof(unsigned));
 	rangen.seed(secret ^ (unsigned)time(0));
 	shuffle();
+
+	reset_game();
 }
 
 
@@ -112,10 +114,18 @@ void Game::sort_hand(void) {
 }
 
 
+string Game::game_name(void) {
+	string name = ui.diamonds->value()? "Karo": ui.hearts->value()? "Herz": ui.spades->value()? "Pik": ui.clubs->value()? "Kreuz": 
+			ui.grand->value()? "Grand": ui.null->value()? "Null": "Null Ouvert";
+	name += ui.ouvert->value()? " Ouvert": ui.schwarz->value()? " Schwarz": ui.schneider->value()? " Schneider": ui.hand->active()? " Hand": "";
+	return name;
+}
+
+
 void Game::select_game(void) {
 	if (ui.null->value() || ui.nullouvert->value())
 		ui.hand->deactivate();
-	else
+	else if (ui.skat->active())
 		ui.hand->activate();
 
 	if (!ui.hand->active()) {
@@ -124,16 +134,57 @@ void Game::select_game(void) {
 		ui.schneider->value(false);
 	}
 
-	string name = ui.diamonds->value()? "Karo": ui.hearts->value()? "Herz": ui.spades->value()? "Pik": ui.clubs->value()? "Kreuz": 
-			ui.grand->value()? "Grand": ui.null->value()? "Null": "Null Ouvert";
-	name += ui.ouvert->value()? " Ouvert": ui.schwarz->value()? " Schwarz": ui.schneider->value()? " Schneider": ui.hand->active()? " Hand": "";	
-
-	ui.announce->copy_label((name + " ansagen").c_str());
-	ui.announce->redraw();
+	if (ui.announce->active()) {
+		ui.announce->copy_label((game_name() + " ansagen").c_str());
+		ui.announce->redraw();
+	}
 
 	sort_hand();
 	ui.table->set_cards(hand);
 	ui.table->redraw();
+}
+
+
+void Game::choose_game(void) {
+	show_info(ss("Spiel für ") << bid << " erhalten.");
+	network.command(left, "bidvalue", ss(bid));
+	network.command(right, "bidvalue", ss(bid));
+
+	UILock lock;
+	ui.skat->activate();
+	if (!ui.null->value() && !ui.nullouvert->value())
+		ui.hand->activate();
+	ui.announce->copy_label((game_name() + " ansagen").c_str());
+	ui.announce->activate();
+	fltk::awake();
+}
+
+
+void Game::bid_game(void) {
+	string type = ss(ui.bid->label()) >> bid >> ws;
+	show_bid(false, bid, type == "Reizen");
+	if (listener == UINT_MAX)
+		choose_game();
+	else if (type == "Reizen")
+		network.command(listener, "bid", ss(bid));
+	else
+		network.command(listener, "hold", ss(bid));
+	show_info("");
+}
+
+
+void Game::fold_game(void) {
+	string type = ss(ui.bid->label()) >> bid >> ws;
+	show_bid(false, -1, false);
+	if (listener == UINT_MAX)
+		start_dealing();
+	else if (bid == 0)
+		network.command(listener, "fold", ss(bid = 264));
+	else if (type == "Reizen")
+		network.command(listener, "fold", ss(bid));
+	else
+		network.command(listener, "fold", ss(bid + 1));
+	show_info("");
 }
 
 
@@ -145,8 +196,19 @@ void Game::reset_game(void) {
 	drawncards.clear();
 
 	UILock lock;
-	ui.position->label(dealer == right? "Vorhand": dealer == left? "Mittelhand": "Hinterhand");
-	ui.position->redraw();
+	ui.gameinfo->label(dealer == right? "Vorhand": dealer == left? "Mittelhand": "Hinterhand");
+	ui.gameinfo->redraw();
+	ui.info->label("");
+	ui.info->redraw();
+	
+	ui.hand->deactivate();
+	ui.skat->deactivate();
+	ui.announce->label("Spiel ansagen");
+	ui.announce->deactivate();
+
+
+	show_bid(false, -1, false);
+
 	fltk::awake();
 }
 
@@ -155,6 +217,44 @@ void Game::show_cards(const vector<uchar>& c) {
 	UILock lock;
 	ui.table->set_cards(c);
 	ui.table->redraw();
+	fltk::awake();
+}
+
+
+void Game::show_bid(bool show, unsigned bid, bool bidding) {
+	UILock lock;
+	if (show) {
+		ui.bid->reset(bid, bidding);
+		ui.bid->color(fltk::GREEN);
+		if (string(ui.bid->label()) == "Reizen")
+			ui.bid->deactivate();
+		else
+			ui.bid->activate();
+		ui.fold->color(fltk::RED);
+		ui.fold->activate();
+	} else {
+		ui.bid->reset(bid, bidding);
+		ui.bid->color(fltk::GRAY50);
+		ui.bid->deactivate();
+		ui.fold->color(fltk::GRAY50);
+		ui.fold->deactivate();
+	}
+	fltk::awake();
+}
+
+
+void Game::show_info(const string& info) {
+	UILock lock;
+	ui.info->copy_label(info.c_str());
+	ui.info->redraw();
+	fltk::awake();
+}
+
+
+void Game::show_gameinfo(const string& info) {
+	UILock lock;
+	ui.gameinfo->copy_label(info.c_str());
+	ui.gameinfo->redraw();
 	fltk::awake();
 }
 
@@ -178,6 +278,9 @@ void Game::take_skat(void) {
 		network.command(right, "dealskat", "");
 	else
 		network.command(left, "dealskat", "");
+
+	ui.hand->deactivate();
+	ui.skat->deactivate();
 }
 
 
@@ -219,10 +322,8 @@ void Game::decipher(void) {
 		network.command(left, "secretcards", cards_string(dealtcards));
 		network.command(right, "drawncards", cards_string(drawncards));
 
-	} else if (drawncards.size() == 0) {
+	} else if (drawncards.size() == 0)
 		secretdeck = deck;
-		dealer = left;
-	}
 }
 
 
@@ -281,8 +382,10 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 
 	} else if (command == "drawncards" && i != dealer) {
 		drawncards = string_cards(data);
-		if (drawncards.size() == 30)
-			network.command(left, "bidme", "18");
+		if (drawncards.size() == 30) {
+			show_info("Warte auf Gebot von " + leftname + '.');
+			network.command(left, "bidme", ss(bid = 18));
+		}
 
 	} else if (command == "dealskat" && drawncards.size() == 30) {
 		if (i == dealer) {
@@ -295,6 +398,43 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 			deal_cards(2, true);
 			network.command(i, "secretcards", cards_string(dealtcards) + " " + cards_string(drawncards));
 		}
+
+
+	} else if (command == "bidme") {
+		ss(data) >> bid;
+		listener = i;
+		show_info("Reize " + (i == left? leftname: rightname) + '!');
+		show_bid(true, bid, true);
+
+	} else if (command == "bid") {
+		ss(data) >> bid;
+		listener = i;
+		show_info(ss(i == left? leftname: rightname) << " sagt " << bid << '!');
+		show_bid(true, bid, false);
+
+	} else if (command == "hold") {
+		ss(data) >> bid;
+		listener = i;
+		show_info(ss(i == left? leftname: rightname) << " hält " << bid << '.');
+		show_bid(true, bid + 1, true);
+
+	} else if (command == "fold") {
+		if (i == dealer && bid == 18 && data == "18") {
+			show_info("Spielen für 18 oder Einpassen?");
+			listener = UINT_MAX;
+			show_bid(true, bid, false);
+		} else if (i == dealer || dealer == UINT_MAX) {
+			choose_game();
+		} else if (dealer != UINT_MAX) {
+			show_info(ss(i == left? leftname: rightname) << " passt bei " << bid << '.');
+			network.command(dealer, "bidme", data);
+		}
+
+	} else if (command == "bidvalue") {
+		ss(data) >> bid;
+		player = i;
+		show_info("Warte auf Spielansage.");
+		show_gameinfo(ss(i == left? leftname: rightname) << " spielt für " << bid << '.');
 
 
 	} else
