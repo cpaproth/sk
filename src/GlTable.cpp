@@ -84,6 +84,19 @@ unsigned GlTable::selection(void) {
 }
 
 
+void GlTable::get(unsigned i, float& x, float& y, float& a) {
+	float a1 = -4.f * 50.f / w() / w();
+	float a2 = -a1 * w();
+
+	x = w() / 2.f + (0.5f + i - hand.size() / 2.f) * (90.f - 4.f * hand.size());
+	y = a1 * x * x + a2 * x;
+	a = -(0.5f + i - hand.size() / 2.f) * 0.06f;
+	
+	x += i != selected? 0.f: -50.f * sin(a);
+	y += i != selected? 0.f: 50.f * cos(a);
+}
+
+
 void GlTable::draw_card(unsigned c, unsigned r, float x, float y, float a, float sy) {
 	float sx = sy / height * width / 4.f;
 	sy /= 2.f;
@@ -110,7 +123,6 @@ bool GlTable::inside_card(int mx, int my, float x, float y, float a, float sy) {
 	float cy = -sin(a) * (mx - x) + cos(a) * (my - y);
 
 	return cx > -sx && cx < sx && cy > -sy && cy < sy;
-	//return cx > -sx && cx < sx;
 }
 
 
@@ -138,14 +150,10 @@ void GlTable::draw(void) {
 
 	glBegin(GL_QUADS);
 
-	float a = -4.f * 50.f / w() / w();
-	float b = -a * w();
 	for (unsigned i = 0; i < hand.size(); i++) {
-		float x = 100 + i * 50.f;
-		float angle = 0.3f - i * 0.06f;
-		float sx = i != selected? 0.f: -50.f * sin(angle);
-		float sy = i != selected? 0.f: 50.f * cos(angle);
-		draw_card(hand[i] % 8, hand[i] / 8, x + sx, a * x * x + b * x + sy, angle, 200.f);
+		float x, y, a;
+		get(i, x, y, a);
+		draw_card(hand[i] % 8, hand[i] / 8, x, y, a, 200.f);
 	}
 
 	if (skat.size() > 0 && skat[0] < 32)
@@ -153,9 +161,6 @@ void GlTable::draw(void) {
 	if (skat.size() > 1 && skat[1] < 32)
 		draw_card(skat[1] % 8, skat[1] / 8, 380.f, 300.f, -0.1f, 160.f);
 	
-	//~ draw_card(4, 2, 200.f, 330.f, rand() * 0.4f / RAND_MAX - 0.2f, 160.f);
-	//~ draw_card(3, 1, 440.f, 330.f, rand() * 0.4f / RAND_MAX - 0.2f, 160.f);
-	//~ draw_card(0, 0, 320.f, 300.f, rand() * 0.4f / RAND_MAX - 0.2f, 160.f);
 	
 	glEnd();
 }
@@ -164,8 +169,6 @@ void GlTable::draw(void) {
 int GlTable::handle(int event) {
 	using namespace fltk;
 	
-	float a = -4.f * 50.f / w() / w();
-	float b = -a * w();
 	unsigned sel = UINT_MAX;
 
 	switch(event) {
@@ -176,13 +179,11 @@ int GlTable::handle(int event) {
 		redraw();
 		return 1;
 	case MOVE:
-		if (h() - event_y() - 1 < a * event_x() * event_x() + b * event_x() + 150.f)
+		if (selected != UINT_MAX || h() - event_y() < -200.f / w() / w() * event_x() * (event_x() - w()) + 95.f)
 			for (unsigned i = 0; i < hand.size(); i++) {
-				float x = 100 + i * 50.f;
-				float angle = 0.3f - i * 0.06f;
-				float sx = i != selected? 0.f: -50.f * sin(angle);
-				float sy = i != selected? 0.f: 50.f * cos(angle);
-				if (inside_card(event_x(), h() - event_y() - 1, x + sx, a * x * x + b * x + sy, angle, 200.f))
+				float x, y, a;
+				get(i, x, y, a);
+				if (inside_card(event_x(), h() - event_y() - 1, x, y, a, 200.f))
 					sel = i;
 			}
 

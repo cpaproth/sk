@@ -41,6 +41,7 @@ class GlTable : public fltk::GlWindow {
 	
 	unsigned		selected;
 
+	void get(unsigned, float&, float&, float&);
 	void draw_card(unsigned, unsigned, float, float, float, float);
 	bool inside_card(int, int, float, float, float, float);
 

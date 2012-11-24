@@ -117,7 +117,7 @@ void Game::sort_hand(void) {
 string Game::game_name(void) {
 	string name = ui.diamonds->value()? "Karo": ui.hearts->value()? "Herz": ui.spades->value()? "Pik": ui.clubs->value()? "Kreuz": 
 			ui.grand->value()? "Grand": ui.null->value()? "Null": "Null Ouvert";
-	name += ui.ouvert->value()? " Ouvert": ui.schwarz->value()? " Schwarz": ui.schneider->value()? " Schneider": ui.hand->active()? " Hand": "";
+	name += ui.ouvert->value()? " Ouvert": ui.schwarz->value()? " Schwarz": ui.schneider->value()? " Schneider": ui.skat->active()? " Hand": "";
 	return name;
 }
 
@@ -134,7 +134,7 @@ void Game::select_game(void) {
 		ui.schneider->value(false);
 	}
 
-	if (ui.announce->active()) {
+	if (ui.announce->active() || skat.size() > 0) {
 		ui.announce->copy_label((game_name() + " ansagen").c_str());
 		ui.announce->redraw();
 	}
@@ -147,30 +147,29 @@ void Game::select_game(void) {
 void Game::table_event(void) {
 	unsigned sel = ui.table->selection();
 	
-	if (skat.size() < 2)
-		return;
+	if (skat.size() > 1) {
+		if (sel >= 100 && sel <= 101) {
+			hand.push_back(skat[sel - 100]);
+			skat[sel - 100] = 32;
+		} else if (sel < hand.size() && skat[0] == 32) {
+			skat[0] = hand[sel];
+			hand.erase(hand.begin() + sel);
+		} else if (sel < hand.size() && skat[1] == 32) {
+			skat[1] = hand[sel];
+			hand.erase(hand.begin() + sel);
+		} else if (sel < hand.size()) {
+			static unsigned p = 1;
+			swap (hand[sel], skat[p = p == 1? 0: 1]);
+		}
 
-	if (sel >= 100 && sel <= 101) {
-		hand.push_back(skat[sel - 100]);
-		skat[sel - 100] = 32;
-	} else if (sel < hand.size() && skat[0] == 32) {
-		skat[0] = hand[sel];
-		hand.erase(hand.begin() + sel);
-	} else if (sel < hand.size() && skat[1] == 32) {
-		skat[1] = hand[sel];
-		hand.erase(hand.begin() + sel);
-	} else if (sel < hand.size()) {
-		static unsigned p = 1;
-		swap (hand[sel], skat[p = p == 1? 0: 1]);
+		if (skat[0] == 32 || skat[1] == 32)
+			ui.announce->deactivate();
+		else
+			ui.announce->activate();
+
+		sort_hand();
+		ui.table->show_cards(hand, skat);
 	}
-
-	if (skat[0] == 32 || skat[1] == 32)
-		ui.announce->deactivate();
-	else
-		ui.announce->activate();
-
-	sort_hand();
-	ui.table->show_cards(hand, skat);
 }
 
 
@@ -222,7 +221,9 @@ void Game::reset_game(unsigned d) {
 	
 	hand.clear();
 	skat.clear();
+	trick.clear();
 	tricks.clear();
+	
 	secretdeck.clear();
 	secretcards.clear();
 	dealtcards.clear();
@@ -383,6 +384,8 @@ void Game::send_name(void) {
 
 
 bool Game::handle_command(unsigned i, const string& command, const string& data) {
+	UILock lock;
+	
 	if (command == "peersconnected" && data == "2") {
 		cout << "2 peers connected, the game can start!" << endl;
 		network.command(0, "seat", "left");
@@ -487,10 +490,12 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 	} else if (command == "announce") {
 		starter = dealer == UINT_MAX? left: dealer == left? right: UINT_MAX;
 		show_info(starter == UINT_MAX? "Spiele eine Karte!": "Warte auf Karte von " + (starter == left? leftname: rightname) + '.'); 
-		show_gameinfo(data);
+		show_gameinfo((player == left? leftname : rightname) + " spielt " + data + '.');
 
 
 	} else
 		return false;
+		
+	fltk::awake();
 	return true;
 }
