@@ -68,12 +68,19 @@ GlTable::GlTable(int x, int y, int w ,int h, const char* l) : GlWindow(x, y, w, 
 		}
 
 	texture = 0;
-	selected = 100;
+	selected = UINT_MAX;
 }
 
 
-void GlTable::set_cards(const vector<uchar>& c) {
-	cards = c;
+void GlTable::show_cards(const vector<uchar>& h, const vector<uchar>& s) {
+	hand = h;
+	skat = s;
+	redraw();
+}
+
+
+unsigned GlTable::selection(void) {
+	return selected;
 }
 
 
@@ -102,8 +109,8 @@ bool GlTable::inside_card(int mx, int my, float x, float y, float a, float sy) {
 	float cx = cos(a) * (mx - x) + sin(a) * (my - y);
 	float cy = -sin(a) * (mx - x) + cos(a) * (my - y);
 
-	//return cx > -sx && cx < sx && cy > -sy && cy < sy;
-	return cx > -sx && cx < sx;
+	return cx > -sx && cx < sx && cy > -sy && cy < sy;
+	//return cx > -sx && cx < sx;
 }
 
 
@@ -133,17 +140,22 @@ void GlTable::draw(void) {
 
 	float a = -4.f * 50.f / w() / w();
 	float b = -a * w();
-	for (unsigned i = 0; i < cards.size(); i++) {
+	for (unsigned i = 0; i < hand.size(); i++) {
 		float x = 100 + i * 50.f;
 		float angle = 0.3f - i * 0.06f;
 		float sx = i != selected? 0.f: -50.f * sin(angle);
 		float sy = i != selected? 0.f: 50.f * cos(angle);
-		draw_card(cards[i] % 8, cards[i] / 8, x + sx, a * x * x + b * x + sy, angle, 200.f);
+		draw_card(hand[i] % 8, hand[i] / 8, x + sx, a * x * x + b * x + sy, angle, 200.f);
 	}
+
+	if (skat.size() > 0 && skat[0] < 32)
+		draw_card(skat[0] % 8, skat[0] / 8, 260.f, 300.f, 0.1f, 160.f);
+	if (skat.size() > 1 && skat[1] < 32)
+		draw_card(skat[1] % 8, skat[1] / 8, 380.f, 300.f, -0.1f, 160.f);
 	
-	draw_card(4, 2, 200.f, 330.f, rand() * 0.4f / RAND_MAX - 0.2f, 160.f);
-	draw_card(3, 1, 440.f, 330.f, rand() * 0.4f / RAND_MAX - 0.2f, 160.f);
-	draw_card(0, 0, 320.f, 300.f, rand() * 0.4f / RAND_MAX - 0.2f, 160.f);
+	//~ draw_card(4, 2, 200.f, 330.f, rand() * 0.4f / RAND_MAX - 0.2f, 160.f);
+	//~ draw_card(3, 1, 440.f, 330.f, rand() * 0.4f / RAND_MAX - 0.2f, 160.f);
+	//~ draw_card(0, 0, 320.f, 300.f, rand() * 0.4f / RAND_MAX - 0.2f, 160.f);
 	
 	glEnd();
 }
@@ -154,18 +166,18 @@ int GlTable::handle(int event) {
 	
 	float a = -4.f * 50.f / w() / w();
 	float b = -a * w();
-	unsigned sel = 100;
+	unsigned sel = UINT_MAX;
 
 	switch(event) {
 	case ENTER:
 		return 1;
 	case LEAVE:
-		selected = 100;
+		selected = UINT_MAX;
 		redraw();
 		return 1;
 	case MOVE:
 		if (h() - event_y() - 1 < a * event_x() * event_x() + b * event_x() + 150.f)
-			for (unsigned i = 0; i < cards.size(); i++) {
+			for (unsigned i = 0; i < hand.size(); i++) {
 				float x = 100 + i * 50.f;
 				float angle = 0.3f - i * 0.06f;
 				float sx = i != selected? 0.f: -50.f * sin(angle);
@@ -173,12 +185,23 @@ int GlTable::handle(int event) {
 				if (inside_card(event_x(), h() - event_y() - 1, x + sx, a * x * x + b * x + sy, angle, 200.f))
 					sel = i;
 			}
+
+		if (skat.size() > 0 && skat[0] < 32 && inside_card(event_x(), h() - event_y() - 1, 260.f, 300.f, 0.1f, 160.f))
+			sel = 100;
+		if (skat.size() > 1 && skat[1] < 32 && inside_card(event_x(), h() - event_y() - 1, 380.f, 300.f, -0.1f, 160.f))
+			sel = 101;
+
 		if (sel != selected) {
 			selected = sel;
 			redraw();
 		}
 		return 1;
 	case PUSH:
+		if (selected != UINT_MAX) {
+			do_callback();
+			selected = UINT_MAX;
+			redraw();
+		}
 		return 1;
 	}
 

@@ -12,6 +12,13 @@ void UserInterface::cb_mainwnd(fltk::Window* o, void* v) {
   ((UserInterface*)(o->user_data()))->cb_mainwnd_i(o,v);
 }
 
+inline void UserInterface::cb_table_i(GlTable*, void*) {
+  f["table event"]();
+}
+void UserInterface::cb_table(GlTable* o, void* v) {
+  ((UserInterface*)(o->parent()->parent()->parent()->user_data()))->cb_table_i(o,v);
+}
+
 inline void UserInterface::cb_bid_i(BidButton*, void*) {
   f["game bid"]();
 }
@@ -245,6 +252,7 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
          {GlTable* o = table = new GlTable(0, 240, 640, 435);
           o->box(fltk::FLAT_BOX);
           o->color((fltk::Color)0x71c67100);
+          o->callback((fltk::Callback*)cb_table);
         }
          {GlImage* o = leftimage = new GlImage(0, 0, 320, 240);
           o->box(fltk::FLAT_BOX);

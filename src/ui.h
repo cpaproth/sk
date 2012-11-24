@@ -49,6 +49,10 @@ private:
   static void cb_mainwnd(fltk::Window*, void*);
 public:
         GlTable *table;
+private:
+        inline void cb_table_i(GlTable*, void*);
+        static void cb_table(GlTable*, void*);
+public:
         GlImage *leftimage;
         GlImage *rightimage;
         GlImage *midimage;

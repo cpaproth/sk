@@ -98,6 +98,7 @@ int main(void) {
 		ui.f["game fold"] = bind(&Game::fold_game, &game);
 		ui.f["game select"] = bind(&Game::select_game, &game);
 		ui.f["skat take"] = bind(&Game::take_skat, &game);
+		ui.f["table event"] = bind(&Game::table_event, &game);
 
 		ui.f["dealing start"] = bind(&Game::start_dealing, &game);
 

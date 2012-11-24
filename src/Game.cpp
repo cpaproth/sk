@@ -40,7 +40,7 @@ Game::Game(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 	rangen.seed(secret ^ (unsigned)time(0));
 	shuffle();
 
-	reset_game();
+	reset_game(0);
 }
 
 
@@ -140,12 +140,41 @@ void Game::select_game(void) {
 	}
 
 	sort_hand();
-	ui.table->set_cards(hand);
-	ui.table->redraw();
+	ui.table->show_cards(hand, skat);
+}
+
+
+void Game::table_event(void) {
+	unsigned sel = ui.table->selection();
+	
+	if (skat.size() < 2)
+		return;
+
+	if (sel >= 100 && sel <= 101) {
+		hand.push_back(skat[sel - 100]);
+		skat[sel - 100] = 32;
+	} else if (sel < hand.size() && skat[0] == 32) {
+		skat[0] = hand[sel];
+		hand.erase(hand.begin() + sel);
+	} else if (sel < hand.size() && skat[1] == 32) {
+		skat[1] = hand[sel];
+		hand.erase(hand.begin() + sel);
+	} else if (sel < hand.size()) {
+		swap (hand[sel], skat[0]);
+	}
+
+	if (skat[0] == 32 || skat[1] == 32)
+		ui.announce->deactivate();
+	else
+		ui.announce->activate();
+
+	sort_hand();
+	ui.table->show_cards(hand, skat);
 }
 
 
 void Game::choose_game(void) {
+	player = UINT_MAX;
 	show_info(ss("Spiel für ") << bid << " erhalten.");
 	network.command(left, "bidvalue", ss(bid));
 	network.command(right, "bidvalue", ss(bid));
@@ -187,8 +216,11 @@ void Game::fold_game(void) {
 }
 
 
-void Game::reset_game(void) {
+void Game::reset_game(unsigned d) {
+	dealer = d;
+	
 	hand.clear();
+	skat.clear();
 	secretdeck.clear();
 	secretcards.clear();
 	dealtcards.clear();
@@ -212,10 +244,9 @@ void Game::reset_game(void) {
 }
 
 
-void Game::show_cards(const vector<uchar>& c) {
+void Game::show_cards(void) {
 	UILock lock;
-	ui.table->set_cards(c);
-	ui.table->redraw();
+	ui.table->show_cards(hand, skat);
 	fltk::awake();
 }
 
@@ -262,9 +293,7 @@ void Game::start_dealing(void) {
 	if (dealer == UINT_MAX)
 		return;
 
-	dealer = UINT_MAX;
-	reset_game();
-
+	reset_game(UINT_MAX);
 	shuffle();
 
 	secretdeck = deck;
@@ -298,15 +327,15 @@ void Game::deal_cards(unsigned n, bool cipher) {
 }
 
 
-void Game::decipher(void) {
+void Game::decipher_cards(void) {
 	if (secretdeck.size() == 0 || secretcards.size() == 0)
 		return;
 
 	for (unsigned i = 0; i < secretcards.size(); i++)
-		hand.push_back(secretdeck[secretcards[i]]);
+		(secretcards.size() == 2? skat: hand).push_back(secretdeck[secretcards[i]]);
 
 	sort_hand();
-	show_cards(hand);
+	show_cards();
 	
 	secretdeck.clear();
 	secretcards.clear();
@@ -352,13 +381,11 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 
 
 	} else if (command == "newdeal") {
-		dealer = right;
-		reset_game();
+		reset_game(right);
 		network.command(left, "cutdeck", "");
 
 	} else if (command == "cutdeck") {
-		dealer = left;
-		reset_game();
+		reset_game(left);
 		shuffle();
 		network.command(left, "cipherdeck", cards_string(deck));
 		deal_cards(10, true);
@@ -372,13 +399,13 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 
 	} else if (command == "secretdeck" && i == dealer) {
 		secretdeck = string_cards(data);
-		decipher();
+		decipher_cards();
 
 	} else if (command == "secretcards" && i != dealer) {
 		string secret;
 		drawncards = string_cards(ss(data) >> secret >> ws);
 		secretcards = string_cards(secret);
-		decipher();
+		decipher_cards();
 
 	} else if (command == "drawncards" && i != dealer) {
 		drawncards = string_cards(data);
@@ -425,7 +452,7 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 			show_bid(true, bid, false);
 		} else if (i == dealer || dealer == UINT_MAX) {
 			choose_game();
-		} else if (dealer != UINT_MAX) {
+		} else {
 			show_info(ss(i == left? leftname: rightname) << " passt bei " << bid << '.');
 			network.command(dealer, "bidme", data);
 		}

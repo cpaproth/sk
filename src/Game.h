@@ -36,6 +36,7 @@ class Game {
 	CPLib::RanGen	rangen;
 	vector<uchar>	deck;
 	vector<uchar>	hand;
+	vector<uchar>	skat;
 	
 	vector<uchar>	secretdeck;
 	vector<uchar>	secretcards;
@@ -59,17 +60,17 @@ class Game {
 	string cards_string(const vector<uchar>&);
 	vector<uchar> string_cards(const string&);
 	void sort_hand(void);
-	void reset_game(void);
+	void reset_game(unsigned);
 	void choose_game(void);
 	string game_name(void);
 
-	void show_cards(const vector<uchar>&);
+	void show_cards(void);
 	void show_bid(bool, unsigned, bool);
 	void show_info(const string&);
 	void show_gameinfo(const string&);
 
 	void deal_cards(unsigned, bool);
-	void decipher(void);
+	void decipher_cards(void);
 
 
 	Game(const Game&);
@@ -83,11 +84,13 @@ public:
 
 	void bid_game(void);
 	void fold_game(void);
+	void select_game(void);
+	void take_skat(void);
+	void announce_game(void);
+	void table_event(void);
+
 
 	void start_dealing(void);
-	void select_game(void);
-	void announce_game(void);
-	void take_skat(void);
 };
 
 

@@ -66,6 +66,7 @@ namespace SK {open
             xywh {0 25 960 675}
           } {
             {fltk::InvisibleBox} table {
+              callback {f["table event"]();} selected
               xywh {0 240 640 435} box FLAT_BOX color 0x71c67100
               class GlTable
             }
@@ -104,7 +105,7 @@ namespace SK {open
               xywh {640 110 320 240} when NEVER box DOWN_BOX
             } {
               {fltk::InvisibleBox} gameinfo {
-                label Spielinfo selected
+                label Spielinfo
                 xywh {0 10 320 25} align 32 labelfont 1
               }
               {fltk::Group} trump {
