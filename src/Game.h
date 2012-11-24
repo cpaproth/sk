@@ -37,6 +37,8 @@ class Game {
 	vector<uchar>	deck;
 	vector<uchar>	hand;
 	vector<uchar>	skat;
+	vector<uchar>	trick;
+	vector<uchar>	tricks;
 	
 	vector<uchar>	secretdeck;
 	vector<uchar>	secretcards;
@@ -44,6 +46,7 @@ class Game {
 	vector<uchar>	drawncards;
 	unsigned	dealer;
 	unsigned	listener;
+	unsigned	starter;
 	unsigned	player;
 	unsigned	bid;
 

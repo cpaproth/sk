@@ -160,7 +160,8 @@ void Game::table_event(void) {
 		skat[1] = hand[sel];
 		hand.erase(hand.begin() + sel);
 	} else if (sel < hand.size()) {
-		swap (hand[sel], skat[0]);
+		static unsigned p = 1;
+		swap (hand[sel], skat[p = p == 1? 0: 1]);
 	}
 
 	if (skat[0] == 32 || skat[1] == 32)
@@ -221,6 +222,7 @@ void Game::reset_game(unsigned d) {
 	
 	hand.clear();
 	skat.clear();
+	tricks.clear();
 	secretdeck.clear();
 	secretcards.clear();
 	dealtcards.clear();
@@ -310,6 +312,24 @@ void Game::take_skat(void) {
 	ui.hand->deactivate();
 	ui.skat->deactivate();
 	select_game();
+}
+
+
+void Game::announce_game(void) {
+	for (unsigned i = 0; i < skat.size(); i++)
+		tricks.push_back(skat[i]);
+	skat.clear();
+
+	starter = dealer == UINT_MAX? left: dealer == left? right: UINT_MAX;
+	show_info(starter == UINT_MAX? "Spiele eine Karte!": "Warte auf Karte von " + (starter == left? leftname: rightname) + '.'); 
+	show_gameinfo(game_name());
+	network.command(left, "announce", game_name());
+	network.command(right, "announce", game_name());
+
+	ui.hand->deactivate();
+	ui.skat->deactivate();
+	ui.announce->deactivate();
+	ui.table->show_cards(hand, skat);
 }
 
 
@@ -457,11 +477,17 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 			network.command(dealer, "bidme", data);
 		}
 
+
 	} else if (command == "bidvalue") {
 		ss(data) >> bid;
 		player = i;
 		show_info("Warte auf Spielansage.");
 		show_gameinfo(ss(i == left? leftname: rightname) << " spielt für " << bid << '.');
+		
+	} else if (command == "announce") {
+		starter = dealer == UINT_MAX? left: dealer == left? right: UINT_MAX;
+		show_info(starter == UINT_MAX? "Spiele eine Karte!": "Warte auf Karte von " + (starter == left? leftname: rightname) + '.'); 
+		show_gameinfo(data);
 
 
 	} else
