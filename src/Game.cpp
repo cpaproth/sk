@@ -85,6 +85,7 @@ vector<uchar> Game::string_cards(const string& str) {
 
 void Game::reset_game(unsigned d) {
 	dealer = d;
+	playing = false;
 	
 	hand.clear();
 	skat.clear();
@@ -230,7 +231,7 @@ void Game::table_event(void) {
 			hand.erase(hand.begin() + sel);
 		} else if (sel < hand.size()) {
 			static unsigned p = 1;
-			swap (hand[sel], skat[p = p == 1? 0: 1]);
+			swap (hand[sel], skat[p = p? 0: 1]);
 		}
 
 		if (skat[0] == 32 || skat[1] == 32)
@@ -239,6 +240,22 @@ void Game::table_event(void) {
 			ui.announce->activate();
 
 		sort_hand();
+		ui.table->show_cards(hand, skat);
+		
+	} else if (playing){// && sel < hand.size() && trick.size() < 3) {
+		//~ if (trick.size() == 0 && starter != UINT_MAX)
+			//~ return;
+		//~ if (trick.size() == 1 && starter != right)
+			//~ return;
+		//~ if (trick.size() == 2 && starter != left)
+			//~ return;
+
+
+		trick.push_back(hand[sel]);
+		hand.erase(hand.begin() + sel);
+		//network.command(left, "trick", cards_string(trick));
+		//network.command(right, "trick", cards_string(trick));
+
 		ui.table->show_cards(hand, skat);
 	}
 }
@@ -302,6 +319,7 @@ void Game::announce_game(void) {
 		tricks.push_back(skat[i]);
 	skat.clear();
 
+	playing = true;
 	starter = dealer == UINT_MAX? left: dealer == left? right: UINT_MAX;
 	show_info(starter == UINT_MAX? "Spiele eine Karte!": "Warte auf Karte von " + (starter == left? leftname: rightname) + '.'); 
 	show_gameinfo(game_name());
@@ -424,7 +442,7 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 			network.command(left, "bidme", ss(bid = 18));
 		}
 
-	} else if (command == "dealskat" && drawncards.size() == 30) {
+	} else if (command == "dealskat" && drawncards.size() == 30 && !playing) {
 		if (i == dealer) {
 			deal_cards(2, false);
 			network.command(i, "secretcards", cards_string(dealtcards));
@@ -448,6 +466,9 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 		listener = i;
 		show_info(ss(i == left? leftname: rightname) << " sagt " << bid << '!');
 		show_bid(true, bid, false);
+		network.command(i? 0: 1, "bidinfo", data);
+	} else if (command == "bidinfo") {
+		show_info((i == left? rightname: leftname) + " sagt " + data + " zu " + (i == left? leftname: rightname) + '.');
 
 	} else if (command == "hold") {
 		ss(data) >> bid;
@@ -478,6 +499,7 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 		starter = dealer == UINT_MAX? left: dealer == left? right: UINT_MAX;
 		show_info(starter == UINT_MAX? "Spiele eine Karte!": "Warte auf Karte von " + (starter == left? leftname: rightname) + '.'); 
 		show_gameinfo((player == left? leftname : rightname) + " spielt " + data + '.');
+		playing = true;
 
 
 	} else

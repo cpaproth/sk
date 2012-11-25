@@ -48,6 +48,7 @@ class Game {
 	unsigned	starter;
 	unsigned	player;
 	unsigned	bid;
+	bool		playing;
 
 	string		leftname;
 	string		rightname;

@@ -75,6 +75,7 @@ GlTable::GlTable(int x, int y, int w ,int h, const char* l) : GlWindow(x, y, w, 
 void GlTable::show_cards(const vector<uchar>& h, const vector<uchar>& s) {
 	hand = h;
 	skat = s;
+	selected = UINT_MAX;
 	redraw();
 }
 
