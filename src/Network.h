@@ -90,7 +90,7 @@ public:
 	Network(void);
 	~Network(void);
 
-	void start(const string&, unsigned short, unsigned, handler);
+	void connect(const string&, unsigned short, unsigned, handler);
 	void broadcast(const ucharbuf&, vector<ucharbuf>&, unsigned);
 	void command(unsigned, const string&, const string&);
 	void stats(void);

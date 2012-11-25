@@ -253,8 +253,8 @@ void Game::table_event(void) {
 
 		trick.push_back(hand[sel]);
 		hand.erase(hand.begin() + sel);
-		//network.command(left, "trick", cards_string(trick));
-		//network.command(right, "trick", cards_string(trick));
+		network.command(left, "trick", cards_string(trick));
+		network.command(right, "trick", cards_string(trick));
 
 		ui.table->show_cards(hand, skat);
 	}

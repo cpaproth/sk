@@ -178,7 +178,7 @@ void UserInterface::cb_bandwidth(fltk::ValueInput* o, void* v) {
 }
 
 inline void UserInterface::cb_Verbinden_i(fltk::Button*, void*) {
-  f["network start"]();
+  f["network connect"]();
 }
 void UserInterface::cb_Verbinden(fltk::Button* o, void* v) {
   ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_Verbinden_i(o,v);
@@ -191,11 +191,11 @@ void UserInterface::cb_Stats(fltk::Button* o, void* v) {
   ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_Stats_i(o,v);
 }
 
-inline void UserInterface::cb_autostart_i(fltk::CheckButton*, void*) {
-  prefs.set("autostart", autostart->value());
+inline void UserInterface::cb_autoconnect_i(fltk::CheckButton*, void*) {
+  prefs.set("autoconnect", autoconnect->value());
 }
-void UserInterface::cb_autostart(fltk::CheckButton* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_autostart_i(o,v);
+void UserInterface::cb_autoconnect(fltk::CheckButton* o, void* v) {
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_autoconnect_i(o,v);
 }
 
 inline void UserInterface::cb_name_i(fltk::Input*, void*) {
@@ -227,14 +227,6 @@ UILock::UILock() {
 
 UILock::~UILock() {
   fltk::unlock();
-}
-
-UIUnlock::UIUnlock() {
-  fltk::unlock();
-}
-
-UIUnlock::~UIUnlock() {
-  fltk::lock();
 }
 
 UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "sk") {
@@ -463,14 +455,14 @@ ideokonferenz. Wenn 3 Peers miteinander verbunden sind, dann startet das Spiel\
             o->tooltip("Gibt ein paar Statistiken \303\274""ber die verbundenen Peers im Log-Fenster \
 aus.");
           }
-           {fltk::CheckButton* o = autostart = new fltk::CheckButton(70, 190, 60, 25, "Auto");
-            o->callback((fltk::Callback*)cb_autostart);
+           {fltk::CheckButton* o = autoconnect = new fltk::CheckButton(70, 190, 60, 25, "Auto");
+            o->callback((fltk::Callback*)cb_autoconnect);
             o->tooltip("Wenn aktiviert, dann wird das Netzwerk beim n\303\244""chsten Programmstart a\
 utomatisch verbunden. Nur sinnvoll beim Start als Server oder bei Verbindung z\
 u statischer IP-Adresse.");
             int i;
-            prefs.get("autostart", i, 0);
-            autostart->value(i != 0);
+            prefs.get("autoconnect", i, 0);
+            autoconnect->value(i != 0);
           }
           o->end();
         }
@@ -503,7 +495,7 @@ sieren.");
        {fltk::Group* o = new fltk::Group(0, 25, 960, 675, "Log");
         o->hide();
         o->begin();
-        log = new fltk::TextDisplay(0, 0, 960, 675);
+        new LogDisplay(0, 0, 960, 675);
         o->end();
       }
       o->end();

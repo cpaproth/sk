@@ -32,30 +32,6 @@ using namespace CPLib;
 using namespace SK;
 
 
-class UISbuf : public streambuf {
-	UserInterface&	ui;
-	streambuf*	oldsbuf;
-	
-	int overflow(int c) {
-		char buf[] = {(char)c, 0};
-		UILock lock;
-		ui.log->append(buf);
-		if (buf[0] == '\n') {
-			ui.log->scroll(INT_MAX, 0);
-			fltk::awake();
-		}
-		return c;
-	}
-public:
-	UISbuf(UserInterface& ui) : ui(ui) {
-		oldsbuf = cout.rdbuf(this);
-	}
-	~UISbuf(void) {
-		cout.rdbuf(oldsbuf);
-	}
-};
-
-
 void handle_command(Video& video, Game& game, unsigned i, const string& command, const string& data) {
 	bool handled = video.handle_command(i, command, data);
 	handled |= game.handle_command(i, command, data);
@@ -65,9 +41,8 @@ void handle_command(Video& video, Game& game, unsigned i, const string& command,
 }
 
 
-void start_network(UserInterface& ui, Network& network, Video& video, Game& game) {
-	UIUnlock lock;
-	network.start(ui.address->value(), (unsigned short)ui.port->value(), (unsigned)ui.bandwidth->value(),
+void connect_network(UserInterface& ui, Network& network, Video& video, Game& game) {
+	network.connect(ui.address->value(), (unsigned short)ui.port->value(), (unsigned)ui.bandwidth->value(),
 		bind(&handle_command, ref(video), ref(game), _1, _2, _3));
 }
 
@@ -75,7 +50,6 @@ void start_network(UserInterface& ui, Network& network, Video& video, Game& game
 int main(void) {
 	try {
 		UserInterface	ui;
-		UISbuf		sbuf(ui);
 
 		cout << "Skat-Konferenz Copyright (C) 2012 Carsten Paproth." << endl;
 		cout << "This program is free software and comes with ABSOLUTELY NO WARRANTY." << endl;
@@ -85,27 +59,27 @@ int main(void) {
 		Video		video(ui, network);
 		Audio		audio(network);
 		Game		game(ui, network);
-		UILock		lock;
 
 
 		ui.f["audio restart"] = bind(&Audio::restart, &audio);
 		ui.f["audio toggle"] = bind(&Audio::toggle_playmic, &audio);
 		ui.f["network stats"] = bind(&Network::stats, &network);
-		ui.f["network start"] = bind(&start_network, ref(ui), ref(network), ref(video), ref(game));
+		ui.f["network connect"] = bind(&connect_network, ref(ui), ref(network), ref(video), ref(game));
 		
 		ui.f["dealing start"] = bind(&Game::start_dealing, &game);
 
 
 		audio.restart();
 		try {
-			if (ui.autostart->value())
-				start_network(ui, network, video, game);
+			if (ui.autoconnect->value())
+				connect_network(ui, network, video, game);
 		} catch (std::exception& e) {
-			cout << "autostarting network failed: " << e.what() << endl;
+			cout << "auto connecting network failed: " << e.what() << endl;
 		}
 
 		while(true)
 			try {
+				UILock lock;
 				return fltk::run();
 			} catch (std::exception& e) {
 				cout << "error: " << e.what() << endl;

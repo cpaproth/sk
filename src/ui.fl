@@ -28,15 +28,7 @@ namespace SK {open
       code {fltk::unlock();} {}
     }
   }
-  class UIUnlock {} {
-    Function {UIUnlock()} {} {
-      code {fltk::unlock();} {}
-    }
-    Function {~UIUnlock()} {} {
-      code {fltk::lock();} {}
-    }
-  }
-  class UserInterface {open
+  class UserInterface {open selected
   } {
     decl {fltk::Preferences prefs;} {}
     decl {std::map<std::string, boost::function<void(void)> > f;} {public
@@ -54,6 +46,7 @@ namespace SK {open
 \#include <fltk/run.h>
 \#include <fltk/Preferences.h>
 \#include <fltk/xpmImage.h>
+\#include "LogDisplay.h"
 \#include "GlImage.h"
 \#include "GlTable.h"
 \#include "BidButton.h"} visible
@@ -62,11 +55,11 @@ namespace SK {open
           xywh {0 0 960 700}
         } {
           {fltk::Group} {} {
-            label Spiel open
+            label Spiel
             xywh {0 25 960 675}
           } {
             {fltk::InvisibleBox} table {
-              callback {f["table event"]();} selected
+              callback {f["table event"]();}
               xywh {0 240 640 435} box FLAT_BOX color 0x71c67100
               class GlTable
             }
@@ -211,11 +204,11 @@ f["game select"]();}
             }
           }
           {fltk::Group} {} {
-            label Liste open
+            label Liste
             xywh {0 25 960 675} hide
           } {}
           {fltk::Group} {} {
-            label System open
+            label System
             xywh {0 25 960 675} hide
           } {
             {fltk::Group} {} {
@@ -276,7 +269,7 @@ bandwidth->linesize(1000);}
               }
               {fltk::Button} {} {
                 label Verbinden
-                callback {f["network start"]();}
+                callback {f["network connect"]();}
                 tooltip {Wenn keine IP-Adresse angegeben ist, dann starten sie hiermit die Skat-Konferenz als Server, ansonsten wird eine Verbindung zu der angegebenen IP-Adresse und UDP-Port aufgebaut. Wenn die Verbindung erfolgreich ist, dann beginnt die Videokonferenz. Wenn 3 Peers miteinander verbunden sind, dann startet das Spiel.}
                 xywh {165 190 195 25}
               }
@@ -286,14 +279,14 @@ bandwidth->linesize(1000);}
                 tooltip {Gibt ein paar Statistiken über die verbundenen Peers im Log-Fenster aus.}
                 xywh {165 240 195 25}
               }
-              {fltk::CheckButton} autostart {
+              {fltk::CheckButton} autoconnect {
                 label Auto
-                callback {prefs.set("autostart", autostart->value());}
+                callback {prefs.set("autoconnect", autoconnect->value());}
                 tooltip {Wenn aktiviert, dann wird das Netzwerk beim nächsten Programmstart automatisch verbunden. Nur sinnvoll beim Start als Server oder bei Verbindung zu statischer IP-Adresse.}
                 xywh {70 190 60 25}
                 extra_code {int i;
-prefs.get("autostart", i, 0);
-autostart->value(i != 0);}
+prefs.get("autoconnect", i, 0);
+autoconnect->value(i != 0);}
               }
             }
             {fltk::Group} {} {
@@ -327,8 +320,9 @@ delete[] c;}
             label Log open
             xywh {0 25 960 675} hide
           } {
-            {fltk::TextDisplay} log {
-              xywh {0 0 960 675}
+            {fltk::TextDisplay} {} {
+              private xywh {0 0 960 675}
+              class LogDisplay
             }
           }
         }

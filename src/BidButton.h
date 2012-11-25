@@ -37,7 +37,6 @@ class BidButton : public fltk::Button {
 
 public:
 	BidButton(int, int, int, int, const char* = 0);
-	
 
 	void reset(unsigned, bool);
 };

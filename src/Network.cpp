@@ -57,7 +57,7 @@ Network::~Network(void) {
 }
 
 
-void Network::start(const string& address, unsigned short port, unsigned bw, handler h) {
+void Network::connect(const string& address, unsigned short port, unsigned bw, handler h) {
 	lock_guard<timed_mutex> lock(netmutex);
 
 	if (iothread.joinable()) {
@@ -206,9 +206,9 @@ void Network::processmessage(unsigned i, const string& message) {
 
 void Network::worker(void) {
 	try {
-		cout << "network started as " << (server? "server": "client") << endl;
+		cout << "network connected as " << (server? "server": "client") << endl;
 		io.run();
-		cout << "network stopped" << endl;
+		cout << "network disconnected" << endl;
 	} catch (std::exception& e) {
 		cout << "network failure: " << e.what() << endl;
 	}

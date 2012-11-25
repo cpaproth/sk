@@ -9,6 +9,7 @@
 #include <fltk/run.h>
 #include <fltk/Preferences.h>
 #include <fltk/xpmImage.h>
+#include "LogDisplay.h"
 #include "GlImage.h"
 #include "GlTable.h"
 #include "BidButton.h"
@@ -19,7 +20,6 @@
 #include <fltk/CheckButton.h>
 #include <fltk/Input.h>
 #include <fltk/ValueInput.h>
-#include <fltk/TextDisplay.h>
 
 namespace SK  {
 
@@ -30,12 +30,6 @@ class UILock  {
 public:
   UILock();
   ~UILock();
-};
-
-class UIUnlock  {
-public:
-  UIUnlock();
-  ~UIUnlock();
 };
 
 class UserInterface  {
@@ -155,10 +149,10 @@ private:
           inline void cb_Stats_i(fltk::Button*, void*);
           static void cb_Stats(fltk::Button*, void*);
 public:
-          fltk::CheckButton *autostart;
+          fltk::CheckButton *autoconnect;
 private:
-          inline void cb_autostart_i(fltk::CheckButton*, void*);
-          static void cb_autostart(fltk::CheckButton*, void*);
+          inline void cb_autoconnect_i(fltk::CheckButton*, void*);
+          static void cb_autoconnect(fltk::CheckButton*, void*);
 public:
           fltk::Input *name;
 private:
@@ -170,7 +164,6 @@ private:
           inline void cb_secret_i(fltk::Input*, void*);
           static void cb_secret(fltk::Input*, void*);
 public:
-        fltk::TextDisplay *log;
   ~UserInterface(void);
 private:
   UserInterface(const UserInterface&);
