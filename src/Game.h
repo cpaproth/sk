@@ -19,7 +19,6 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #define SK_GAME_H
 
 
-#include <boost/thread/thread.hpp>
 #include "MathLib.h"
 
 
@@ -56,25 +55,31 @@ class Game {
 	unsigned	right;
 	UserInterface&	ui;
 	Network&	network;
-	boost::mutex	gamemutex;
 
 
 	void shuffle(void);
 	string cards_string(const vector<uchar>&);
 	vector<uchar> string_cards(const string&);
-	void sort_hand(void);
-	void reset_game(unsigned);
-	void choose_game(void);
-	string game_name(void);
 
-	void show_cards(void);
+	void reset_game(unsigned);
 	void show_bid(bool, unsigned, bool);
 	void show_info(const string&);
 	void show_gameinfo(const string&);
+	void sort_hand(void);
+	string game_name(void);
+
+	void send_name(void);
+	void select_game(void);
+	void table_event(void);
+
+	void choose_game(void);
+	void bid_game(void);
+	void fold_game(void);
+	void take_skat(void);
+	void announce_game(void);
 
 	void deal_cards(unsigned, bool);
 	void decipher_cards(void);
-
 
 	Game(const Game&);
 	void operator=(const Game&);
@@ -82,15 +87,7 @@ public:
 	Game(UserInterface&, Network&);
 	~Game(void);
 	
-	void send_name(void);
 	bool handle_command(unsigned, const string&, const string&);
-
-	void bid_game(void);
-	void fold_game(void);
-	void select_game(void);
-	void take_skat(void);
-	void announce_game(void);
-	void table_event(void);
 
 
 	void start_dealing(void);

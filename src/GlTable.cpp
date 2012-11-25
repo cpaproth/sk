@@ -85,11 +85,8 @@ unsigned GlTable::selection(void) {
 
 
 void GlTable::get(unsigned i, float& x, float& y, float& a) {
-	float a1 = -4.f * 50.f / w() / w();
-	float a2 = -a1 * w();
-
 	x = w() / 2.f + (0.5f + i - hand.size() / 2.f) * (90.f - 4.f * hand.size());
-	y = a1 * x * x + a2 * x;
+	y = -4.f * 45.f / w() / w() * x * (x - w());
 	a = -(0.5f + i - hand.size() / 2.f) * 0.06f;
 	
 	x += i != selected? 0.f: -50.f * sin(a);
@@ -179,7 +176,7 @@ int GlTable::handle(int event) {
 		redraw();
 		return 1;
 	case MOVE:
-		if (selected != UINT_MAX || h() - event_y() < -200.f / w() / w() * event_x() * (event_x() - w()) + 95.f)
+		if (selected != UINT_MAX || h() - event_y() < -4.f * 45.f / w() / w() * event_x() * (event_x() - w()) + 95.f)
 			for (unsigned i = 0; i < hand.size(); i++) {
 				float x, y, a;
 				get(i, x, y, a);

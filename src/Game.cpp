@@ -28,6 +28,15 @@ using namespace CPLib;
 
 
 Game::Game(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
+	ui.f["name change"] = boost::bind(&Game::send_name, this);
+	ui.f["game select"] = boost::bind(&Game::select_game, this);
+	ui.f["table event"] = boost::bind(&Game::table_event, this);
+
+	ui.f["game bid"] = boost::bind(&Game::bid_game, this);
+	ui.f["game fold"] = boost::bind(&Game::fold_game, this);
+	ui.f["skat take"] = boost::bind(&Game::take_skat, this);
+	ui.f["game announce"] = boost::bind(&Game::announce_game, this);
+
 	left = 0;
 	right = 1;
 
@@ -74,8 +83,64 @@ vector<uchar> Game::string_cards(const string& str) {
 }
 
 
+void Game::reset_game(unsigned d) {
+	dealer = d;
+	
+	hand.clear();
+	skat.clear();
+	trick.clear();
+	tricks.clear();
+	
+	secretdeck.clear();
+	secretcards.clear();
+	dealtcards.clear();
+	drawncards.clear();
+
+	show_info("");
+	show_gameinfo(dealer == right? "Vorhand": dealer == left? "Mittelhand": "Hinterhand");
+	
+	ui.hand->deactivate();
+	ui.skat->deactivate();
+	ui.announce->label("Spiel ansagen");
+	ui.announce->deactivate();
+
+	show_bid(false, -1, false);
+}
+
+
+void Game::show_bid(bool show, unsigned bid, bool bidding) {
+	if (show) {
+		ui.bid->reset(bid, bidding);
+		ui.bid->color(fltk::GREEN);
+		if (string(ui.bid->label()) == "Reizen")
+			ui.bid->deactivate();
+		else
+			ui.bid->activate();
+		ui.fold->color(fltk::RED);
+		ui.fold->activate();
+	} else {
+		ui.bid->reset(bid, bidding);
+		ui.bid->color(fltk::GRAY50);
+		ui.bid->deactivate();
+		ui.fold->color(fltk::GRAY50);
+		ui.fold->deactivate();
+	}
+}
+
+
+void Game::show_info(const string& info) {
+	ui.info->copy_label(info.c_str());
+	ui.info->redraw();
+}
+
+
+void Game::show_gameinfo(const string& info) {
+	ui.gameinfo->copy_label(info.c_str());
+	ui.gameinfo->redraw();
+}
+
+
 void Game::sort_hand(void) {
-	UILock lock;
 	map<uchar, set<uchar> > suits;
 	set<uchar> jacks;
 	bool trump = !ui.null->value() && !ui.nullouvert->value();
@@ -119,6 +184,12 @@ string Game::game_name(void) {
 			ui.grand->value()? "Grand": ui.null->value()? "Null": "Null Ouvert";
 	name += ui.ouvert->value()? " Ouvert": ui.schwarz->value()? " Schwarz": ui.schneider->value()? " Schneider": ui.skat->active()? " Hand": "";
 	return name;
+}
+
+
+void Game::send_name(void) {
+	network.command(left, "name", ui.name->text());
+	network.command(right, "name", ui.name->text());
 }
 
 
@@ -179,11 +250,9 @@ void Game::choose_game(void) {
 	network.command(left, "bidvalue", ss(bid));
 	network.command(right, "bidvalue", ss(bid));
 
-	UILock lock;
 	ui.skat->activate();
 	ui.announce->activate();
 	select_game();
-	fltk::awake();
 }
 
 
@@ -213,94 +282,6 @@ void Game::fold_game(void) {
 		network.command(listener, "fold", ss(bid));
 	else
 		network.command(listener, "fold", ss(bid + 1));
-}
-
-
-void Game::reset_game(unsigned d) {
-	dealer = d;
-	
-	hand.clear();
-	skat.clear();
-	trick.clear();
-	tricks.clear();
-	
-	secretdeck.clear();
-	secretcards.clear();
-	dealtcards.clear();
-	drawncards.clear();
-
-	UILock lock;
-	ui.gameinfo->label(dealer == right? "Vorhand": dealer == left? "Mittelhand": "Hinterhand");
-	ui.gameinfo->redraw();
-	ui.info->label("");
-	ui.info->redraw();
-	
-	ui.hand->deactivate();
-	ui.skat->deactivate();
-	ui.announce->label("Spiel ansagen");
-	ui.announce->deactivate();
-
-
-	show_bid(false, -1, false);
-
-	fltk::awake();
-}
-
-
-void Game::show_cards(void) {
-	UILock lock;
-	ui.table->show_cards(hand, skat);
-	fltk::awake();
-}
-
-
-void Game::show_bid(bool show, unsigned bid, bool bidding) {
-	UILock lock;
-	if (show) {
-		ui.bid->reset(bid, bidding);
-		ui.bid->color(fltk::GREEN);
-		if (string(ui.bid->label()) == "Reizen")
-			ui.bid->deactivate();
-		else
-			ui.bid->activate();
-		ui.fold->color(fltk::RED);
-		ui.fold->activate();
-	} else {
-		ui.bid->reset(bid, bidding);
-		ui.bid->color(fltk::GRAY50);
-		ui.bid->deactivate();
-		ui.fold->color(fltk::GRAY50);
-		ui.fold->deactivate();
-	}
-	fltk::awake();
-}
-
-
-void Game::show_info(const string& info) {
-	UILock lock;
-	ui.info->copy_label(info.c_str());
-	ui.info->redraw();
-	fltk::awake();
-}
-
-
-void Game::show_gameinfo(const string& info) {
-	UILock lock;
-	ui.gameinfo->copy_label(info.c_str());
-	ui.gameinfo->redraw();
-	fltk::awake();
-}
-
-
-void Game::start_dealing(void) {
-	if (dealer == UINT_MAX)
-		return;
-
-	reset_game(UINT_MAX);
-	shuffle();
-
-	secretdeck = deck;
-	network.command(left, "newdeal", "");
 }
 
 
@@ -334,6 +315,18 @@ void Game::announce_game(void) {
 }
 
 
+void Game::start_dealing(void) {
+	if (dealer == UINT_MAX)
+		return;
+
+	reset_game(UINT_MAX);
+	shuffle();
+
+	secretdeck = deck;
+	network.command(left, "newdeal", "");
+}
+
+
 void Game::deal_cards(unsigned n, bool cipher) {
 	vector<uchar> cards(deck);
 	shuffle();
@@ -356,7 +349,7 @@ void Game::decipher_cards(void) {
 		(secretcards.size() == 2? skat: hand).push_back(secretdeck[secretcards[i]]);
 
 	sort_hand();
-	show_cards();
+	ui.table->show_cards(hand, skat);
 	
 	secretdeck.clear();
 	secretcards.clear();
@@ -374,12 +367,6 @@ void Game::decipher_cards(void) {
 
 	} else if (drawncards.size() == 0)
 		secretdeck = deck;
-}
-
-
-void Game::send_name(void) {
-	network.command(left, "name", ui.name->text());
-	network.command(right, "name", ui.name->text());
 }
 
 
