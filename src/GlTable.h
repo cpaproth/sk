@@ -36,13 +36,14 @@ class GlTable : public fltk::GlWindow {
 	vector<uchar>		hand;
 	vector<uchar>		skat;
 	vector<uchar>		trick;
+	unsigned		start;
 	vector<uchar>		lefthand;
 	vector<uchar>		righthand;
 	
 	unsigned		selected;
 
 	void get(unsigned, float&, float&, float&);
-	void draw_card(unsigned, unsigned, float, float, float, float);
+	void draw_card(uchar, float, float, float, float);
 	bool inside_card(int, int, float, float, float, float);
 
 	void draw(void);
@@ -53,6 +54,7 @@ public:
 	
 	
 	void show_cards(const vector<uchar>&, const vector<uchar>&);
+	void show_trick(const vector<uchar>&, unsigned);
 	
 	unsigned selection(void);
 

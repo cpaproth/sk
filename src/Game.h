@@ -71,6 +71,7 @@ class Game {
 
 	void send_name(void);
 	void select_game(void);
+	bool check_trick(uchar);
 	void table_event(void);
 
 	void choose_game(void);

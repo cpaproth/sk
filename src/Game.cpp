@@ -216,6 +216,24 @@ void Game::select_game(void) {
 }
 
 
+bool Game::check_trick(uchar card) {
+	if (trick.size() >= 3)
+		return false;
+	if (trick.size() == 0 && starter != UINT_MAX)
+		return false;
+	if (trick.size() == 1 && starter != right)
+		return false;
+	if (trick.size() == 2 && starter != left)
+		return false;
+		
+	if (trick.size() == 0)
+		return true;
+	
+		
+	return true;
+}
+
+
 void Game::table_event(void) {
 	unsigned sel = ui.table->selection();
 	
@@ -242,14 +260,7 @@ void Game::table_event(void) {
 		sort_hand();
 		ui.table->show_cards(hand, skat);
 		
-	} else if (playing){// && sel < hand.size() && trick.size() < 3) {
-		//~ if (trick.size() == 0 && starter != UINT_MAX)
-			//~ return;
-		//~ if (trick.size() == 1 && starter != right)
-			//~ return;
-		//~ if (trick.size() == 2 && starter != left)
-			//~ return;
-
+	} else if (playing && sel < hand.size() && check_trick(hand[sel])) {
 
 		trick.push_back(hand[sel]);
 		hand.erase(hand.begin() + sel);
@@ -257,6 +268,7 @@ void Game::table_event(void) {
 		network.command(right, "trick", cards_string(trick));
 
 		ui.table->show_cards(hand, skat);
+		ui.table->show_trick(trick, starter == left? 1: starter == right? 2: 0);
 	}
 }
 
@@ -501,6 +513,10 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 		show_gameinfo((player == left? leftname : rightname) + " spielt " + data + '.');
 		playing = true;
 
+
+	} else if (command == "trick") {
+		trick = string_cards(data);
+		ui.table->show_trick(trick, starter == left? 1: starter == right? 2: 0);
 
 	} else
 		return false;

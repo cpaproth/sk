@@ -80,6 +80,13 @@ void GlTable::show_cards(const vector<uchar>& h, const vector<uchar>& s) {
 }
 
 
+void GlTable::show_trick(const vector<uchar>& t, unsigned s) {
+	trick = t;
+	start = s;
+	redraw();
+}
+
+
 unsigned GlTable::selection(void) {
 	return selected;
 }
@@ -95,7 +102,9 @@ void GlTable::get(unsigned i, float& x, float& y, float& a) {
 }
 
 
-void GlTable::draw_card(unsigned c, unsigned r, float x, float y, float a, float sy) {
+void GlTable::draw_card(uchar card, float x, float y, float a, float sy) {
+	float c = card % 8;
+	float r = card / 8;
 	float sx = sy / height * width / 4.f;
 	sy /= 2.f;
 
@@ -151,14 +160,22 @@ void GlTable::draw(void) {
 	for (unsigned i = 0; i < hand.size(); i++) {
 		float x, y, a;
 		get(i, x, y, a);
-		draw_card(hand[i] % 8, hand[i] / 8, x, y, a, 200.f);
+		draw_card(hand[i], x, y, a, 200.f);
 	}
 
 	if (skat.size() > 0 && skat[0] < 32)
-		draw_card(skat[0] % 8, skat[0] / 8, 260.f, 300.f, 0.1f, 160.f);
+		draw_card(skat[0], 260.f, 300.f, 0.1f, 160.f);
 	if (skat.size() > 1 && skat[1] < 32)
-		draw_card(skat[1] % 8, skat[1] / 8, 380.f, 300.f, -0.1f, 160.f);
+		draw_card(skat[1], 380.f, 300.f, -0.1f, 160.f);
 	
+	for (unsigned i = 0; i < trick.size(); i++) {
+		if ((i + start) % 3 == 0)
+			draw_card(trick[i], 330.f, 280.f, 0.05f, 160.f);
+		else if ((i + start) % 3 == 1)
+			draw_card(trick[i], 270.f, 305.f, 0.2f, 160.f);
+		else 
+			draw_card(trick[i], 370.f, 315.f, -0.25f, 160.f);
+	}
 	
 	glEnd();
 }
