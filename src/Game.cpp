@@ -99,13 +99,15 @@ void Game::reset_game(unsigned d) {
 
 	show_info("");
 	show_gameinfo(dealer == right? "Vorhand": dealer == left? "Mittelhand": "Hinterhand");
-	
+
 	ui.hand->deactivate();
 	ui.skat->deactivate();
 	ui.announce->label("Spiel ansagen");
 	ui.announce->deactivate();
 
 	show_bid(false, -1, false);
+	ui.table->show_cards(hand, skat);
+	ui.table->show_trick(trick, 0);
 }
 
 
@@ -180,10 +182,15 @@ void Game::sort_hand(void) {
 }
 
 
-string Game::game_name(void) {
-	string name = ui.diamonds->value()? "Karo": ui.hearts->value()? "Herz": ui.spades->value()? "Pik": ui.clubs->value()? "Kreuz": 
-			ui.grand->value()? "Grand": ui.null->value()? "Null": "Null Ouvert";
-	name += ui.ouvert->value()? " Ouvert": ui.schwarz->value()? " Schwarz": ui.schneider->value()? " Schneider": ui.skat->active()? " Hand": "";
+string Game::game_name(bool select) {
+	if (select) {
+		gname = ui.diamonds->value()? 24: ui.hearts->value()? 16: ui.spades->value()? 8: ui.clubs->value()? 0: ui.grand->value()? 32: ui.null->value()? 64: 128;
+		gextra = ui.ouvert->value()? 15: ui.schwarz->value()? 7: ui.schneider->value()? 3: ui.skat->active()? 1: 0;
+	}
+	
+	string name = gname == 24? "Karo": gname == 16? "Herz": gname == 8? "Pik": gname == 0? "Kreuz": gname == 32? "Grand": gname == 64? "Null": "Null Ouvert";
+	name += gextra == 15? " Ouvert": gextra == 7? " Schwarz": gextra == 3? " Schneider": gextra == 1? " Hand": "";
+	
 	return name;
 }
 
@@ -207,7 +214,7 @@ void Game::select_game(void) {
 	}
 
 	if (ui.announce->active() || skat.size() > 0) {
-		ui.announce->copy_label((game_name() + " ansagen").c_str());
+		ui.announce->copy_label((game_name(true) + " ansagen").c_str());
 		ui.announce->redraw();
 	}
 
@@ -268,7 +275,10 @@ void Game::table_event(void) {
 		network.command(right, "trick", cards_string(trick));
 
 		ui.table->show_cards(hand, skat);
+		
+		//
 		ui.table->show_trick(trick, starter == left? 1: starter == right? 2: 0);
+		//
 	}
 }
 
@@ -332,16 +342,22 @@ void Game::announce_game(void) {
 	skat.clear();
 
 	playing = true;
+	
+	//
 	starter = dealer == UINT_MAX? left: dealer == left? right: UINT_MAX;
 	show_info(starter == UINT_MAX? "Spiele eine Karte!": "Warte auf Karte von " + (starter == left? leftname: rightname) + '.'); 
-	show_gameinfo(game_name());
-	network.command(left, "announce", game_name());
-	network.command(right, "announce", game_name());
+	//
+	
+	show_gameinfo(game_name(true));
+	network.command(left, "announce", ss(gname) << ' ' << gextra);
+	network.command(right, "announce", ss(gname) << ' ' << gextra);
+
+	ui.table->show_cards(hand, skat);
 
 	ui.hand->deactivate();
 	ui.skat->deactivate();
 	ui.announce->deactivate();
-	ui.table->show_cards(hand, skat);
+	select_game();
 }
 
 
@@ -508,15 +524,23 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 		show_gameinfo(ss(i == left? leftname: rightname) << " spielt für " << bid << '.');
 		
 	} else if (command == "announce") {
+		ss(data) >> gname >> gextra;
+		
+		//
 		starter = dealer == UINT_MAX? left: dealer == left? right: UINT_MAX;
 		show_info(starter == UINT_MAX? "Spiele eine Karte!": "Warte auf Karte von " + (starter == left? leftname: rightname) + '.'); 
-		show_gameinfo((player == left? leftname : rightname) + " spielt " + data + '.');
-		playing = true;
+		//
 
+		show_gameinfo((player == left? leftname : rightname) + " spielt " + game_name(false) + '.');
+		playing = true;
 
 	} else if (command == "trick") {
 		trick = string_cards(data);
+
+		//
 		ui.table->show_trick(trick, starter == left? 1: starter == right? 2: 0);
+		//
+
 
 	} else
 		return false;

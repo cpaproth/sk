@@ -48,6 +48,8 @@ class Game {
 	unsigned	starter;
 	unsigned	player;
 	unsigned	bid;
+	unsigned	gname;
+	unsigned	gextra;
 	bool		playing;
 
 	string		leftname;
@@ -67,7 +69,7 @@ class Game {
 	void show_info(const string&);
 	void show_gameinfo(const string&);
 	void sort_hand(void);
-	string game_name(void);
+	string game_name(bool);
 
 	void send_name(void);
 	void select_game(void);

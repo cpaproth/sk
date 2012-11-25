@@ -170,11 +170,11 @@ void GlTable::draw(void) {
 	
 	for (unsigned i = 0; i < trick.size(); i++) {
 		if ((i + start) % 3 == 0)
-			draw_card(trick[i], 330.f, 280.f, 0.05f, 160.f);
+			draw_card(trick[i], 330.f, 290.f, 0.05f, 160.f);
 		else if ((i + start) % 3 == 1)
-			draw_card(trick[i], 270.f, 305.f, 0.2f, 160.f);
+			draw_card(trick[i], 270.f, 320.f, 0.2f, 160.f);
 		else 
-			draw_card(trick[i], 370.f, 315.f, -0.25f, 160.f);
+			draw_card(trick[i], 370.f, 330.f, -0.25f, 160.f);
 	}
 	
 	glEnd();
