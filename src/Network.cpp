@@ -168,7 +168,7 @@ void Network::processmessage(unsigned i, const string& message) {
 	unsigned curmsgid;
 	ss(id) >> curmsgid;
 
-	if ((command != "hello" && curmsgid <= peers[i].lastmsgid) || (command == "hello" && peers[i].lastmsgid == curmsgid)) {
+	if ((command != "hello" && curmsgid <= peers[i].lastmsgid) || (command == "hello" && peers[i].lastmsgid == curmsgid && curmsgid != 0)) {
 		ignoredmsg++;
 		return;
 	}
@@ -178,7 +178,7 @@ void Network::processmessage(unsigned i, const string& message) {
 	
 	if (command == "hello") {
 		if (data.find("from server") != string::npos) {
-			peers.front().messages.push_back(ss(msgid++) << " hello " << peers.front().endpoint << " from client");
+			peers.front().messages.push_back(ss((msgid = 1)++) << " hello " << peers.front().endpoint << " from client");
 			peers.resize(1, Peer(udpendpoint()));
 		} else if (data.find("from peer") != string::npos) {
 			peers.front().connections = peers[i].connections = 1;

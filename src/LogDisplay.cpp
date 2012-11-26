@@ -25,8 +25,8 @@ using namespace SK;
 
 
 LogDisplay::LogDisplay(int x, int y, int w ,int h, const char* l) : TextDisplay(x, y, w, h, l) {
-	oldsbuf = cout.rdbuf(this);
 	add_timeout(0.1f);
+	oldsbuf = cout.rdbuf(this);
 }
 
 

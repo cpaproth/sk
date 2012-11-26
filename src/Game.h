@@ -76,7 +76,7 @@ class Game {
 	bool check_trick(uchar);
 	void table_event(void);
 
-	void choose_game(void);
+	void single_player(void);
 	void bid_game(void);
 	void fold_game(void);
 	void take_skat(void);

@@ -276,14 +276,14 @@ void Game::table_event(void) {
 
 		ui.table->show_cards(hand, skat);
 		
-		//
+		//****
 		ui.table->show_trick(trick, starter == left? 1: starter == right? 2: 0);
-		//
+		//****
 	}
 }
 
 
-void Game::choose_game(void) {
+void Game::single_player(void) {
 	player = UINT_MAX;
 	show_info(ss("Spiel für ") << bid << " erhalten.");
 	network.command(left, "bidvalue", ss(bid));
@@ -301,7 +301,7 @@ void Game::bid_game(void) {
 	show_info("");
 
 	if (listener == UINT_MAX)
-		choose_game();
+		single_player();
 	else if (type == "Reizen")
 		network.command(listener, "bid", ss(bid));
 	else
@@ -343,10 +343,10 @@ void Game::announce_game(void) {
 
 	playing = true;
 	
-	//
+	//****
 	starter = dealer == UINT_MAX? left: dealer == left? right: UINT_MAX;
 	show_info(starter == UINT_MAX? "Spiele eine Karte!": "Warte auf Karte von " + (starter == left? leftname: rightname) + '.'); 
-	//
+	//****
 	
 	show_gameinfo(game_name(true));
 	network.command(left, "announce", ss(gname) << ' ' << gextra);
@@ -510,7 +510,7 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 			listener = UINT_MAX;
 			show_bid(true, bid, false);
 		} else if (i == dealer || dealer == UINT_MAX) {
-			choose_game();
+			single_player();
 		} else {
 			show_info(ss(i == left? leftname: rightname) << " passt bei " << bid << '.');
 			network.command(dealer, "bidme", data);
@@ -526,10 +526,10 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 	} else if (command == "announce") {
 		ss(data) >> gname >> gextra;
 		
-		//
+		//****
 		starter = dealer == UINT_MAX? left: dealer == left? right: UINT_MAX;
 		show_info(starter == UINT_MAX? "Spiele eine Karte!": "Warte auf Karte von " + (starter == left? leftname: rightname) + '.'); 
-		//
+		//****
 
 		show_gameinfo((player == left? leftname : rightname) + " spielt " + game_name(false) + '.');
 		playing = true;
@@ -537,9 +537,9 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 	} else if (command == "trick") {
 		trick = string_cards(data);
 
-		//
+		//****
 		ui.table->show_trick(trick, starter == left? 1: starter == right? 2: 0);
-		//
+		//****
 
 
 	} else
