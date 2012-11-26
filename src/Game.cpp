@@ -223,10 +223,10 @@ void Game::select_game(void) {
 }
 
 
-bool Game::check_trick(uchar card) {
+bool Game::permit_card(uchar card) {
 	if (trick.size() >= 3)
 		return false;
-	if (trick.size() == 0 && starter != UINT_MAX)
+	if (trick.size() == 0 && starter != myself)
 		return false;
 	if (trick.size() == 1 && starter != right)
 		return false;
@@ -235,9 +235,50 @@ bool Game::check_trick(uchar card) {
 		
 	if (trick.size() == 0)
 		return true;
-	
-		
-	return true;
+
+	bool trump = gname < 64 && ((trick[0] & 7) == 3 || (trick[0] & 24) == gname);
+	unsigned suit = trick[0] & 24;
+	bool canserve = false;
+
+	for (unsigned i = 0; i < hand.size(); i++)
+		if (trump)
+			canserve |= (hand[i] & 7) == 3 || (hand[i] & 24) == gname;
+		else
+			canserve |= (hand[i] & 24) == suit && (gname > 32 || (hand[i] & 7) != 3);
+
+	if (!canserve)
+		return true;
+	if (trump && ((card & 7) == 3 || (card & 24) == gname))
+		return true;
+	if (!trump && (card & 24) == suit && (gname > 32 || (card & 7) != 3))
+		return true;
+
+	return false;
+}
+
+
+void Game::check_trick(void) {
+	if (trick.size() == 0)
+		starter = dealer == myself? left: dealer == left? right: myself;
+	else
+		ui.table->show_trick(trick, starter == left? 1: starter == right? 2: 0);
+
+	if (trick.size() == 3) {
+
+
+		for (unsigned i = 0; i < trick.size(); i++)
+			tricks.push_back(trick[i]);
+		trick.clear();
+	}
+
+	unsigned pos[] = {myself, right, left, myself, right};
+	show_info(starter == pos[trick.size()]? "Spiele eine Karte!": "Warte auf Karte von " + (starter == pos[trick.size() + 2]? leftname: rightname) + '.');
+	//if (trick.size() == 0)
+	//	show_info(starter == myself? "Spiele eine Karte!": "Warte auf Karte von " + (starter == left? leftname: rightname) + '.'); 
+	//else if (trick.size() == 1)
+	//	show_info(starter == right? "Spiele eine Karte!": "Warte auf Karte von " + (starter == myself? leftname: rightname) + '.'); 
+	//else if (trick.size() == 2)
+	//	show_info(starter == left? "Spiele eine Karte!": "Warte auf Karte von " + (starter == right? leftname: rightname) + '.'); 
 }
 
 
@@ -267,7 +308,7 @@ void Game::table_event(void) {
 		sort_hand();
 		ui.table->show_cards(hand, skat);
 		
-	} else if (playing && sel < hand.size() && check_trick(hand[sel])) {
+	} else if (playing && sel < hand.size() && permit_card(hand[sel])) {
 
 		trick.push_back(hand[sel]);
 		hand.erase(hand.begin() + sel);
@@ -276,15 +317,16 @@ void Game::table_event(void) {
 
 		ui.table->show_cards(hand, skat);
 		
-		//****
-		ui.table->show_trick(trick, starter == left? 1: starter == right? 2: 0);
-		//****
+		////****
+		//ui.table->show_trick(trick, starter == left? 1: starter == right? 2: 0);
+		////****
+		check_trick();
 	}
 }
 
 
 void Game::single_player(void) {
-	player = UINT_MAX;
+	player = myself;
 	show_info(ss("Spiel für ") << bid << " erhalten.");
 	network.command(left, "bidvalue", ss(bid));
 	network.command(right, "bidvalue", ss(bid));
@@ -300,7 +342,7 @@ void Game::bid_game(void) {
 	show_bid(false, bid, type == "Reizen");
 	show_info("");
 
-	if (listener == UINT_MAX)
+	if (listener == myself)
 		single_player();
 	else if (type == "Reizen")
 		network.command(listener, "bid", ss(bid));
@@ -315,7 +357,7 @@ void Game::fold_game(void) {
 	show_bid(false, -1, false);
 	show_info("");
 
-	if (listener == UINT_MAX)
+	if (listener == myself)
 		start_dealing();
 	else if (type == "Reizen")
 		network.command(listener, "fold", ss(bid));
@@ -325,7 +367,7 @@ void Game::fold_game(void) {
 
 
 void Game::take_skat(void) {
-	if (dealer == UINT_MAX || dealer == left)
+	if (dealer == myself || dealer == left)
 		network.command(right, "dealskat", "");
 	else
 		network.command(left, "dealskat", "");
@@ -343,10 +385,11 @@ void Game::announce_game(void) {
 
 	playing = true;
 	
-	//****
-	starter = dealer == UINT_MAX? left: dealer == left? right: UINT_MAX;
-	show_info(starter == UINT_MAX? "Spiele eine Karte!": "Warte auf Karte von " + (starter == left? leftname: rightname) + '.'); 
-	//****
+	////****
+	//starter = dealer == myself? left: dealer == left? right: myself;
+	//show_info(starter == myself? "Spiele eine Karte!": "Warte auf Karte von " + (starter == left? leftname: rightname) + '.'); 
+	////****
+	check_trick();
 	
 	show_gameinfo(game_name(true));
 	network.command(left, "announce", ss(gname) << ' ' << gextra);
@@ -362,10 +405,10 @@ void Game::announce_game(void) {
 
 
 void Game::start_dealing(void) {
-	if (dealer == UINT_MAX)
+	if (dealer == myself)
 		return;
 
-	reset_game(UINT_MAX);
+	reset_game(myself);
 	shuffle();
 
 	secretdeck = deck;
@@ -507,9 +550,9 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 	} else if (command == "fold") {
 		if (i == dealer && bid == 18 && data == "18") {
 			show_info("Spielen für 18 oder Einpassen?");
-			listener = UINT_MAX;
+			listener = myself;
 			show_bid(true, bid, false);
-		} else if (i == dealer || dealer == UINT_MAX) {
+		} else if (i == dealer || dealer == myself) {
 			single_player();
 		} else {
 			show_info(ss(i == left? leftname: rightname) << " passt bei " << bid << '.');
@@ -526,10 +569,11 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 	} else if (command == "announce") {
 		ss(data) >> gname >> gextra;
 		
-		//****
-		starter = dealer == UINT_MAX? left: dealer == left? right: UINT_MAX;
-		show_info(starter == UINT_MAX? "Spiele eine Karte!": "Warte auf Karte von " + (starter == left? leftname: rightname) + '.'); 
-		//****
+		////****
+		//starter = dealer == myself? left: dealer == left? right: myself;
+		//show_info(starter == myself? "Spiele eine Karte!": "Warte auf Karte von " + (starter == left? leftname: rightname) + '.'); 
+		////****
+		check_trick();
 
 		show_gameinfo((player == left? leftname : rightname) + " spielt " + game_name(false) + '.');
 		playing = true;
@@ -537,9 +581,10 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 	} else if (command == "trick") {
 		trick = string_cards(data);
 
-		//****
-		ui.table->show_trick(trick, starter == left? 1: starter == right? 2: 0);
-		//****
+		////****
+		//ui.table->show_trick(trick, starter == left? 1: starter == right? 2: 0);
+		////****
+		check_trick();
 
 
 	} else

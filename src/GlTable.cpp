@@ -103,8 +103,8 @@ void GlTable::get(unsigned i, float& x, float& y, float& a) {
 
 
 void GlTable::draw_card(uchar card, float x, float y, float a, float sy) {
-	float c = card % 8;
-	float r = card / 8;
+	unsigned c = card % 8;
+	unsigned r = card / 8;
 	float sx = sy / height * width / 4.f;
 	sy /= 2.f;
 

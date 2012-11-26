@@ -30,6 +30,8 @@ class UserInterface;
 class Network;
 
 class Game {
+	static const unsigned myself = UINT_MAX;
+
 	typedef unsigned char uchar;
 
 	CPLib::RanGen	rangen;
@@ -73,7 +75,8 @@ class Game {
 
 	void send_name(void);
 	void select_game(void);
-	bool check_trick(uchar);
+	bool permit_card(uchar);
+	void check_trick(void);
 	void table_event(void);
 
 	void single_player(void);

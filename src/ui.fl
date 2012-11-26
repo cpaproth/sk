@@ -28,7 +28,7 @@ namespace SK {open
       code {fltk::unlock();} {}
     }
   }
-  class UserInterface {open selected
+  class UserInterface {open
   } {
     decl {fltk::Preferences prefs;} {}
     decl {std::map<std::string, boost::function<void(void)> > f;} {public
@@ -38,7 +38,7 @@ namespace SK {open
       code {UILock lock;} {}
       {fltk::Window} mainwnd {
         label {Skat-Konferenz}
-        callback {mainwnd->hide();} open
+        callback {mainwnd->hide();} selected
         private xywh {93 105 960 700} resizable
         extra_code {\#include <map>
 \#include <string>
@@ -55,7 +55,7 @@ namespace SK {open
           xywh {0 0 960 700}
         } {
           {fltk::Group} {} {
-            label Spiel
+            label Spiel open
             xywh {0 25 960 675}
           } {
             {fltk::InvisibleBox} table {
@@ -101,7 +101,7 @@ namespace SK {open
                 label Spielinfo
                 xywh {0 10 320 25} align 32 labelfont 1
               }
-              {fltk::Group} trump {
+              {fltk::Group} trump {open
                 xywh {60 45 200 70} when NEVER
               } {
                 {fltk::Button} diamonds {
@@ -131,23 +131,23 @@ namespace SK {open
                 {fltk::Button} grand {
                   label Grand
                   callback {f["game select"]();}
-                  tooltip {Buben sind Trumpf.}
+                  tooltip {Nur Buben sind Trumpf.}
                   xywh {0 35 60 35} type RADIO labelfont 1
                 }
                 {fltk::Button} null {
                   label Null
                   callback {f["game select"]();}
-                  tooltip {Nullspiel, nichts ist Trumpf.}
+                  tooltip {Nullspiel, es gibt kein Trumpf.}
                   xywh {60 35 45 35} type RADIO labelfont 1
                 }
                 {fltk::Button} nullouvert {
                   label {Null Ouvert}
                   callback {f["game select"]();}
-                  tooltip {Offenes Nullspiel.}
+                  tooltip {Offenes Nullspiel, es gibt kein Trumpf.}
                   xywh {105 35 95 35} type RADIO labelfont 1
                 }
               }
-              {fltk::Group} hand {open
+              {fltk::Group} hand {
                 xywh {60 115 200 35} when NEVER
               } {
                 {fltk::Button} schneider {
@@ -167,7 +167,7 @@ f["game select"]();}
 else
   ouvert->value(false);
 f["game select"]();}
-                  tooltip {Handspiel, Schwarz angesagt.}
+                  tooltip {Handspiel, Schneider und Schwarz angesagt.}
                   xywh {80 0 65 35} type TOGGLE labelfont 1
                 }
                 {fltk::Button} ouvert {
@@ -177,7 +177,7 @@ f["game select"]();}
   schwarz->value(true);
 }
 f["game select"]();}
-                  tooltip {Offenes Handspiel.}
+                  tooltip {Offenes Handspiel, Schneider und Schwarz angesagt.}
                   xywh {145 0 55 35} type TOGGLE labelfont 1
                 }
               }
@@ -193,7 +193,7 @@ f["game select"]();}
                 xywh {60 195 200 25} labelfont 1
               }
             }
-            {fltk::Group} {} {open
+            {fltk::Group} {} {
               xywh {640 350 320 85} box DOWN_BOX
             } {
               {fltk::Button} {} {
@@ -208,7 +208,7 @@ f["game select"]();}
             xywh {0 25 960 675} hide
           } {}
           {fltk::Group} {} {
-            label System
+            label System open
             xywh {0 25 960 675} hide
           } {
             {fltk::Group} {} {
@@ -235,7 +235,7 @@ f["game select"]();}
               {fltk::Input} address {
                 label {IP-Adresse}
                 callback {prefs.set("ipaddress", address->value());}
-                tooltip {Das Feld leer lassen, um beim Verbinden des Netzwerks als Server zu dienen. Damit sich andere Spieler als Clients mit ihrem Server verbinden können, müssen sie ihnen ihre öffentlich erreichbare IP-Adresse und den ausgewählten UDP-Port mitteilen.}
+                tooltip {Das Feld leer lassen, um beim Verbinden des Netzwerks als Server zu dienen. Damit sich andere Spieler als Clients mit diesem Server verbinden können, musst du ihnen die öffentlich erreichbare IP-Adresse und den ausgewählten UDP-Port mitteilen.}
                 xywh {165 40 195 25}
                 extra_code {char* c;
 prefs.get("ipaddress", c, "");
@@ -270,7 +270,7 @@ bandwidth->linesize(1000);}
               {fltk::Button} {} {
                 label Verbinden
                 callback {f["network connect"]();}
-                tooltip {Wenn keine IP-Adresse angegeben ist, dann starten sie hiermit die Skat-Konferenz als Server, ansonsten wird eine Verbindung zu der angegebenen IP-Adresse und UDP-Port aufgebaut. Wenn die Verbindung erfolgreich ist, dann beginnt die Videokonferenz. Wenn 3 Peers miteinander verbunden sind, dann startet das Spiel.}
+                tooltip {Wenn das IP-Adressenfeld leer ist, dann startest du hiermit die Skat-Konferenz als Server, ansonsten wird eine Verbindung zu der angegebenen IP-Adresse und UDP-Port aufgebaut. Wenn die Verbindung erfolgreich ist, dann beginnt die Videokonferenz. Wenn 3 Peers miteinander verbunden sind, dann startet das Spiel.}
                 xywh {165 190 195 25}
               }
               {fltk::Button} {} {
@@ -297,7 +297,7 @@ autoconnect->value(i != 0);}
                 label Spielername
                 callback {prefs.set("username", name->value());
 f["name change"]();}
-                tooltip {Ihr Spielername.}
+                tooltip {Dein Spielername.}
                 xywh {85 40 165 25}
                 extra_code {char* c;
 prefs.get("username", c, "nobody");

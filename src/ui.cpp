@@ -234,7 +234,6 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
   UILock lock;
    {fltk::Window* o = mainwnd = new fltk::Window(960, 700, "Skat-Konferenz");
     w = o;
-    o->shortcut(0xff1b);
     o->callback((fltk::Callback*)cb_mainwnd, (void*)(this));
     o->begin();
      {fltk::TabGroup* o = new fltk::TabGroup(0, 0, 960, 700);
@@ -315,19 +314,19 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
               o->type(fltk::Button::RADIO);
               o->labelfont(fltk::HELVETICA_BOLD);
               o->callback((fltk::Callback*)cb_grand);
-              o->tooltip("Buben sind Trumpf.");
+              o->tooltip("Nur Buben sind Trumpf.");
             }
              {fltk::Button* o = null = new fltk::Button(60, 35, 45, 35, "Null");
               o->type(fltk::Button::RADIO);
               o->labelfont(fltk::HELVETICA_BOLD);
               o->callback((fltk::Callback*)cb_null);
-              o->tooltip("Nullspiel, nichts ist Trumpf.");
+              o->tooltip("Nullspiel, es gibt kein Trumpf.");
             }
              {fltk::Button* o = nullouvert = new fltk::Button(105, 35, 95, 35, "Null Ouvert");
               o->type(fltk::Button::RADIO);
               o->labelfont(fltk::HELVETICA_BOLD);
               o->callback((fltk::Callback*)cb_nullouvert);
-              o->tooltip("Offenes Nullspiel.");
+              o->tooltip("Offenes Nullspiel, es gibt kein Trumpf.");
             }
             o->end();
           }
@@ -344,13 +343,13 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
               o->type(fltk::Button::TOGGLE);
               o->labelfont(fltk::HELVETICA_BOLD);
               o->callback((fltk::Callback*)cb_schwarz);
-              o->tooltip("Handspiel, Schwarz angesagt.");
+              o->tooltip("Handspiel, Schneider und Schwarz angesagt.");
             }
              {fltk::Button* o = ouvert = new fltk::Button(145, 0, 55, 35, "Ouvert");
               o->type(fltk::Button::TOGGLE);
               o->labelfont(fltk::HELVETICA_BOLD);
               o->callback((fltk::Callback*)cb_ouvert);
-              o->tooltip("Offenes Handspiel.");
+              o->tooltip("Offenes Handspiel, Schneider und Schwarz angesagt.");
             }
             o->end();
           }
@@ -408,9 +407,9 @@ chtig einstellen zu k\303\266nnen, damit z.B. Echos verringert werden. ");
            {fltk::Input* o = address = new fltk::Input(165, 40, 195, 25, "IP-Adresse");
             o->callback((fltk::Callback*)cb_address);
             o->tooltip("Das Feld leer lassen, um beim Verbinden des Netzwerks als Server zu dienen. D\
-amit sich andere Spieler als Clients mit ihrem Server verbinden k\303\266nnen,\
- m\303\274ssen sie ihnen ihre \303\266""ffentlich erreichbare IP-Adresse und d\
-en ausgew\303\244hlten UDP-Port mitteilen.");
+amit sich andere Spieler als Clients mit diesem Server verbinden k\303\266nnen\
+, musst du ihnen die \303\266""ffentlich erreichbare IP-Adresse und den ausgew\
+\303\244hlten UDP-Port mitteilen.");
             char* c;
             prefs.get("ipaddress", c, "");
             address->value(c);
@@ -444,11 +443,10 @@ s, sonstiger Netzwerkverkehr ist weniger als 1000 Byte/s pro Peer.");
           }
            {fltk::Button* o = new fltk::Button(165, 190, 195, 25, "Verbinden");
             o->callback((fltk::Callback*)cb_Verbinden);
-            o->tooltip("Wenn keine IP-Adresse angegeben ist, dann starten sie hiermit die Skat-Konfer\
-enz als Server, ansonsten wird eine Verbindung zu der angegebenen IP-Adresse u\
-nd UDP-Port aufgebaut. Wenn die Verbindung erfolgreich ist, dann beginnt die V\
-ideokonferenz. Wenn 3 Peers miteinander verbunden sind, dann startet das Spiel\
-.");
+            o->tooltip("Wenn das IP-Adressenfeld leer ist, dann startest du hiermit die Skat-Konferen\
+z als Server, ansonsten wird eine Verbindung zu der angegebenen IP-Adresse und\
+ UDP-Port aufgebaut. Wenn die Verbindung erfolgreich ist, dann beginnt die Vid\
+eokonferenz. Wenn 3 Peers miteinander verbunden sind, dann startet das Spiel.");
           }
            {fltk::Button* o = new fltk::Button(165, 240, 195, 25, "Stats");
             o->callback((fltk::Callback*)cb_Stats);
@@ -473,7 +471,7 @@ u statischer IP-Adresse.");
           o->begin();
            {fltk::Input* o = name = new fltk::Input(85, 40, 165, 25, "Spielername");
             o->callback((fltk::Callback*)cb_name);
-            o->tooltip("Ihr Spielername.");
+            o->tooltip("Dein Spielername.");
             char* c;
             prefs.get("username", c, "nobody");
             name->value(c);
