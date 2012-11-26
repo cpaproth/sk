@@ -91,6 +91,8 @@ void Game::reset_game(unsigned d) {
 	skat.clear();
 	trick.clear();
 	tricks.clear();
+	lefttricks.clear();
+	righttricks.clear();
 	
 	secretdeck.clear();
 	secretcards.clear();
@@ -264,21 +266,31 @@ void Game::check_trick(void) {
 		ui.table->show_trick(trick, starter == left? 1: starter == right? 2: 0);
 
 	if (trick.size() == 3) {
+		map<unsigned, unsigned> priority;
 
+		for (unsigned i = 0; i < trick.size(); i++) {
+			uchar suit = trick[i] & 24;
+			uchar value = gname > 32? (trick[i] & 7): (trick[i] & 7) == 1? 2: (trick[i] & 7) == 2? 3: (trick[i] & 7) == 4? 1: (trick[i] & 7);
+
+			if (gname < 64 && (trick[i] & 7) == 3)
+				priority[trick[i]] = i;
+			else
+				priority[suit + value + (suit == gname? 32: suit == (trick[0] & 24)? 64: 96)] = i;
+		}
+		
+		if (priority.begin()->second == 1)
+			starter = starter == myself? left: starter == left? right: myself;
+		else if (priority.begin()->second == 2)
+			starter = starter == myself? right: starter == left? myself: left;
 
 		for (unsigned i = 0; i < trick.size(); i++)
-			tricks.push_back(trick[i]);
+			(starter == myself? tricks: starter == left? lefttricks: righttricks).push_back(trick[i]);
+
 		trick.clear();
 	}
 
 	unsigned pos[] = {myself, right, left, myself, right};
 	show_info(starter == pos[trick.size()]? "Spiele eine Karte!": "Warte auf Karte von " + (starter == pos[trick.size() + 2]? leftname: rightname) + '.');
-	//if (trick.size() == 0)
-	//	show_info(starter == myself? "Spiele eine Karte!": "Warte auf Karte von " + (starter == left? leftname: rightname) + '.'); 
-	//else if (trick.size() == 1)
-	//	show_info(starter == right? "Spiele eine Karte!": "Warte auf Karte von " + (starter == myself? leftname: rightname) + '.'); 
-	//else if (trick.size() == 2)
-	//	show_info(starter == left? "Spiele eine Karte!": "Warte auf Karte von " + (starter == right? leftname: rightname) + '.'); 
 }
 
 
@@ -316,10 +328,6 @@ void Game::table_event(void) {
 		network.command(right, "trick", cards_string(trick));
 
 		ui.table->show_cards(hand, skat);
-		
-		////****
-		//ui.table->show_trick(trick, starter == left? 1: starter == right? 2: 0);
-		////****
 		check_trick();
 	}
 }
@@ -385,17 +393,12 @@ void Game::announce_game(void) {
 
 	playing = true;
 	
-	////****
-	//starter = dealer == myself? left: dealer == left? right: myself;
-	//show_info(starter == myself? "Spiele eine Karte!": "Warte auf Karte von " + (starter == left? leftname: rightname) + '.'); 
-	////****
-	check_trick();
-	
 	show_gameinfo(game_name(true));
 	network.command(left, "announce", ss(gname) << ' ' << gextra);
 	network.command(right, "announce", ss(gname) << ' ' << gextra);
 
 	ui.table->show_cards(hand, skat);
+	check_trick();
 
 	ui.hand->deactivate();
 	ui.skat->deactivate();
@@ -568,22 +571,12 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 		
 	} else if (command == "announce") {
 		ss(data) >> gname >> gextra;
-		
-		////****
-		//starter = dealer == myself? left: dealer == left? right: myself;
-		//show_info(starter == myself? "Spiele eine Karte!": "Warte auf Karte von " + (starter == left? leftname: rightname) + '.'); 
-		////****
-		check_trick();
-
 		show_gameinfo((player == left? leftname : rightname) + " spielt " + game_name(false) + '.');
 		playing = true;
+		check_trick();
 
 	} else if (command == "trick") {
 		trick = string_cards(data);
-
-		////****
-		//ui.table->show_trick(trick, starter == left? 1: starter == right? 2: 0);
-		////****
 		check_trick();
 
 

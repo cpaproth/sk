@@ -40,6 +40,8 @@ class Game {
 	vector<uchar>	skat;
 	vector<uchar>	trick;
 	vector<uchar>	tricks;
+	vector<uchar>	lefttricks;
+	vector<uchar>	righttricks;
 	
 	vector<uchar>	secretdeck;
 	vector<uchar>	secretcards;
