@@ -273,6 +273,22 @@ bool Game::permit_card(uchar card) {
 }
 
 
+bool Game::game_over(void) {
+	bool loser = false;
+	
+	if (gname > 32 && starter == player)
+		loser = true;
+
+	if ((gextra & 4) == 4 && starter != player)
+		loser = true;
+
+	if (!loser && tricks.size() + lefttricks.size() + righttricks.size() == 30)
+		loser = true;
+
+	return loser;
+}
+
+
 void Game::check_trick(void) {
 	if (trick.size() == 0)
 		starter = dealer == myself? left: dealer == left? right: myself;
@@ -301,6 +317,9 @@ void Game::check_trick(void) {
 			(starter == myself? tricks: starter == left? lefttricks: righttricks).push_back(trick[i]);
 			
 		trick.clear();
+
+		if (game_over())
+			return;
 	}
 
 	unsigned pos[] = {myself, right, left, myself, right};
@@ -614,7 +633,7 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 
 	} else if (command == "disclose") {
 		vector<uchar> cards = string_cards(data);
-		for (unsigned j = 0; j < cards.size() && playerhand.size() < 10; j++)
+		for (unsigned j = 0; j < cards.size() && i == player; j++)
 			playerhand.push_back(cards[j]);
 		(i == left? lefthand: righthand) = cards;
 		ui.table->show_disclosed(lefthand, righthand);
