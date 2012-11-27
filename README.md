@@ -53,4 +53,4 @@ Now, the other two can start *sk* and connect to this disclosed IP address and U
 If two peers are connected to the server, the server initiates UDP hole punching between these two peers and if successful, the game starts.
 The game consists of secure dealing out, bidding, choosing the Skat cards, announcing the game, playing the hand, and especially small talk: Hinten ist die Ente fett!
 
-![playing cards](https://github.com/cpaproth/sk/raw/master/images/cards.png)
+![screenshot](https://github.com/cpaproth/sk/raw/master/images/screenshot.jpg)
