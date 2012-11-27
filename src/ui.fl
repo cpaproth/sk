@@ -39,7 +39,7 @@ namespace SK {open
       {fltk::Window} mainwnd {
         label {Skat-Konferenz}
         callback {mainwnd->hide();} open
-        private xywh {93 105 960 700} resizable
+        private xywh {93 32 960 700} resizable
         extra_code {\#include <map>
 \#include <string>
 \#include <boost/function/function0.hpp>
@@ -219,14 +219,6 @@ f["game select"]();}
             }
           }
           {fltk::Group} {} {
-            label Liste open
-            xywh {0 25 960 675} hide
-          } {
-            {fltk::Browser} listing {open
-              xywh {0 0 960 675}
-            } {}
-          }
-          {fltk::Group} {} {
             label System open
             xywh {0 25 960 675} hide
           } {
@@ -340,9 +332,12 @@ delete[] c;}
             xywh {0 25 960 675} hide
           } {
             {fltk::TextDisplay} {} {
-              private xywh {0 0 960 675}
+              private xywh {0 0 480 675}
               class LogDisplay
             }
+            {fltk::Browser} listing {
+              xywh {480 0 480 675}
+            } {}
           }
         }
       }

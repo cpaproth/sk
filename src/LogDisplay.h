@@ -26,7 +26,7 @@ namespace SK {
 
 using namespace std;
 
-class LogDisplay : streambuf, fltk::TextDisplay {
+class LogDisplay : streambuf, public fltk::TextDisplay {
 	
 	streambuf*	oldsbuf;
 	string		buffer;
