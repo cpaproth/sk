@@ -276,14 +276,49 @@ bool Game::permit_card(uchar card) {
 bool Game::game_over(void) {
 	bool loser = false;
 	
-	if (gname > 32 && starter == player)
-		loser = true;
+	//~ if (gname > 32 && starter == player)
+		//~ loser = true;
+//~ 
+	//~ if ((gextra & 4) == 4 && starter != player)
+		//~ loser = true;
 
-	if ((gextra & 4) == 4 && starter != player)
-		loser = true;
-
-	if (!loser && tricks.size() + lefttricks.size() + righttricks.size() == 30)
-		loser = true;
+	if (gname < 64 && tricks.size() + lefttricks.size() + righttricks.size() == 30) {
+		set<uchar> cards(deck.begin(), deck.end()), pcards, ocards;
+		unsigned psum = 0;
+		unsigned osum = 0;
+				
+		unsigned pos[] = {myself, left, right};
+		for (unsigned j = 0; j < 3; j++) {
+			vector<uchar>& t = pos[j] == myself? tricks: pos[j] == left? lefttricks: righttricks;
+			for (unsigned i = 0; i < t.size(); i++) {
+				cards.erase(t[i]);
+				uchar value = t[i] & 7;
+				(player == pos[j]? psum: osum) += value == 0? 11: value == 4? 10: value == 1? 4: value == 2? 3: value == 3? 2: 0;
+			}
+		}
+				
+		//~ for (unsigned i = 0; i < tricks.size(); i++) {
+			//~ cards.erase(tricks[i]);
+			//~ uchar value = tricks[i] & 7;
+			//~ (player == myself? psum: osum) += value == 0? 11: value == 4? 10: value == 1? 4: value == 2? 3: value == 3? 2: 0;
+		//~ }
+		//~ for (unsigned i = 0; i < lefttricks.size(); i++)
+			//~ cards.erase(lefttricks[i]);
+		//~ for (unsigned i = 0; i < righttricks.size(); i++)
+			//~ cards.erase(righttricks[i]);
+		for (set<uchar>::iterator it = cards.begin(); it != cards.end(); it++) {
+			playerhand.push_back(*it);
+			psum += (*it & 7) == 0? 11: (*it & 7) == 4? 10: (*it & 7) == 1? 4: (*it & 7) == 2? 3: (*it & 7) == 3? 2: 0;
+			//(player == myself? tricks: player == left? lefttricks: righttricks).push_back(*it);
+		}
+		
+		cout << psum << " " << osum << endl;
+		
+		playing = false;
+		if (dealer == right)
+			ui.dealout->activate();
+		
+	}
 
 	return loser;
 }
