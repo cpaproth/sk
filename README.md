@@ -47,10 +47,10 @@ for other operating systems, you have to create appropriate build files by hand.
 
 ## Usage
 
-Skat is a card game played by three people. If you want to start *sk* as server, go to the system tab, leave the IP address field empty, and click connect. Then tell
-the other two players your publicly reachable IP address and the chosen UDP port per e-mail, telephone, or whatever. Now, the other two can start *sk* as client
-and connect to this disclosed IP address and UDP port. If a connection can be established, the videoconferencing starts. If two clients are connected to the server,
-the server initiates UDP hole punching between the two clients and if successful, the game starts. Currently, the game consists only of secure dealing out, bidding,
-choosing the Skat cards, and announcing the game.
+Skat is a card game played by three people. One player has to be the server. If you want to be the one, start *sk*, go to the system tab, leave the IP address field empty,
+and click connect. Then tell the other two players your publicly reachable IP address and chosen UDP port per e-mail, telephone, or whatever.
+Now, the other two can start *sk* and connect to this disclosed IP address and UDP port. If a connection can be established, the videoconferencing starts.
+If two peers are connected to the server, the server initiates UDP hole punching between these two peers and if successful, the game starts.
+The game consists of secure dealing out, bidding, choosing the Skat cards, announcing the game, playing the hand, and especially small talk: Hinten ist die Ente fett!
 
 ![playing cards](https://github.com/cpaproth/sk/raw/master/images/cards.png)

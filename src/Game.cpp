@@ -36,9 +36,9 @@ Game::Game(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 	ui.f["game fold"] = boost::bind(&Game::fold_game, this);
 	ui.f["skat take"] = boost::bind(&Game::take_skat, this);
 	ui.f["game announce"] = boost::bind(&Game::announce_game, this);
+
 	ui.f["game dealout"] = boost::bind(&Game::dealout_game, this);
-
-
+	ui.f["game disclose"] = boost::bind(&Game::disclose_hand, this);
 
 	left = 0;
 	right = 1;
@@ -52,7 +52,7 @@ Game::Game(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 	rangen.seed(secret ^ (unsigned)time(0));
 	shuffle();
 
-	reset_game(0);
+	reset_game(myself);
 }
 
 
@@ -96,7 +96,7 @@ void Game::reset_game(unsigned d) {
 	tricks.clear();
 	lefttricks.clear();
 	righttricks.clear();
-	singlehand.clear();
+	playerhand.clear();
 	lefthand.clear();
 	righthand.clear();
 	
@@ -123,6 +123,7 @@ void Game::reset_game(unsigned d) {
 
 	ui.table->show_cards(hand, skat);
 	ui.table->show_trick(trick, 0);
+	ui.table->show_disclosed(lefthand, righthand);
 }
 
 
@@ -299,8 +300,6 @@ void Game::check_trick(void) {
 		for (unsigned i = 0; i < trick.size(); i++)
 			(starter == myself? tricks: starter == left? lefttricks: righttricks).push_back(trick[i]);
 			
-		//singlehand.push_back(player == starter? trick[0]: 
-
 		trick.clear();
 	}
 
@@ -402,22 +401,20 @@ void Game::take_skat(void) {
 
 
 void Game::announce_game(void) {
-	for (unsigned i = 0; i < skat.size(); i++)
-		tricks.push_back(skat[i]);
+	playerhand = hand;
 	skat.clear();
 
+	ui.table->show_cards(hand, skat);
 	playing = true;
+	check_trick();
 	
 	show_gameinfo(game_name(true));
 	network.command(left, "announce", ss(gname) << ' ' << gextra);
 	network.command(right, "announce", ss(gname) << ' ' << gextra);
 	if (gname == 128 || gextra == 15) {
-		network.command(left, "ouvert", cards_string(hand));
-		network.command(right, "ouvert", cards_string(hand));
+		network.command(left, "disclose", cards_string(hand));
+		network.command(right, "disclose", cards_string(hand));
 	}
-
-	ui.table->show_cards(hand, skat);
-	check_trick();
 
 	ui.hand->deactivate();
 	ui.skat->deactivate();
@@ -436,6 +433,13 @@ void Game::dealout_game(void) {
 	secretdeck = deck;
 	network.command(left, "newdeal", "");
 	ui.dealout->deactivate();
+}
+
+
+void Game::disclose_hand(void) {
+	network.command(left, "disclose", cards_string(hand));
+	network.command(right, "disclose", cards_string(hand));
+	ui.disclose->deactivate();
 }
 
 
@@ -489,6 +493,7 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 		cout << "2 peers connected, the game can start!" << endl;
 		network.command(0, "seat", "left");
 		network.command(1, "seat", "right");
+		reset_game(myself);
 		send_name();
 		ui.dealout->activate();
 
@@ -499,6 +504,7 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 	} else if (command == "seat") {
 		left = data == "left"? 1: 0;
 		right = data == "right"? 1: 0;
+		reset_game(myself);
 		send_name();
 
 
@@ -598,7 +604,21 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 
 	} else if (command == "trick") {
 		trick = string_cards(data);
+		if (i == player && !trick.empty() && playerhand.size() < 10)
+			playerhand.push_back(trick.back());
+		vector<uchar>& cards = i == left? lefthand: righthand;
+		if (!trick.empty())
+			cards.resize(remove(cards.begin(), cards.end(), trick.back()) - cards.begin());
+		ui.table->show_disclosed(lefthand, righthand);
 		check_trick();
+
+	} else if (command == "disclose") {
+		vector<uchar> cards = string_cards(data);
+		for (unsigned j = 0; j < cards.size() && playerhand.size() < 10; j++)
+			playerhand.push_back(cards[j]);
+		(i == left? lefthand: righthand) = cards;
+		ui.table->show_disclosed(lefthand, righthand);
+
 
 
 	} else

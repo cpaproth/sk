@@ -41,8 +41,10 @@ class GlTable : public fltk::GlWindow {
 	vector<uchar>		righthand;
 	
 	unsigned		selected;
+	int			mx;
+	int			my;
 
-	void get(unsigned, float&, float&, float&);
+	void get_position(unsigned, size_t, float&, float&, float&);
 	void draw_card(uchar, float, float, float, float);
 	bool inside_card(int, int, float, float, float, float);
 
@@ -55,6 +57,7 @@ public:
 	
 	void show_cards(const vector<uchar>&, const vector<uchar>&);
 	void show_trick(const vector<uchar>&, unsigned);
+	void show_disclosed(const vector<uchar>&, const vector<uchar>&);
 	
 	unsigned selection(void);
 

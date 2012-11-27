@@ -42,7 +42,7 @@ class Game {
 	vector<uchar>	tricks;
 	vector<uchar>	lefttricks;
 	vector<uchar>	righttricks;
-	vector<uchar>	singlehand;
+	vector<uchar>	playerhand;
 	vector<uchar>	lefthand;
 	vector<uchar>	righthand;
 	
@@ -91,6 +91,7 @@ class Game {
 	void announce_game(void);
 
 	void dealout_game(void);
+	void disclose_hand(void);
 
 	void deal_cards(unsigned, bool);
 	void decipher_cards(void);

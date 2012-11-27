@@ -69,6 +69,8 @@ GlTable::GlTable(int x, int y, int w ,int h, const char* l) : GlWindow(x, y, w, 
 
 	texture = 0;
 	selected = UINT_MAX;
+	mx = -1;
+	my = -1;
 }
 
 
@@ -87,15 +89,22 @@ void GlTable::show_trick(const vector<uchar>& t, unsigned s) {
 }
 
 
+void GlTable::show_disclosed(const vector<uchar>& l, const vector<uchar>& r) {
+	lefthand = l;
+	righthand = r;
+	redraw();
+}
+
+
 unsigned GlTable::selection(void) {
 	return selected;
 }
 
 
-void GlTable::get(unsigned i, float& x, float& y, float& a) {
-	x = w() / 2.f + (0.5f + i - hand.size() / 2.f) * (90.f - 4.f * hand.size());
+void GlTable::get_position(unsigned i, size_t s, float& x, float& y, float& a) {
+	x = w() / 2.f + (0.5f + i - s / 2.f) * (90.f - 4.f * s);
 	y = -4.f * 45.f / w() / w() * x * (x - w());
-	a = -(0.5f + i - hand.size() / 2.f) * 0.06f;
+	a = -(0.5f + i - s / 2.f) * 0.06f;
 	
 	x += i != selected? 0.f: -50.f * sin(a);
 	y += i != selected? 0.f: 50.f * cos(a);
@@ -159,7 +168,7 @@ void GlTable::draw(void) {
 
 	for (unsigned i = 0; i < hand.size(); i++) {
 		float x, y, a;
-		get(i, x, y, a);
+		get_position(i, hand.size(), x, y, a);
 		draw_card(hand[i], x, y, a, 200.f);
 	}
 
@@ -168,13 +177,32 @@ void GlTable::draw(void) {
 	if (skat.size() > 1 && skat[1] < 32)
 		draw_card(skat[1], 380.f, 300.f, -0.1f, 160.f);
 	
-	for (unsigned i = 0; i < trick.size(); i++) {
-		if ((i + start) % 3 == 0)
-			draw_card(trick[i], 330.f, 290.f, 0.05f, 160.f);
-		else if ((i + start) % 3 == 1)
-			draw_card(trick[i], 270.f, 320.f, 0.2f, 160.f);
-		else 
-			draw_card(trick[i], 370.f, 330.f, -0.25f, 160.f);
+	if (selected == UINT_MAX || selected < 200) {
+		for (unsigned i = 0; i < trick.size(); i++) {
+			if ((i + start) % 3 == 0)
+				draw_card(trick[i], 330.f, 290.f, 0.05f, 160.f);
+			else if ((i + start) % 3 == 1)
+				draw_card(trick[i], 270.f, 320.f, 0.2f, 160.f);
+			else 
+				draw_card(trick[i], 370.f, 330.f, -0.25f, 160.f);
+		}
+
+		for (unsigned i = 0; i < lefthand.size(); i++) {
+			float a = 0.785f + (0.5f + i - lefthand.size() / 2.f) * 0.13f;
+			draw_card(lefthand[i], sin(a) * 120.f, h() - cos(a) * 120.f, -3.142f + a, 120.f);
+		}
+		for (unsigned i = 0; i < righthand.size(); i++) {
+			float a = 0.785f + (0.5f + i - righthand.size() / 2.f) * 0.13f;
+			draw_card(righthand[i], w() - cos(a) * 120.f, h() - sin(a) * 120.f, -4.712f + a, 120.f);
+		}
+
+	} else {
+		vector<uchar>& cards = selected < 300? lefthand: righthand;
+		for (unsigned i = 0; i < cards.size(); i++) {
+			float x, y, a;
+			get_position(i, cards.size(), x, y, a);
+			draw_card(cards[i], x, h() - 80.f - y, -a, 160.f);
+		}
 	}
 	
 	glEnd();
@@ -194,18 +222,34 @@ int GlTable::handle(int event) {
 		redraw();
 		return 1;
 	case MOVE:
-		if (selected != UINT_MAX || h() - event_y() < -4.f * 45.f / w() / w() * event_x() * (event_x() - w()) + 95.f)
+		if (mx == event_x() && my == event_y())
+			return 1;
+		mx = event_x();
+		my = event_y();
+
+		if (selected != UINT_MAX || h() - my < -4.f * 45.f / w() / w() * mx * (mx - w()) + 95.f)
 			for (unsigned i = 0; i < hand.size(); i++) {
 				float x, y, a;
-				get(i, x, y, a);
-				if (inside_card(event_x(), h() - event_y() - 1, x, y, a, 200.f))
+				get_position(i, hand.size(), x, y, a);
+				if (inside_card(mx, h() - my - 1, x, y, a, 200.f))
 					sel = i;
 			}
 
-		if (skat.size() > 0 && skat[0] < 32 && inside_card(event_x(), h() - event_y() - 1, 260.f, 300.f, 0.1f, 160.f))
+		if (skat.size() > 0 && skat[0] < 32 && inside_card(mx, h() - my - 1, 260.f, 300.f, 0.1f, 160.f))
 			sel = 100;
-		if (skat.size() > 1 && skat[1] < 32 && inside_card(event_x(), h() - event_y() - 1, 380.f, 300.f, -0.1f, 160.f))
+		if (skat.size() > 1 && skat[1] < 32 && inside_card(mx, h() - my - 1, 380.f, 300.f, -0.1f, 160.f))
 			sel = 101;
+
+		for (unsigned i = 0; i < lefthand.size(); i++) {
+			float a = 0.785f + (0.5f + i - lefthand.size() / 2.f) * 0.13f;
+			if (inside_card(mx, h() - my - 1, sin(a) * 120.f, h() - cos(a) * 120.f, -3.142f + a, 120.f))
+				sel = 200 + i;
+		}
+		for (unsigned i = 0; i < righthand.size(); i++) {
+			float a = 0.785f + (0.5f + i - righthand.size() / 2.f) * 0.13f;
+			if (inside_card(mx, h() - my - 1, w() - cos(a) * 120.f, h() - sin(a) * 120.f, -4.712f + a, 120.f))
+				sel = 300 + i;
+		}
 
 		if (sel != selected) {
 			selected = sel;
