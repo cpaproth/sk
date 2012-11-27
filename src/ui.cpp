@@ -129,11 +129,32 @@ void UserInterface::cb_announce(fltk::Button* o, void* v) {
   ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_announce_i(o,v);
 }
 
-inline void UserInterface::cb_Austeilen_i(fltk::Button*, void*) {
-  f["dealing start"]();
+inline void UserInterface::cb_dealout_i(fltk::Button*, void*) {
+  f["game dealout"]();
 }
-void UserInterface::cb_Austeilen(fltk::Button* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_Austeilen_i(o,v);
+void UserInterface::cb_dealout(fltk::Button* o, void* v) {
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_dealout_i(o,v);
+}
+
+inline void UserInterface::cb_disclose_i(fltk::Button*, void*) {
+  f["game disclose"]();
+}
+void UserInterface::cb_disclose(fltk::Button* o, void* v) {
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_disclose_i(o,v);
+}
+
+inline void UserInterface::cb_contrare_i(fltk::Button*, void*) {
+  f["game contrare"]();
+}
+void UserInterface::cb_contrare(fltk::Button* o, void* v) {
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_contrare_i(o,v);
+}
+
+inline void UserInterface::cb_giveup_i(fltk::Button*, void*) {
+  f["game giveup"]();
+}
+void UserInterface::cb_giveup(fltk::Button* o, void* v) {
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_giveup_i(o,v);
 }
 
 inline void UserInterface::cb_Neustart_i(fltk::Button*, void*) {
@@ -234,6 +255,7 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
   UILock lock;
    {fltk::Window* o = mainwnd = new fltk::Window(960, 700, "Skat-Konferenz");
     w = o;
+    o->shortcut(0xff1b);
     o->callback((fltk::Callback*)cb_mainwnd, (void*)(this));
     o->begin();
      {fltk::TabGroup* o = new fltk::TabGroup(0, 0, 960, 700);
@@ -257,28 +279,28 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
           o->box(fltk::FLAT_BOX);
           o->color((fltk::Color)56);
         }
-         {fltk::Group* o = new fltk::Group(640, 0, 320, 110);
+         {fltk::Group* o = new fltk::Group(640, 0, 320, 85);
           o->box(fltk::DOWN_BOX);
           o->begin();
-           {BidButton* o = bid = new BidButton(40, 60, 105, 25, "Reizen");
+           {BidButton* o = bid = new BidButton(40, 45, 105, 25, "Reizen");
             o->buttonbox(fltk::PLASTIC_UP_BOX);
             o->labelfont(fltk::HELVETICA_BOLD);
             o->buttoncolor((fltk::Color)0xff0000);
             o->callback((fltk::Callback*)cb_bid);
           }
-           {fltk::Button* o = fold = new fltk::Button(175, 60, 105, 25, "Passen");
+           {fltk::Button* o = fold = new fltk::Button(175, 45, 105, 25, "Passen");
             o->buttonbox(fltk::PLASTIC_UP_BOX);
             o->labelfont(fltk::HELVETICA_BOLD);
             o->buttoncolor((fltk::Color)0xff000000);
             o->callback((fltk::Callback*)cb_fold);
           }
-           {fltk::InvisibleBox* o = info = new fltk::InvisibleBox(0, 20, 320, 25, "Information");
+           {fltk::InvisibleBox* o = info = new fltk::InvisibleBox(0, 10, 320, 25, "Information");
             o->labelfont(fltk::HELVETICA_BOLD);
             o->align(fltk::ALIGN_INSIDE);
           }
           o->end();
         }
-         {fltk::Group* o = new fltk::Group(640, 110, 320, 240);
+         {fltk::Group* o = new fltk::Group(640, 85, 320, 240);
           o->box(fltk::DOWN_BOX);
           o->when(fltk::WHEN_NEVER);
           o->begin();
@@ -286,7 +308,7 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
             o->labelfont(fltk::HELVETICA_BOLD);
             o->align(fltk::ALIGN_INSIDE);
           }
-           {fltk::Group* o = trump = new fltk::Group(60, 45, 200, 70);
+           {fltk::Group* o = new fltk::Group(60, 45, 200, 70);
             o->when(fltk::WHEN_NEVER);
             o->begin();
              {fltk::Button* o = diamonds = new fltk::Button(0, 0, 50, 35, "@dia");
@@ -364,11 +386,22 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
           }
           o->end();
         }
-         {fltk::Group* o = new fltk::Group(640, 350, 320, 85);
+         {fltk::Group* o = new fltk::Group(640, 325, 320, 110);
           o->box(fltk::DOWN_BOX);
           o->begin();
-           {fltk::Button* o = new fltk::Button(105, 30, 105, 25, "Austeilen");
-            o->callback((fltk::Callback*)cb_Austeilen);
+           {fltk::Button* o = dealout = new fltk::Button(30, 20, 115, 25, "Karten austeilen");
+            o->callback((fltk::Callback*)cb_dealout);
+          }
+           {fltk::Button* o = disclose = new fltk::Button(30, 65, 115, 25, "Karten aufdecken");
+            o->callback((fltk::Callback*)cb_disclose);
+          }
+           {fltk::Button* o = contrare = new fltk::Button(175, 20, 115, 25, "Kontra / Re");
+            o->type(fltk::Button::TOGGLE);
+            o->callback((fltk::Callback*)cb_contrare);
+          }
+           {fltk::Button* o = giveup = new fltk::Button(175, 65, 115, 25, "Spiel aufgeben");
+            o->type(fltk::Button::TOGGLE);
+            o->callback((fltk::Callback*)cb_giveup);
           }
           o->end();
         }
@@ -376,6 +409,10 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
       }
        {fltk::Group* o = new fltk::Group(0, 25, 960, 675, "Liste");
         o->hide();
+        o->begin();
+         {fltk::Browser* o = listing = new fltk::Browser(0, 0, 960, 675);
+        }
+        o->end();
       }
        {fltk::Group* o = new fltk::Group(0, 25, 960, 675, "System");
         o->hide();

@@ -17,6 +17,7 @@
 #include <fltk/Group.h>
 #include <fltk/Button.h>
 #include <fltk/InvisibleBox.h>
+#include <fltk/Browser.h>
 #include <fltk/CheckButton.h>
 #include <fltk/Input.h>
 #include <fltk/ValueInput.h>
@@ -62,7 +63,6 @@ private:
 public:
           fltk::InvisibleBox *info;
           fltk::InvisibleBox *gameinfo;
-          fltk::Group *trump;
             fltk::Button *diamonds;
 private:
             inline void cb_diamonds_i(fltk::Button*, void*);
@@ -123,8 +123,29 @@ public:
 private:
           inline void cb_announce_i(fltk::Button*, void*);
           static void cb_announce(fltk::Button*, void*);
-          inline void cb_Austeilen_i(fltk::Button*, void*);
-          static void cb_Austeilen(fltk::Button*, void*);
+public:
+          fltk::Button *dealout;
+private:
+          inline void cb_dealout_i(fltk::Button*, void*);
+          static void cb_dealout(fltk::Button*, void*);
+public:
+          fltk::Button *disclose;
+private:
+          inline void cb_disclose_i(fltk::Button*, void*);
+          static void cb_disclose(fltk::Button*, void*);
+public:
+          fltk::Button *contrare;
+private:
+          inline void cb_contrare_i(fltk::Button*, void*);
+          static void cb_contrare(fltk::Button*, void*);
+public:
+          fltk::Button *giveup;
+private:
+          inline void cb_giveup_i(fltk::Button*, void*);
+          static void cb_giveup(fltk::Button*, void*);
+public:
+        fltk::Browser *listing;
+private:
           inline void cb_Neustart_i(fltk::Button*, void*);
           static void cb_Neustart(fltk::Button*, void*);
           inline void cb_Mikrofon_i(fltk::CheckButton*, void*);

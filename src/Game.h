@@ -42,6 +42,9 @@ class Game {
 	vector<uchar>	tricks;
 	vector<uchar>	lefttricks;
 	vector<uchar>	righttricks;
+	vector<uchar>	singlehand;
+	vector<uchar>	lefthand;
+	vector<uchar>	righthand;
 	
 	vector<uchar>	secretdeck;
 	vector<uchar>	secretcards;
@@ -87,6 +90,8 @@ class Game {
 	void take_skat(void);
 	void announce_game(void);
 
+	void dealout_game(void);
+
 	void deal_cards(unsigned, bool);
 	void decipher_cards(void);
 
@@ -99,7 +104,6 @@ public:
 	bool handle_command(unsigned, const string&, const string&);
 
 
-	void start_dealing(void);
 };
 
 

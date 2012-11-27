@@ -66,9 +66,6 @@ int main(void) {
 		ui.f["network stats"] = bind(&Network::stats, &network);
 		ui.f["network connect"] = bind(&connect_network, ref(ui), ref(network), ref(video), ref(game));
 		
-		ui.f["dealing start"] = bind(&Game::start_dealing, &game);
-
-
 		audio.restart();
 		try {
 			if (ui.autoconnect->value())

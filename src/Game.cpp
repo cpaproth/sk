@@ -36,6 +36,9 @@ Game::Game(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 	ui.f["game fold"] = boost::bind(&Game::fold_game, this);
 	ui.f["skat take"] = boost::bind(&Game::take_skat, this);
 	ui.f["game announce"] = boost::bind(&Game::announce_game, this);
+	ui.f["game dealout"] = boost::bind(&Game::dealout_game, this);
+
+
 
 	left = 0;
 	right = 1;
@@ -93,6 +96,9 @@ void Game::reset_game(unsigned d) {
 	tricks.clear();
 	lefttricks.clear();
 	righttricks.clear();
+	singlehand.clear();
+	lefthand.clear();
+	righthand.clear();
 	
 	secretdeck.clear();
 	secretcards.clear();
@@ -101,13 +107,20 @@ void Game::reset_game(unsigned d) {
 
 	show_info("");
 	show_gameinfo(dealer == right? "Vorhand": dealer == left? "Mittelhand": "Hinterhand");
+	show_bid(false, -1, false);
 
 	ui.hand->deactivate();
 	ui.skat->deactivate();
 	ui.announce->label("Spiel ansagen");
 	ui.announce->deactivate();
+	
+	ui.dealout->deactivate();
+	ui.disclose->deactivate();
+	ui.contrare->value(false);
+	ui.contrare->deactivate();
+	ui.giveup->value(false);
+	ui.giveup->deactivate();
 
-	show_bid(false, -1, false);
 	ui.table->show_cards(hand, skat);
 	ui.table->show_trick(trick, 0);
 }
@@ -285,6 +298,8 @@ void Game::check_trick(void) {
 
 		for (unsigned i = 0; i < trick.size(); i++)
 			(starter == myself? tricks: starter == left? lefttricks: righttricks).push_back(trick[i]);
+			
+		//singlehand.push_back(player == starter? trick[0]: 
 
 		trick.clear();
 	}
@@ -366,7 +381,7 @@ void Game::fold_game(void) {
 	show_info("");
 
 	if (listener == myself)
-		start_dealing();
+		ui.dealout->activate();
 	else if (type == "Reizen")
 		network.command(listener, "fold", ss(bid));
 	else
@@ -396,6 +411,10 @@ void Game::announce_game(void) {
 	show_gameinfo(game_name(true));
 	network.command(left, "announce", ss(gname) << ' ' << gextra);
 	network.command(right, "announce", ss(gname) << ' ' << gextra);
+	if (gname == 128 || gextra == 15) {
+		network.command(left, "ouvert", cards_string(hand));
+		network.command(right, "ouvert", cards_string(hand));
+	}
 
 	ui.table->show_cards(hand, skat);
 	check_trick();
@@ -403,19 +422,20 @@ void Game::announce_game(void) {
 	ui.hand->deactivate();
 	ui.skat->deactivate();
 	ui.announce->deactivate();
+	ui.giveup->activate();
+	if (gname != 128 && gextra != 15)
+		ui.disclose->activate();
 	select_game();
 }
 
 
-void Game::start_dealing(void) {
-	if (dealer == myself)
-		return;
-
+void Game::dealout_game(void) {
 	reset_game(myself);
 	shuffle();
 
 	secretdeck = deck;
 	network.command(left, "newdeal", "");
+	ui.dealout->deactivate();
 }
 
 
@@ -470,7 +490,7 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 		network.command(0, "seat", "left");
 		network.command(1, "seat", "right");
 		send_name();
-		start_dealing();
+		ui.dealout->activate();
 
 	} else if (command == "name") {
 		leftname = i == left? data: leftname;
@@ -572,6 +592,7 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 	} else if (command == "announce") {
 		ss(data) >> gname >> gextra;
 		show_gameinfo((player == left? leftname : rightname) + " spielt " + game_name(false) + '.');
+		ui.giveup->activate();
 		playing = true;
 		check_trick();
 

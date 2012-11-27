@@ -38,7 +38,7 @@ namespace SK {open
       code {UILock lock;} {}
       {fltk::Window} mainwnd {
         label {Skat-Konferenz}
-        callback {mainwnd->hide();} selected
+        callback {mainwnd->hide();} open
         private xywh {93 105 960 700} resizable
         extra_code {\#include <map>
 \#include <string>
@@ -55,7 +55,7 @@ namespace SK {open
           xywh {0 0 960 700}
         } {
           {fltk::Group} {} {
-            label Spiel open
+            label Spiel open selected
             xywh {0 25 960 675}
           } {
             {fltk::InvisibleBox} table {
@@ -76,32 +76,32 @@ namespace SK {open
               class GlImage
             }
             {fltk::Group} {} {open
-              xywh {640 0 320 110} box DOWN_BOX
+              xywh {640 0 320 85} box DOWN_BOX
             } {
               {fltk::Button} bid {
                 label Reizen
                 callback {f["game bid"]();}
-                xywh {40 60 105 25} buttonbox PLASTIC_UP_BOX labelfont 1 buttoncolor 0xff0000
+                xywh {40 45 105 25} buttonbox PLASTIC_UP_BOX labelfont 1 buttoncolor 0xff0000
                 class BidButton
               }
               {fltk::Button} fold {
                 label Passen
                 callback {f["game fold"]();}
-                xywh {175 60 105 25} buttonbox PLASTIC_UP_BOX labelfont 1 buttoncolor 0xff000000
+                xywh {175 45 105 25} buttonbox PLASTIC_UP_BOX labelfont 1 buttoncolor 0xff000000
               }
               {fltk::InvisibleBox} info {
                 label Information
-                xywh {0 20 320 25} align 32 labelfont 1
+                xywh {0 10 320 25} align 32 labelfont 1
               }
             }
             {fltk::Group} {} {open
-              xywh {640 110 320 240} when NEVER box DOWN_BOX
+              xywh {640 85 320 240} when NEVER box DOWN_BOX
             } {
               {fltk::InvisibleBox} gameinfo {
                 label Spielinfo
                 xywh {0 10 320 25} align 32 labelfont 1
               }
-              {fltk::Group} trump {open
+              {fltk::Group} {} {open
                 xywh {60 45 200 70} when NEVER
               } {
                 {fltk::Button} diamonds {
@@ -147,7 +147,7 @@ namespace SK {open
                   xywh {105 35 95 35} type RADIO labelfont 1
                 }
               }
-              {fltk::Group} hand {
+              {fltk::Group} hand {open
                 xywh {60 115 200 35} when NEVER
               } {
                 {fltk::Button} schneider {
@@ -193,20 +193,39 @@ f["game select"]();}
                 xywh {60 195 200 25} labelfont 1
               }
             }
-            {fltk::Group} {} {
-              xywh {640 350 320 85} box DOWN_BOX
+            {fltk::Group} {} {open
+              xywh {640 325 320 110} box DOWN_BOX
             } {
-              {fltk::Button} {} {
-                label Austeilen
-                callback {f["dealing start"]();}
-                xywh {105 30 105 25}
+              {fltk::Button} dealout {
+                label {Karten austeilen}
+                callback {f["game dealout"]();}
+                xywh {30 20 115 25}
+              }
+              {fltk::Button} disclose {
+                label {Karten aufdecken}
+                callback {f["game disclose"]();}
+                xywh {30 65 115 25}
+              }
+              {fltk::Button} contrare {
+                label {Kontra / Re}
+                callback {f["game contrare"]();}
+                xywh {175 20 115 25} type TOGGLE
+              }
+              {fltk::Button} giveup {
+                label {Spiel aufgeben}
+                callback {f["game giveup"]();}
+                xywh {175 65 115 25} type TOGGLE
               }
             }
           }
           {fltk::Group} {} {
-            label Liste
+            label Liste open
             xywh {0 25 960 675} hide
-          } {}
+          } {
+            {fltk::Browser} listing {open
+              xywh {0 0 960 675}
+            } {}
+          }
           {fltk::Group} {} {
             label System open
             xywh {0 25 960 675} hide
