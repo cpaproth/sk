@@ -73,9 +73,9 @@ bool Video::handle_command(unsigned i, const string& command, const string& data
 	if (command == "name") {
 		UILock lock;
 		if (i == left)
-			leftname[("@b " + data).copy(leftname, namesize - 1)] = 0;
+			leftname[("@b;" + data).copy(leftname, namesize - 1)] = 0;
 		else if (i == right)
-			rightname[("@b " + data).copy(rightname, namesize - 1)] = 0;
+			rightname[("@b;" + data).copy(rightname, namesize - 1)] = 0;
 	} else if (command == "seat") {
 		left = data == "left"? 1: 0;
 		right = data == "right"? 1: 0;

@@ -55,7 +55,7 @@ namespace SK {open
           xywh {0 0 960 700}
         } {
           {fltk::Group} {} {
-            label Spiel open selected
+            label Spiel open
             xywh {0 25 960 675}
           } {
             {fltk::InvisibleBox} table {
@@ -109,6 +109,7 @@ namespace SK {open
                   callback {f["game select"]();}
                   tooltip {Karo ist Trumpf.}
                   xywh {0 0 50 35} type RADIO value 1
+                  extra_code {diamonds->take_focus();}
                 }
                 {fltk::Button} hearts {
                   label {@hea}
@@ -335,12 +336,17 @@ delete[] c;}
               private xywh {0 0 480 675}
               class LogDisplay
             }
-            {fltk::Browser} listing {
+            {fltk::Browser} listing {open selected
               xywh {480 0 480 675}
+              extra_code {const int widths[] = {120, 50, 80, 80, 80, -1, 0};
+const char* labels[] = {"Spiel", "Punkte", "Du", "Links", "Rechts", "Extra", 0};
+listing->column_widths(widths);
+listing->column_labels(labels);}
             } {}
           }
         }
       }
+      code {w->remove_shortcuts();} {}
       code {w->resizable(0);} {}
       code {w->show();} {}
     }
