@@ -71,6 +71,7 @@ GlTable::GlTable(int x, int y, int w ,int h, const char* l) : GlWindow(x, y, w, 
 	selected = UINT_MAX;
 	mx = -1;
 	my = -1;
+	pushed = false;
 }
 
 
@@ -106,8 +107,8 @@ void GlTable::get_position(unsigned i, size_t s, float& x, float& y, float& a) {
 	y = -4.f * 45.f / w() / w() * x * (x - w());
 	a = -(0.5f + i - s / 2.f) * 0.06f;
 	
-	x += i != selected? 0.f: -50.f * sin(a);
-	y += i != selected? 0.f: 50.f * cos(a);
+	x += pushed && i == selected? -50.f * sin(a): 0.f;
+	y += pushed && i == selected? 50.f * cos(a): 0.f;
 }
 
 
@@ -173,11 +174,11 @@ void GlTable::draw(void) {
 	}
 
 	if (skat.size() > 0 && skat[0] < 32)
-		draw_card(skat[0], 260.f, 300.f, 0.1f, 160.f);
+		draw_card(skat[0], 250.f, 300.f, 0.1f, pushed && selected == 100? 200.f: 160.f);
 	if (skat.size() > 1 && skat[1] < 32)
-		draw_card(skat[1], 380.f, 300.f, -0.1f, 160.f);
+		draw_card(skat[1], 390.f, 300.f, -0.1f, pushed && selected == 101? 200.f: 160.f);
 	
-	if (selected == UINT_MAX || selected < 200) {
+	if (selected == UINT_MAX || selected < 200 || !pushed) {
 		for (unsigned i = 0; i < trick.size(); i++) {
 			if ((i + start) % 3 == 0)
 				draw_card(trick[i], 330.f, 290.f, 0.05f, 160.f);
@@ -221,23 +222,24 @@ int GlTable::handle(int event) {
 		selected = UINT_MAX;
 		redraw();
 		return 1;
+	case PUSH:
+		pushed = true;
+		redraw();
+	case DRAG:
 	case MOVE:
-		if (mx == event_x() && my == event_y())
-			return 1;
 		mx = event_x();
 		my = event_y();
 
-		if (selected != UINT_MAX || h() - my < -4.f * 45.f / w() / w() * mx * (mx - w()) + 95.f)
-			for (unsigned i = 0; i < hand.size(); i++) {
-				float x, y, a;
-				get_position(i, hand.size(), x, y, a);
-				if (inside_card(mx, h() - my - 1, x, y, a, 200.f))
-					sel = i;
-			}
+		for (unsigned i = 0; i < hand.size(); i++) {
+			float x, y, a;
+			get_position(i, hand.size(), x, y, a);
+			if (inside_card(mx, h() - my - 1, x, y, a, 200.f))
+				sel = i;
+		}
 
-		if (skat.size() > 0 && skat[0] < 32 && inside_card(mx, h() - my - 1, 260.f, 300.f, 0.1f, 160.f))
+		if (skat.size() > 0 && skat[0] < 32 && inside_card(mx, h() - my - 1, 250.f, 300.f, 0.1f, pushed && selected == 100? 200.f: 160.f))
 			sel = 100;
-		if (skat.size() > 1 && skat[1] < 32 && inside_card(mx, h() - my - 1, 380.f, 300.f, -0.1f, 160.f))
+		if (skat.size() > 1 && skat[1] < 32 && inside_card(mx, h() - my - 1, 390.f, 300.f, -0.1f, pushed && selected == 101? 200.f: 160.f))
 			sel = 101;
 
 		for (unsigned i = 0; i < lefthand.size(); i++) {
@@ -256,7 +258,8 @@ int GlTable::handle(int event) {
 			redraw();
 		}
 		return 1;
-	case PUSH:
+	case RELEASE:
+		pushed = false;
 		if (selected != UINT_MAX) {
 			do_callback();
 			selected = UINT_MAX;

@@ -43,6 +43,7 @@ class GlTable : public fltk::GlWindow {
 	unsigned		selected;
 	int			mx;
 	int			my;
+	bool			pushed;
 
 	void get_position(unsigned, size_t, float&, float&, float&);
 	void draw_card(uchar, float, float, float, float);

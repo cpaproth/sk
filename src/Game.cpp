@@ -281,7 +281,7 @@ bool Game::game_over(void) {
 
 	if (gname > 32) {
 		score = gname == 128 && gextra == 1? 59: gname == 128? 46: gextra == 1? 35: 23;
-		if (starter == player) {
+		if (ptricks > 0) {
 			score *= -2;
 			show_info(player == myself? "Verloren!": (player == left? leftname: rightname) + " hat verloren.");
 			gameover = true;
@@ -500,7 +500,7 @@ void Game::take_skat(void) {
 
 
 void Game::announce_game(void) {
-	if (gname > 32 && bid > (gname == 128 && gextra == 1? 59: gname == 128? 46: gextra == 1? 35: 23))
+	if (gname > 32 && (int)bid > (gname == 128 && gextra == 1? 59: gname == 128? 46: gextra == 1? 35: 23))
 		return;
 
 	playerhand = hand;
