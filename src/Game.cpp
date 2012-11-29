@@ -274,25 +274,23 @@ bool Game::permit_card(uchar card) {
 
 
 bool Game::game_over(void) {
-	bool gameover = false;
 	int score;
+	bool gameover = false;
+	unsigned ptricks = player == myself? tricks.size(): player == left? lefttricks.size(): righttricks.size();
+	unsigned otricks = tricks.size() + lefttricks.size() + righttricks.size() - ptricks;
 
 	if (gname > 32) {
 		score = gname == 128 && gextra == 1? 59: gname == 128? 46: gextra == 1? 35: 23;
-		if ((int)bid > score) {
-			score = ((bid - 1) / 23 + 1) * -46;
-			show_info(player == myself? "Spiel überreizt!": (player == left? leftname: rightname) + " hat sich überreizt.");
-			gameover = true;
-		} else if (starter == player) {
+		if (starter == player) {
 			score *= -2;
-			show_info(player == myself? "Spiel verloren!": (player == left? leftname: rightname) + " hat verloren.");
+			show_info(player == myself? "Verloren!": (player == left? leftname: rightname) + " hat verloren.");
 			gameover = true;
-		} else if (lefttricks.size() + righttricks.size() == 30) {
-			show_info(player == myself? "Spiel gewonnen!": (player == left? leftname: rightname) + " hat gewonnen.");
+		} else if (otricks == 30) {
+			show_info(player == myself? "Gewonnen!": (player == left? leftname: rightname) + " hat gewonnen.");
 			gameover = true;
 		}
 
-	} else if (tricks.size() + lefttricks.size() + righttricks.size() == 30) {
+	} else if (otricks + ptricks == 30) {
 		set<uchar> cards(deck.begin(), deck.end());
 		uchar values[] = {11, 4, 3, 2, 10, 0, 0, 0};
 		unsigned sum = 0, lsum = 0, rsum = 0;
@@ -315,44 +313,53 @@ bool Game::game_over(void) {
 			psum += values[*it & 7];
 		}
 
-
 		set<uchar> trumps;
 		unsigned order[] = {4, 6, 7, 0, 5, 8, 9, 10};
 		for (unsigned i = 0; i < playerhand.size(); i++) {
-			if ((playerhand[i] & 3) == 3)
+			if ((playerhand[i] & 7) == 3)
 				trumps.insert(playerhand[i] / 8);
 			else if ((playerhand[i] & 24) == gname)
 				trumps.insert(order[playerhand[i] & 7]);
 		}
 
-		uchar gamevalue[] = {12, 11, 10, 9, 24};
 		score = 0;
 		for (set<uchar>::iterator it = trumps.begin(); it != trumps.end() && *it == score; it++, score++);
 		if (trumps.begin() == trumps.end())
-			score = 11;
+			score = gname == 32? 4: 11;
 		else if (*trumps.begin() != 0)
 			score = *trumps.begin();
-
-		//if (gextra > 0)
-		//	score += gextra == 1? 1: gextra == 3? 3: gextra == 7? 5: 6;
-		//else if (psum > 90)
-		//	score++;
-
-		//score *= gamevalue
-
-
-
+		score++;
 		
+		if (gextra > 0)
+			score++;
+		if (gextra >= 3)
+			score += 2;
+		else if (psum >= 90 || psum <= 30)
+			score++;
+		if (gextra >= 7)
+			score += 2;
+		else if (otricks == 0 || ptricks == 0)
+			score++;
+		if (gextra == 15)
+			score++;
 
+		uchar gvalue = gname == 0? 12: gname == 8? 11: gname == 16? 10: gname == 24? 9: 24;
+		if ((int)bid > score * gvalue) {
+			score = ((bid - 1) / gvalue + 1) * gvalue * -2;
+			show_info(ss(player == myself? "Überreizt! ": (player == left? leftname: rightname) + " überreizt mit ") << psum << " Augen.");
+		} else if ((gextra >= 7 && ptricks > 0) || (gextra >= 3 && psum < 90) || psum <= 60) {
+			score *= gvalue * -2;
+			show_info(ss(player == myself? "Verloren! ": (player == left? leftname: rightname) + " verliert mit ") << psum << " Augen.");
+		} else {
+			score *= gvalue;
+			show_info(ss(player == myself? "Gewonnen! ": (player == left? leftname: rightname) + " gewinnt mit ") << psum << " Augen.");
+		}
 
-		cout << sum << " " << lsum << " " << rsum << endl;
-		
 		gameover = true;
 	}
-	//if ((gextra & 4) == 4 && starter != player)
-		//loser = true;
 
 	if (gameover) {
+		ui.listing->add(ss(game_name(false)) << "\t@c;" << score << '\t' | c_str);
 		playing = false;
 		if (dealer == right)
 			ui.dealout->activate();
@@ -493,6 +500,9 @@ void Game::take_skat(void) {
 
 
 void Game::announce_game(void) {
+	if (gname > 32 && bid > (gname == 128 && gextra == 1? 59: gname == 128? 46: gextra == 1? 35: 23))
+		return;
+
 	playerhand = hand;
 	skat.clear();
 
