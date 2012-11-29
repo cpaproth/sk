@@ -736,16 +736,20 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 		ui.table->show_disclosed(lefthand, righthand);
 
 		if (hand.size() + lefthand.size() + righthand.size() + trick.size() + tricks.size() + lefttricks.size() + righttricks.size() == 30) {
-			vector<uchar>& t = player == quitter && player == myself? lefttricks: player == quitter || player == myself? tricks: player == left? lefttricks: righttricks;
+			vector<uchar>* t;
+			if ((gname < 64 && quitter == player) || (gname > 32 && quitter != player))
+				t = player == myself? &lefttricks: &tricks;
+			else
+				t = player == myself? &tricks: player == left? &lefttricks: &righttricks;
 
 			for (unsigned j = 0; j < hand.size(); j++)
-				t.push_back(hand[j]);
+				t->push_back(hand[j]);
 			for (unsigned j = 0; j < lefthand.size(); j++)
-				t.push_back(lefthand[j]);
+				t->push_back(lefthand[j]);
 			for (unsigned j = 0; j < righthand.size(); j++)
-				t.push_back(righthand[j]);
+				t->push_back(righthand[j]);
 			for (unsigned j = 0; j < trick.size(); j++)
-				t.push_back(trick[j]);
+				t->push_back(trick[j]);
 
 			trick.clear();
 			game_over();
