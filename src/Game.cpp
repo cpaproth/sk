@@ -39,6 +39,7 @@ Game::Game(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 
 	ui.f["game dealout"] = boost::bind(&Game::dealout_game, this);
 	ui.f["game disclose"] = boost::bind(&Game::disclose_hand, this);
+	ui.f["game giveup"] = boost::bind(&Game::giveup_game, this);
 
 	left = 0;
 	right = 1;
@@ -89,6 +90,7 @@ vector<uchar> Game::string_cards(const string& str) {
 void Game::reset_game(unsigned d) {
 	dealer = d;
 	playing = false;
+	givingup = false;
 	
 	hand.clear();
 	skat.clear();
@@ -273,9 +275,8 @@ bool Game::permit_card(uchar card) {
 }
 
 
-bool Game::game_over(void) {
+void Game::game_over(void) {
 	int score;
-	bool gameover = false;
 	unsigned ptricks = player == myself? tricks.size(): player == left? lefttricks.size(): righttricks.size();
 	unsigned otricks = tricks.size() + lefttricks.size() + righttricks.size() - ptricks;
 
@@ -284,10 +285,10 @@ bool Game::game_over(void) {
 		if (ptricks > 0) {
 			score *= -2;
 			show_info(player == myself? "Verloren!": (player == left? leftname: rightname) + " hat verloren.");
-			gameover = true;
 		} else if (otricks == 30) {
 			show_info(player == myself? "Gewonnen!": (player == left? leftname: rightname) + " hat gewonnen.");
-			gameover = true;
+		} else {
+			return;
 		}
 
 	} else if (otricks + ptricks == 30) {
@@ -355,17 +356,16 @@ bool Game::game_over(void) {
 			show_info(ss(player == myself? "Gewonnen! ": (player == left? leftname: rightname) + " gewinnt mit ") << psum << " Augen.");
 		}
 
-		gameover = true;
+	} else {
+		return;
 	}
 
-	if (gameover) {
-		ui.listing->add(ss(game_name(false)) << "\t@c;" << score << '\t' | c_str);
-		playing = false;
-		if (dealer == right)
-			ui.dealout->activate();
-	}
-
-	return gameover;
+	ui.listing->add(ss(game_name(false)) << "\t@c;" << score << '\t' | c_str);
+	playing = false;
+	ui.giveup->deactivate();
+	ui.disclose->deactivate();
+	if (dealer == right)
+		ui.dealout->activate();
 }
 
 
@@ -397,13 +397,13 @@ void Game::check_trick(void) {
 			(starter == myself? tricks: starter == left? lefttricks: righttricks).push_back(trick[i]);
 			
 		trick.clear();
-
-		if (game_over())
-			return;
+		game_over();
 	}
 
-	unsigned pos[] = {myself, right, left, myself, right};
-	show_info(starter == pos[trick.size()]? "Spiele eine Karte!": "Warte auf Karte von " + (starter == pos[trick.size() + 2]? leftname: rightname) + '.');
+	if (playing) {
+		unsigned pos[] = {myself, right, left, myself, right};
+		show_info(starter == pos[trick.size()]? "Spiele eine Karte!": "Warte auf Karte von " + (starter == pos[trick.size() + 2]? leftname: rightname) + '.');
+	}
 }
 
 
@@ -542,6 +542,20 @@ void Game::disclose_hand(void) {
 	network.command(left, "disclose", cards_string(hand));
 	network.command(right, "disclose", cards_string(hand));
 	ui.disclose->deactivate();
+}
+
+
+void Game::giveup_game(void) {
+	if (player == myself || (givingup && ui.giveup->value())) {
+		quitter = myself;
+		if (player != myself || ui.disclose->active())
+			disclose_hand();
+		network.command(left, "giveup", "");
+		network.command(right, "giveup", "");
+		ui.giveup->deactivate();
+	} else {
+		network.command(player == left? right: left, "givingup", ss(ui.giveup->value()));
+	}
 }
 
 
@@ -720,6 +734,30 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 			playerhand.push_back(cards[j]);
 		(i == left? lefthand: righthand) = cards;
 		ui.table->show_disclosed(lefthand, righthand);
+
+		if (hand.size() + lefthand.size() + righthand.size() + trick.size() + tricks.size() + lefttricks.size() + righttricks.size() == 30) {
+			vector<uchar>& t = player == quitter && player == myself? lefttricks: player == quitter || player == myself? tricks: player == left? lefttricks: righttricks;
+
+			for (unsigned j = 0; j < hand.size(); j++)
+				t.push_back(hand[j]);
+			for (unsigned j = 0; j < lefthand.size(); j++)
+				t.push_back(lefthand[j]);
+			for (unsigned j = 0; j < righthand.size(); j++)
+				t.push_back(righthand[j]);
+			for (unsigned j = 0; j < trick.size(); j++)
+				t.push_back(trick[j]);
+
+			trick.clear();
+			game_over();
+		}
+
+	} else if (command == "giveup") {
+		quitter = i;
+		disclose_hand();
+		ui.giveup->deactivate();
+
+	} else if (command == "givingup") {
+		ss(data) >> givingup;
 
 
 

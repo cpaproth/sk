@@ -54,10 +54,12 @@ class Game {
 	unsigned	listener;
 	unsigned	starter;
 	unsigned	player;
+	unsigned	quitter;
 	unsigned	bid;
 	unsigned	gname;
 	unsigned	gextra;
 	bool		playing;
+	bool		givingup;
 
 	string		leftname;
 	string		rightname;
@@ -81,7 +83,7 @@ class Game {
 	void send_name(void);
 	void select_game(void);
 	bool permit_card(uchar);
-	bool game_over(void);
+	void game_over(void);
 	void check_trick(void);
 	void table_event(void);
 
@@ -93,6 +95,7 @@ class Game {
 
 	void dealout_game(void);
 	void disclose_hand(void);
+	void giveup_game(void);
 
 	void deal_cards(unsigned, bool);
 	void decipher_cards(void);
