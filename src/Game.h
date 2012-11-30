@@ -58,8 +58,13 @@ class Game {
 	unsigned	bid;
 	unsigned	gname;
 	unsigned	gextra;
+	int		gtips;
 	bool		playing;
 	bool		givingup;
+
+	unsigned	rules;
+	unsigned	leftrules;
+	unsigned	rightrules;
 
 	string		leftname;
 	string		rightname;
@@ -69,6 +74,7 @@ class Game {
 	Network&	network;
 
 
+	bool rule(unsigned);
 	void shuffle(void);
 	string cards_string(const vector<uchar>&);
 	vector<uchar> string_cards(const string&);
@@ -80,6 +86,7 @@ class Game {
 	void sort_hand(void);
 	string game_name(bool);
 
+	void send_rules(void);
 	void send_name(void);
 	void select_game(void);
 	bool permit_card(uchar);

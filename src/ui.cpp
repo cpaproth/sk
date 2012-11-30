@@ -3,7 +3,7 @@
 #include "ui.h"
 //Copyright (C) 2012 Carsten Paproth
 using namespace SK;
-using namespace SK::images;
+using namespace images;
 
 inline void UserInterface::cb_mainwnd_i(fltk::Window*, void*) {
   mainwnd->hide();
@@ -293,7 +293,6 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
      {fltk::TabGroup* o = new fltk::TabGroup(0, 0, 960, 700);
       o->begin();
        {fltk::Group* o = new fltk::Group(0, 25, 960, 675, "Spiel");
-        o->hide();
         o->begin();
          {GlTable* o = table = new GlTable(0, 240, 640, 435);
           o->box(fltk::FLAT_BOX);
@@ -442,6 +441,7 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
         o->end();
       }
        {fltk::Group* o = new fltk::Group(0, 25, 960, 675, "System");
+        o->hide();
         o->begin();
          {fltk::Group* o = new fltk::Group(630, 85, 220, 145, "Audio");
           o->box(fltk::DOWN_BOX);
@@ -609,8 +609,8 @@ folgt die Ramsch- auf die Bockrunde.");
         }
          {fltk::Browser* o = listing = new fltk::Browser(480, 0, 480, 675);
           o->set_vertical();
-          const int widths[] = {120, 50, 80, 80, 80, -1, 0};
-          const char* labels[] = {"Spiel", "Punkte", "Du", "Links", "Rechts", "Extra", 0};
+          const int widths[] = {150, 50, 80, 80, 80, -1, 0};
+          const char* labels[] = {"Spiel", "Punkte", "Du", "Links", "Rechts", "", 0};
           listing->column_widths(widths);
           listing->column_labels(labels);
         }

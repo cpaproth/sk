@@ -28,6 +28,7 @@ using namespace CPLib;
 
 
 Game::Game(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
+	ui.f["rule change"] = boost::bind(&Game::send_rules, this);
 	ui.f["name change"] = boost::bind(&Game::send_name, this);
 	ui.f["game select"] = boost::bind(&Game::select_game, this);
 	ui.f["table event"] = boost::bind(&Game::table_event, this);
@@ -43,6 +44,9 @@ Game::Game(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 
 	left = 0;
 	right = 1;
+
+	rules = (ui.foldrule->value()? 1: 0) | (ui.contrarerule->value()? 2: 0) | (ui.bockrule->value()? 4: 0) | (ui.junkrule->value()? 8: 0);
+	leftrules = rightrules = 0;
 
 	deck.resize(32);
 	for (unsigned i = 0; i < deck.size(); i++)
@@ -61,6 +65,11 @@ Game::~Game(void) {
 	try {
 	
 	} catch (...) {}
+}
+
+
+bool Game::rule(unsigned r) {
+	return (rules & leftrules & rightrules & r) > 0;
 }
 
 
@@ -89,6 +98,7 @@ vector<uchar> Game::string_cards(const string& str) {
 
 void Game::reset_game(unsigned d) {
 	dealer = d;
+	gtips = 0;
 	playing = false;
 	givingup = false;
 	
@@ -208,8 +218,16 @@ string Game::game_name(bool select) {
 	
 	string name = gname == 24? "Karo": gname == 16? "Herz": gname == 8? "Pik": gname == 0? "Kreuz": gname == 32? "Grand": gname == 64? "Null": "Null Ouvert";
 	name += gextra == 15? " Ouvert": gextra == 7? " Schwarz": gextra == 3? " Schneider": gextra == 1? " Hand": "";
+	name += gtips == 0? "": (gtips < 0? " ohne ": " mit ") + string(ss(abs(gtips)));
 	
 	return name;
+}
+
+
+void Game::send_rules(void) {
+	rules = (ui.foldrule->value()? 1: 0) | (ui.contrarerule->value()? 2: 0) | (ui.bockrule->value()? 4: 0) | (ui.junkrule->value()? 8: 0);
+	network.command(left, "rules", ss(rules));
+	network.command(right, "rules", ss(rules));
 }
 
 
@@ -323,13 +341,13 @@ void Game::game_over(void) {
 				trumps.insert(order[playerhand[i] & 7]);
 		}
 
-		score = 0;
-		for (set<uchar>::iterator it = trumps.begin(); it != trumps.end() && *it == score; it++, score++);
+		gtips = 0;
+		for (set<uchar>::iterator it = trumps.begin(); it != trumps.end() && *it == gtips; it++, gtips++);
 		if (trumps.begin() == trumps.end())
-			score = gname == 32? 4: 11;
+			gtips = gname == 32? -4: -11;
 		else if (*trumps.begin() != 0)
-			score = *trumps.begin();
-		score++;
+			gtips = -*trumps.begin();
+		score = abs(gtips) + 1;
 		
 		if (gextra > 0)
 			score++;
@@ -344,17 +362,19 @@ void Game::game_over(void) {
 		if (gextra == 15)
 			score++;
 
+		string result = gextra < 7 && (otricks == 0 || ptricks == 0)? " Schwarz!": gextra < 3 && (psum >= 90 || psum <= 30)? " Schneider!": "!";
 		uchar gvalue = gname == 0? 12: gname == 8? 11: gname == 16? 10: gname == 24? 9: 24;
 		if ((int)bid > score * gvalue) {
 			score = ((bid - 1) / gvalue + 1) * gvalue * -2;
-			show_info(ss(player == myself? "Überreizt! ": (player == left? leftname: rightname) + " überreizt mit ") << psum << " Augen.");
+			show_info((player == myself? "Überreizt": (player == left? leftname: rightname) + " überreizt") + result);
 		} else if ((gextra >= 7 && ptricks > 0) || (gextra >= 3 && psum < 90) || psum <= 60) {
 			score *= gvalue * -2;
-			show_info(ss(player == myself? "Verloren! ": (player == left? leftname: rightname) + " verliert mit ") << psum << " Augen.");
+			show_info((player == myself? "Verloren": (player == left? leftname: rightname) + " verliert") + result);
 		} else {
 			score *= gvalue;
-			show_info(ss(player == myself? "Gewonnen! ": (player == left? leftname: rightname) + " gewinnt mit ") << psum << " Augen.");
+			show_info((player == myself? "Gewonnen": (player == left? leftname: rightname) + " gewinnt") + result);
 		}
+		show_gameinfo(ss(game_name(false)) << ", " << psum << " Augen");
 
 	} else {
 		return;
@@ -548,10 +568,10 @@ void Game::disclose_hand(void) {
 void Game::giveup_game(void) {
 	if (player == myself || (givingup && ui.giveup->value())) {
 		quitter = myself;
-		if (player != myself || ui.disclose->active())
-			disclose_hand();
 		network.command(left, "giveup", "");
 		network.command(right, "giveup", "");
+		if (player != myself || ui.disclose->active())
+			disclose_hand();
 		ui.giveup->deactivate();
 	} else {
 		network.command(player == left? right: left, "givingup", ss(ui.giveup->value()));
@@ -610,8 +630,12 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 		network.command(0, "seat", "left");
 		network.command(1, "seat", "right");
 		reset_game(myself);
+		send_rules();
 		send_name();
 		ui.dealout->activate();
+
+	} else if (command == "rules") {
+		ss(data) >> (i == left? leftrules: rightrules);
 
 	} else if (command == "name") {
 		leftname = i == left? data: leftname;
@@ -621,6 +645,7 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 		left = data == "left"? 1: 0;
 		right = data == "right"? 1: 0;
 		reset_game(myself);
+		send_rules();
 		send_name();
 
 
@@ -694,7 +719,7 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 
 	} else if (command == "fold") {
 		if (i == dealer && bid == 18 && data == "18") {
-			show_info("Spielen für 18 oder Einpassen?");
+			show_info(ss("Spielen für 18 oder ") << (rule(1)? "Ramschen?": "Einpassen?"));
 			listener = myself;
 			show_bid(true, bid, false);
 		} else if (i == dealer || dealer == myself) {

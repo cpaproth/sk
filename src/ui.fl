@@ -55,8 +55,8 @@ namespace SK {open
           xywh {0 0 960 700}
         } {
           {fltk::Group} {} {
-            label Spiel open
-            xywh {0 25 960 675} hide
+            label Spiel open selected
+            xywh {0 25 960 675}
           } {
             {fltk::InvisibleBox} table {
               callback {f["table event"]();}
@@ -221,7 +221,7 @@ f["game select"]();}
           }
           {fltk::Group} {} {
             label System open
-            xywh {0 25 960 675}
+            xywh {0 25 960 675} hide
           } {
             {fltk::Group} {} {
               label Audio open
@@ -365,7 +365,7 @@ bockrule->value(i != 0);}
               {fltk::CheckButton} junkrule {
                 label Ramschrunde
                 callback {prefs.set("rulejunk", junkrule->value());
-f["rule change"]();} selected
+f["rule change"]();}
                 tooltip {Eine Ramschrunde wird unter den gleichen Bedingungen wie eine Bockrunde ausgelöst. Auch hier werden die Punkte der Spiele verdoppelt, allerdings ist jedes Spiel Ramsch. Wenn Bock- und Ramschrunden gespielt werden sollen, dann folgt die Ramsch- auf die Bockrunde.}
                 xywh {25 130 110 25}
                 extra_code {int i;
@@ -384,8 +384,8 @@ junkrule->value(i != 0);}
             }
             {fltk::Browser} listing {open
               xywh {480 0 480 675}
-              extra_code {const int widths[] = {120, 50, 80, 80, 80, -1, 0};
-const char* labels[] = {"Spiel", "Punkte", "Du", "Links", "Rechts", "Extra", 0};
+              extra_code {const int widths[] = {150, 50, 80, 80, 80, -1, 0};
+const char* labels[] = {"Spiel", "Punkte", "Du", "Links", "Rechts", "", 0};
 listing->column_widths(widths);
 listing->column_labels(labels);}
             } {}
