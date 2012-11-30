@@ -6,7 +6,7 @@ This program is free software and comes with ABSOLUTELY NO WARRANTY. Licensed un
 Skat-Konferenz is written in C++ using portable libraries exclusively, so it should be compatible with UNIX/Linux (X11), MS Windows, and Mac OS X. Till now,
 it has been tested on Xubuntu 11.10 (32-bit and 64-bit), Xubuntu 12.04 (64-bit), and MS Windows 7 ([32-bit](https://github.com/cpaproth/sk/downloads)).
 
-The features of version 1.0 are:
+The features of version 1.0 will be:
 * videoconferencing between 3 people with audio and video compression: [v0.1](https://github.com/cpaproth/sk/tags)
 * secure dealing out, i.e. one player alone cannot selectively manipulate the deal or identify the other players cards: [v0.3](https://github.com/cpaproth/sk/tags)
 * bidding procedure and gameplay according to the international Skat Order rules: [v0.5](https://github.com/cpaproth/sk/tags)
@@ -47,6 +47,7 @@ for other operating systems, you have to create appropriate build files by hand.
 
 ## Usage
 
+First of all, you need a webcam, a microphone, headphones and two other players.
 Skat is a card game played by three people. One player has to be the server. If you want to be the one, start *sk*, go to the system tab, leave the IP address field empty,
 and click connect. Then tell the other two players your publicly reachable IP address and chosen UDP port per e-mail, telephone, or whatever.
 Now, the other two can start *sk* and connect to this disclosed IP address and UDP port. If a connection can be established, the videoconferencing starts.

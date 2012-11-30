@@ -233,6 +233,38 @@ inline void UserInterface::cb_secret_i(fltk::Input*, void*) {
 void UserInterface::cb_secret(fltk::Input* o, void* v) {
   ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_secret_i(o,v);
 }
+
+inline void UserInterface::cb_foldrule_i(fltk::CheckButton*, void*) {
+  prefs.set("rulefold", foldrule->value());
+  f["rule change"]();
+}
+void UserInterface::cb_foldrule(fltk::CheckButton* o, void* v) {
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_foldrule_i(o,v);
+}
+
+inline void UserInterface::cb_contrarerule_i(fltk::CheckButton*, void*) {
+  prefs.set("rulecontrare", contrarerule->value());
+  f["rule change"]();
+}
+void UserInterface::cb_contrarerule(fltk::CheckButton* o, void* v) {
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_contrarerule_i(o,v);
+}
+
+inline void UserInterface::cb_bockrule_i(fltk::CheckButton*, void*) {
+  prefs.set("rulebock", bockrule->value());
+  f["rule change"]();
+}
+void UserInterface::cb_bockrule(fltk::CheckButton* o, void* v) {
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_bockrule_i(o,v);
+}
+
+inline void UserInterface::cb_junkrule_i(fltk::CheckButton*, void*) {
+  prefs.set("rulejunk", junkrule->value());
+  f["rule change"]();
+}
+void UserInterface::cb_junkrule(fltk::CheckButton* o, void* v) {
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_junkrule_i(o,v);
+}
 #include "../images/diamonds.xpm"
 #include "../images/hearts.xpm"
 #include "../images/spades.xpm"
@@ -261,6 +293,7 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
      {fltk::TabGroup* o = new fltk::TabGroup(0, 0, 960, 700);
       o->begin();
        {fltk::Group* o = new fltk::Group(0, 25, 960, 675, "Spiel");
+        o->hide();
         o->begin();
          {GlTable* o = table = new GlTable(0, 240, 640, 435);
           o->box(fltk::FLAT_BOX);
@@ -409,7 +442,6 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
         o->end();
       }
        {fltk::Group* o = new fltk::Group(0, 25, 960, 675, "System");
-        o->hide();
         o->begin();
          {fltk::Group* o = new fltk::Group(630, 85, 220, 145, "Audio");
           o->box(fltk::DOWN_BOX);
@@ -495,7 +527,7 @@ u statischer IP-Adresse.");
           }
           o->end();
         }
-         {fltk::Group* o = new fltk::Group(525, 295, 265, 150, "Spiel");
+         {fltk::Group* o = new fltk::Group(525, 295, 265, 135, "Benutzer");
           o->box(fltk::DOWN_BOX);
           o->labeltype(fltk::ENGRAVED_LABEL);
           o->align(fltk::ALIGN_TOP|fltk::ALIGN_INSIDE);
@@ -516,6 +548,54 @@ sieren.");
             prefs.get("secret", c, "");
             secret->value(c);
             delete[] c;
+          }
+          o->end();
+        }
+         {fltk::Group* o = new fltk::Group(170, 400, 275, 175, "Sonderregeln");
+          o->box(fltk::DOWN_BOX);
+          o->labeltype(fltk::ENGRAVED_LABEL);
+          o->align(fltk::ALIGN_TOP|fltk::ALIGN_INSIDE);
+          o->tooltip("Es gelten die Regeln der internationalen Skatordnung. Es sind nur die Sonderr\
+egeln wirksam, die bei allen Spielern aktiviert sind. Ramsch wird ohne Schiebe\
+n, Grand Ouvert oder Durchmarsch gespielt. Der Spieler mit den wenigsten Augen\
+ gewinnt das Ramsch-Spiel mit 23 Punkten, macht er gar keinen Stich, gewinnt e\
+r mit 46 Punkten.");
+          o->begin();
+           {fltk::CheckButton* o = foldrule = new fltk::CheckButton(25, 40, 190, 25, "Ramschen statt Einpassen");
+            o->callback((fltk::Callback*)cb_foldrule);
+            o->tooltip("Wenn alle Spieler passen, wird mit der Hand Ramsch gespielt.");
+            int i;
+            prefs.get("rulefold", i, 0);
+            foldrule->value(i != 0);
+          }
+           {fltk::CheckButton* o = contrarerule = new fltk::CheckButton(25, 70, 120, 25, "Kontra und Re");
+            o->callback((fltk::Callback*)cb_contrarerule);
+            o->tooltip("Gegenspieler, die nicht bei 18 gepasst haben, d\303\274rfen bis zur 4. ausges\
+pielten Karte Kontra sagen. Der Alleinspieler darf daraufhin Re bis zur 7. aus\
+gespielten Karte sagen. Kontra und Re verdoppeln jeweils die Punktzahl des Spi\
+els.");
+            int i;
+            prefs.get("rulecontrare", i, 0);
+            contrarerule->value(i != 0);
+          }
+           {fltk::CheckButton* o = bockrule = new fltk::CheckButton(25, 100, 100, 25, "Bockrunde");
+            o->callback((fltk::Callback*)cb_bockrule);
+            o->tooltip("In einer Bockrunde werden die Punkte jedes Spiels verdoppelt. Eine Bockrunde \
+wird gespielt nach verlorenem Kontra-Spiel, Kontra-Re-Spiel, Spiel mit 60 zu 6\
+0 Augen oder gewonnenem Spiel mit wenigstens 100 Punkten Grundwert.");
+            int i;
+            prefs.get("rulebock", i, 0);
+            bockrule->value(i != 0);
+          }
+           {fltk::CheckButton* o = junkrule = new fltk::CheckButton(25, 130, 110, 25, "Ramschrunde");
+            o->callback((fltk::Callback*)cb_junkrule);
+            o->tooltip("Eine Ramschrunde wird unter den gleichen Bedingungen wie eine Bockrunde ausge\
+l\303\266st. Auch hier werden die Punkte der Spiele verdoppelt, allerdings ist\
+ jedes Spiel Ramsch. Wenn Bock- und Ramschrunden gespielt werden sollen, dann \
+folgt die Ramsch- auf die Bockrunde.");
+            int i;
+            prefs.get("rulejunk", i, 0);
+            junkrule->value(i != 0);
           }
           o->end();
         }

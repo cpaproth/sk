@@ -182,6 +182,26 @@ private:
           inline void cb_secret_i(fltk::Input*, void*);
           static void cb_secret(fltk::Input*, void*);
 public:
+          fltk::CheckButton *foldrule;
+private:
+          inline void cb_foldrule_i(fltk::CheckButton*, void*);
+          static void cb_foldrule(fltk::CheckButton*, void*);
+public:
+          fltk::CheckButton *contrarerule;
+private:
+          inline void cb_contrarerule_i(fltk::CheckButton*, void*);
+          static void cb_contrarerule(fltk::CheckButton*, void*);
+public:
+          fltk::CheckButton *bockrule;
+private:
+          inline void cb_bockrule_i(fltk::CheckButton*, void*);
+          static void cb_bockrule(fltk::CheckButton*, void*);
+public:
+          fltk::CheckButton *junkrule;
+private:
+          inline void cb_junkrule_i(fltk::CheckButton*, void*);
+          static void cb_junkrule(fltk::CheckButton*, void*);
+public:
         fltk::Browser *listing;
   ~UserInterface(void);
 private:
