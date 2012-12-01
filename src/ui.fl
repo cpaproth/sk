@@ -55,7 +55,7 @@ namespace SK {open
           xywh {0 0 960 700}
         } {
           {fltk::Group} {} {
-            label Spiel open selected
+            label Spiel open
             xywh {0 25 960 675}
           } {
             {fltk::InvisibleBox} table {
@@ -199,23 +199,23 @@ f["game select"]();}
             } {
               {fltk::Button} dealout {
                 label {Karten austeilen}
-                callback {f["game dealout"]();}
-                xywh {30 20 115 25}
+                callback {f["game dealout"]();} selected
+                xywh {15 20 140 25} labelfont 1 buttoncolor 0xff0000
               }
               {fltk::Button} disclose {
                 label {Karten aufdecken}
                 callback {f["game disclose"]();}
-                xywh {30 65 115 25}
+                xywh {15 65 140 25} labelfont 1 labelcolor 0x66000000
               }
               {fltk::Button} contrare {
                 label {Kontra / Re}
                 callback {f["game contrare"]();}
-                xywh {175 20 115 25} type TOGGLE
+                xywh {170 20 140 25} type TOGGLE labelfont 1 labelcolor 0x66000000
               }
               {fltk::Button} giveup {
                 label {Spiel aufgeben}
                 callback {f["game giveup"]();}
-                xywh {175 65 115 25} type TOGGLE
+                xywh {170 65 140 25} type TOGGLE labelfont 1 labelcolor 0x66000000
               }
             }
           }
@@ -329,7 +329,7 @@ delete[] c;}
             }
             {fltk::Group} {} {
               label Sonderregeln open
-              tooltip {Es gelten die Regeln der internationalen Skatordnung. Es sind nur die Sonderregeln wirksam, die bei allen Spielern aktiviert sind. Ramsch wird ohne Schieben, Grand Ouvert oder Durchmarsch gespielt. Der Spieler mit den wenigsten Augen gewinnt das Ramsch-Spiel mit 23 Punkten, macht er gar keinen Stich (Jungfrau), gewinnt er mit 46 Punkten.}
+              tooltip {Es gelten die Regeln der internationalen Skatordnung. Es sind nur die Sonderregeln wirksam, die bei allen Spielern aktiviert sind. Ramsch wird ohne Schieben, Grand Hand und Durchmarsch gespielt. Der Spieler mit den wenigsten Augen gewinnt das Ramsch-Spiel mit 23 Punkten, macht er gar keinen Stich (Jungfrau), gewinnt er mit 46 Punkten.}
               xywh {170 400 275 175} align 33 box DOWN_BOX labeltype ENGRAVED_LABEL
             } {
               {fltk::CheckButton} foldrule {

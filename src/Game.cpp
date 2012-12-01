@@ -127,6 +127,7 @@ void Game::reset_game(unsigned d) {
 	ui.announce->label("Spiel ansagen");
 	ui.announce->deactivate();
 	
+	ui.dealout->color(fltk::GRAY75);
 	ui.dealout->deactivate();
 	ui.disclose->deactivate();
 	ui.contrare->value(false);
@@ -152,9 +153,9 @@ void Game::show_bid(bool show, unsigned bid, bool bidding) {
 		ui.fold->activate();
 	} else {
 		ui.bid->reset(bid, bidding);
-		ui.bid->color(fltk::GRAY50);
+		ui.bid->color(fltk::GRAY75);
 		ui.bid->deactivate();
-		ui.fold->color(fltk::GRAY50);
+		ui.fold->color(fltk::GRAY75);
 		ui.fold->deactivate();
 	}
 }
@@ -430,8 +431,10 @@ void Game::game_over(void) {
 	ui.contrare->deactivate();
 	ui.giveup->deactivate();
 	ui.disclose->deactivate();
-	if (dealer == right)
+	if (dealer == right) {
+		ui.dealout->color(fltk::GREEN);
 		ui.dealout->activate();
+	}
 }
 
 
@@ -615,7 +618,6 @@ void Game::dealout_game(void) {
 
 	secretdeck = deck;
 	network.command(left, "newdeal", "");
-	ui.dealout->deactivate();
 }
 
 
@@ -693,6 +695,7 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 		reset_game(myself);
 		send_rules();
 		send_name();
+		ui.dealout->color(fltk::GREEN);
 		ui.dealout->activate();
 
 	} else if (command == "rules") {
