@@ -40,12 +40,15 @@ class Audio {
 
 	PaStream*			stream;
 	CPLib::FFT			fft;
+	CPLib::RanGen			rangen;
 	valarray<complex<double> >	data;
 	vector<unsigned char>		encbuf;
 	vector<vector<unsigned char> >	decbuf;
 	Network&			network;
 	bool				playmic;
 
+	double logamp(double, double);
+	double powamp(double, double);
 
 	void encode(const short*);
 	void decode(short*);
