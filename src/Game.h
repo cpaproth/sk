@@ -62,9 +62,13 @@ class Game {
 	bool		playing;
 	bool		givingup;
 
+	string		header;
 	unsigned	rules;
 	unsigned	leftrules;
 	unsigned	rightrules;
+	int		scores;
+	int		leftscores;
+	int		rightscores;
 
 	string		leftname;
 	string		rightname;
@@ -95,6 +99,7 @@ class Game {
 	void table_event(void);
 
 	void single_player(void);
+	void junk_player(void);
 	void bid_game(void);
 	void fold_game(void);
 	void take_skat(void);

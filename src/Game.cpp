@@ -19,6 +19,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "Network.h"
 #include "ui.h"
 #include "Convenience.h"
+#include <fltk/Divider.h>
 #include <iostream>
 #include <set>
 
@@ -219,7 +220,7 @@ string Game::game_name(bool select) {
 	string name = gname == 24? "Karo": gname == 16? "Herz": gname == 8? "Pik": gname == 0? "Kreuz": gname == 32? "Grand": gname == 64? "Null": "Null Ouvert";
 	name += gextra == 15? " Ouvert": gextra == 7? " Schwarz": gextra == 3? " Schneider": gextra == 1? " Hand": "";
 	name += gtips == 0? "": (gtips < 0? " ohne ": " mit ") + string(ss(abs(gtips)));
-	
+
 	return name;
 }
 
@@ -297,8 +298,15 @@ void Game::game_over(void) {
 	int score;
 	unsigned ptricks = player == myself? tricks.size(): player == left? lefttricks.size(): righttricks.size();
 	unsigned otricks = tricks.size() + lefttricks.size() + righttricks.size() - ptricks;
+	uchar values[] = {11, 4, 3, 2, 10, 0, 0, 0};
+	unsigned order[] = {4, 6, 7, 0, 5, 8, 9, 10};
+	unsigned sum = 0, lsum = 0, rsum = 0;
 
-	if (gname > 32) {
+	if (!playing) {
+		score = 0;
+		show_info("Spiel eingepasst.");
+
+	} else if (gname > 32) {
 		score = gname == 128 && gextra == 1? 59: gname == 128? 46: gextra == 1? 35: 23;
 		if (ptricks > 0) {
 			score *= -2;
@@ -308,12 +316,28 @@ void Game::game_over(void) {
 		} else {
 			return;
 		}
+		
+	} else if (gextra == 31 && otricks + ptricks == 30) {
+		for (unsigned i = 0; i < tricks.size(); i++)
+			sum += values[tricks[i] & 7];
+		for (unsigned i = 0; i < lefttricks.size(); i++)
+			lsum += values[lefttricks[i] & 7];
+		for (unsigned i = 0; i < righttricks.size(); i++)
+			rsum += values[righttricks[i] & 7];
+			
+		if (ptricks == 0 || lefttricks.size() == 0 || righttricks.size() == 0)
+			score = 46;
+		else
+			score = 23;
+			
+		if (sum <= lsum && sum <= rsum)
+			show_info(ptricks == 0? "Jungfrau!": "Gewonnen!");
+		else
+			show_info("Nicht gewonnen.");
+		show_gameinfo(ss("Ramsch, ") << sum << " Augen");
 
 	} else if (otricks + ptricks == 30) {
 		set<uchar> cards(deck.begin(), deck.end());
-		uchar values[] = {11, 4, 3, 2, 10, 0, 0, 0};
-		unsigned sum = 0, lsum = 0, rsum = 0;
-
 		for (unsigned i = 0; i < tricks.size(); i++) {
 			cards.erase(tricks[i]);
 			sum += values[tricks[i] & 7];
@@ -333,7 +357,6 @@ void Game::game_over(void) {
 		}
 
 		set<uchar> trumps;
-		unsigned order[] = {4, 6, 7, 0, 5, 8, 9, 10};
 		for (unsigned i = 0; i < playerhand.size(); i++) {
 			if ((playerhand[i] & 7) == 3)
 				trumps.insert(playerhand[i] / 8);
@@ -379,9 +402,32 @@ void Game::game_over(void) {
 	} else {
 		return;
 	}
-
-	ui.listing->add(ss(game_name(false)) << "\t@c;" << score << '\t' | c_str);
+	
+	
+	string h = ss("\t\t@c;") << ui.name->text() << '\t' << leftname << '\t' << rightname << '\t' << (rule(1)? "E": "") << (rule(2)? "K": "") << (rule(4)? "B": "") << (rule(8)? "R": "");
+	if (h != header) {
+		header = h;
+		ui.listing->add(new fltk::Divider());
+		ui.listing->add(header.c_str());
+		ui.listing->add(new fltk::Divider());
+	}
+	if (!playing) {
+		ui.listing->add("Eingepasst\t@c;-\t-\t-\t-\t");
+	} else if (gextra == 31) {
+		string m = sum <= lsum && sum <= rsum? ss(scores += score): ss("-");
+		string l = lsum <= sum && lsum <= rsum? ss(leftscores += score): ss("-");
+		string r = rsum <= sum && rsum <= lsum? ss(rightscores += score): ss("-");
+		ui.listing->add(ss("Ramsch\t@c;") << score << '\t' << m << '\t' << l << '\t' << r << '\t' | c_str);
+	} else {
+		string m = player == myself? ss(scores += score): ss("-");
+		string l = player == left? ss(leftscores += score): ss("-");
+		string r = player == right? ss(rightscores += score): ss("-");
+		ui.listing->add(ss(game_name(false)) << "\t@c;" << score << '\t' << m << '\t' << l << '\t' << r << '\t' | c_str);
+	}
+	ui.listing->select(ui.listing->children() - 1);	
+	
 	playing = false;
+	ui.contrare->deactivate();
 	ui.giveup->deactivate();
 	ui.disclose->deactivate();
 	if (dealer == right)
@@ -478,6 +524,16 @@ void Game::single_player(void) {
 }
 
 
+void Game::junk_player(void) {
+	player = myself;
+	playing = true;
+	gname = 32;
+	gextra = 31;
+	show_gameinfo("Ramsch");
+	check_trick();
+}
+
+
 void Game::bid_game(void) {
 	string type = ss(ui.bid->label()) >> bid >> ws;
 	show_bid(false, bid, type == "Reizen");
@@ -498,9 +554,14 @@ void Game::fold_game(void) {
 	show_bid(false, -1, false);
 	show_info("");
 
-	if (listener == myself)
-		ui.dealout->activate();
-	else if (type == "Reizen")
+	if (listener == myself) {
+		network.command(left, "discard", "");
+		network.command(right, "discard", "");
+		if (rule(1))
+			junk_player();
+		else
+			game_over();
+	} else if (type == "Reizen")
 		network.command(listener, "fold", ss(bid));
 	else
 		network.command(listener, "fold", ss(bid + 1));
@@ -708,6 +769,7 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 		show_info(ss(i == left? leftname: rightname) << " sagt " << bid << '!');
 		show_bid(true, bid, false);
 		network.command(i? 0: 1, "bidinfo", data);
+		
 	} else if (command == "bidinfo") {
 		show_info((i == left? rightname: leftname) + " sagt " + data + " zu " + (i == left? leftname: rightname) + '.');
 
@@ -729,6 +791,12 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 			network.command(dealer, "bidme", data);
 		}
 
+	} else if (command == "discard") {
+		if (rule(1))
+			junk_player();
+		else
+			game_over();
+		
 
 	} else if (command == "bidvalue") {
 		ss(data) >> bid;
@@ -787,7 +855,6 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 
 	} else if (command == "givingup") {
 		ss(data) >> givingup;
-
 
 
 	} else

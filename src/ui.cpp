@@ -558,17 +558,17 @@ sieren.");
           o->tooltip("Es gelten die Regeln der internationalen Skatordnung. Es sind nur die Sonderr\
 egeln wirksam, die bei allen Spielern aktiviert sind. Ramsch wird ohne Schiebe\
 n, Grand Ouvert oder Durchmarsch gespielt. Der Spieler mit den wenigsten Augen\
- gewinnt das Ramsch-Spiel mit 23 Punkten, macht er gar keinen Stich, gewinnt e\
-r mit 46 Punkten.");
+ gewinnt das Ramsch-Spiel mit 23 Punkten, macht er gar keinen Stich (Jungfrau)\
+, gewinnt er mit 46 Punkten.");
           o->begin();
-           {fltk::CheckButton* o = foldrule = new fltk::CheckButton(25, 40, 190, 25, "Ramschen statt Einpassen");
+           {fltk::CheckButton* o = foldrule = new fltk::CheckButton(25, 40, 210, 25, "Ramschen statt Einpassen (E)");
             o->callback((fltk::Callback*)cb_foldrule);
             o->tooltip("Wenn alle Spieler passen, wird mit der Hand Ramsch gespielt.");
             int i;
             prefs.get("rulefold", i, 0);
             foldrule->value(i != 0);
           }
-           {fltk::CheckButton* o = contrarerule = new fltk::CheckButton(25, 70, 120, 25, "Kontra und Re");
+           {fltk::CheckButton* o = contrarerule = new fltk::CheckButton(25, 70, 135, 25, "Kontra und Re (K)");
             o->callback((fltk::Callback*)cb_contrarerule);
             o->tooltip("Gegenspieler, die nicht bei 18 gepasst haben, d\303\274rfen bis zur 4. ausges\
 pielten Karte Kontra sagen. Der Alleinspieler darf daraufhin Re bis zur 7. aus\
@@ -578,7 +578,7 @@ els.");
             prefs.get("rulecontrare", i, 0);
             contrarerule->value(i != 0);
           }
-           {fltk::CheckButton* o = bockrule = new fltk::CheckButton(25, 100, 100, 25, "Bockrunde");
+           {fltk::CheckButton* o = bockrule = new fltk::CheckButton(25, 100, 115, 25, "Bockrunde (B)");
             o->callback((fltk::Callback*)cb_bockrule);
             o->tooltip("In einer Bockrunde werden die Punkte jedes Spiels verdoppelt. Eine Bockrunde \
 wird gespielt nach verlorenem Kontra-Spiel, Kontra-Re-Spiel, Spiel mit 60 zu 6\
@@ -587,12 +587,12 @@ wird gespielt nach verlorenem Kontra-Spiel, Kontra-Re-Spiel, Spiel mit 60 zu 6\
             prefs.get("rulebock", i, 0);
             bockrule->value(i != 0);
           }
-           {fltk::CheckButton* o = junkrule = new fltk::CheckButton(25, 130, 110, 25, "Ramschrunde");
+           {fltk::CheckButton* o = junkrule = new fltk::CheckButton(25, 130, 135, 25, "Ramschrunde (R)");
             o->callback((fltk::Callback*)cb_junkrule);
             o->tooltip("Eine Ramschrunde wird unter den gleichen Bedingungen wie eine Bockrunde ausge\
 l\303\266st. Auch hier werden die Punkte der Spiele verdoppelt, allerdings ist\
- jedes Spiel Ramsch. Wenn Bock- und Ramschrunden gespielt werden sollen, dann \
-folgt die Ramsch- auf die Bockrunde.");
+ jedes Spiel Ramsch. Wenn Bock- und Ramschrunde gespielt werden soll, dann fol\
+gt die Ramsch- auf die Bockrunde.");
             int i;
             prefs.get("rulejunk", i, 0);
             junkrule->value(i != 0);
