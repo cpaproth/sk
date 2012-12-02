@@ -71,13 +71,22 @@ void Audio::toggle_playmic(void) {
 }
 
 
-double Audio::logamp(double amp, double b) {
+static double log_amp(double amp, double b) {
 	return log(1. + amp * b) / log(b + 1.);
 }
-
-
-double Audio::powamp(double amp, double b) {
+static double pow_amp(double amp, double b) {
 	return (pow(b + 1., amp) - 1.) / b;
+}
+static unsigned char dbl_uchar(double d) {
+	int e;
+	double s = frexp(d, &e);
+	if (e > 0) return 240;
+	if (e < -15) return 15;
+	unsigned us = (s - 0.5) * 31. + 0.5;
+	return (us << 4) | (-e & 15);
+}
+static double uchar_dbl(unsigned char c) {
+	return ldexp(0.5 + (c >> 4) / 31., -(c & 15));
 }
 
 
@@ -96,13 +105,13 @@ void Audio::encode(const short* in) {
 		channels[it->second] = it->first;
 
 	encbuf.assign(enchead, 0);
-	encbuf[enchead - 2] = (unsigned)(logamp(minrho, 10000.) * 255. + 0.5);
-	encbuf[enchead - 1] = (unsigned)(logamp(maxrho - minrho, 100.) * 255. + 0.5);
+	encbuf[enchead - 2] = dbl_uchar(minrho);
+	encbuf[enchead - 1] = dbl_uchar(maxrho - minrho);
 
 	for (map<unsigned, double>::iterator it = channels.begin(); it != channels.end(); it++) {
 		encbuf[it->first >> 3] |= 1 << (it->first & 7);
 		double amp = (it->second - minrho) / (maxrho - minrho);
-		double rho = logamp(amp, 1000.) * 31.;
+		double rho = log_amp(amp, 100.) * 31.;
 		double phi = (arg(data[it->first]) + M_PI) / M_PI * 4.;
 		encbuf.push_back(((unsigned)(rho + 0.5) << 3) | ((unsigned)(phi + 0.5) & 7));
 	}
@@ -115,12 +124,12 @@ void Audio::decode(short* out) {
 	for (unsigned k = 0; k < decbuf.size() && enchead < decbuf[k].size(); k++) {
 		data[0] = data[data.size() / 2] = 0.;
 		
-		double minrho = powamp(decbuf[k][enchead - 2] / 255., 10000.);
-		double maxrho = minrho + powamp(decbuf[k][enchead - 1] / 255., 100.);
+		double minrho = uchar_dbl(decbuf[k][enchead - 2]);
+		double maxrho = minrho + uchar_dbl(decbuf[k][enchead - 1]);
 
 		for (unsigned j = 1, i = 0; j < data.size() / 2; j++) {
 			if (decbuf[k][j >> 3] & (1 << (j & 7)) && enchead + i < decbuf[k].size()) {
-				double amp = powamp((decbuf[k][enchead + i] >> 3) / 31., 1000.);
+				double amp = pow_amp((decbuf[k][enchead + i] >> 3) / 31., 100.);
 				double rho = minrho + amp * (maxrho - minrho);
 				double phi = (decbuf[k][enchead + i] & 7) / 4. * M_PI - M_PI;
 				data[j] = 0.5 * polar<double>(rho, phi);

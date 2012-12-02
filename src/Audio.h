@@ -48,9 +48,6 @@ class Audio {
 	Network&			network;
 	bool				playmic;
 
-	double logamp(double, double);
-	double powamp(double, double);
-
 	void encode(const short*);
 	void decode(short*);
 
