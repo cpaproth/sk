@@ -30,7 +30,7 @@ bool CPLib::Progress(size_t i, size_t n) {
 
 Audio::Audio(Network& nw) : fft(framesize), network(nw) {
 	data.resize(framesize);
-	encbuf.resize(encodesize);
+	encbuf.reserve(encodesize);
 	stream = 0;
 	playmic = false;
 
@@ -82,8 +82,6 @@ double Audio::powamp(double amp, double b) {
 
 
 void Audio::encode(const short* in) {
-	encbuf.assign(encodesize, 0);
-
 	for (unsigned i = 0; i < data.size(); i++)
 		data[i] = in[i] / 32768.;
 	fft(data, true);
@@ -92,71 +90,46 @@ void Audio::encode(const short* in) {
 	for (unsigned i = 1; i < data.size() / 2; i++)
 		greatest.insert(pair<double, unsigned>(abs(data[i]) / (data.size() / 2), i));
 		
-	double mrho = 0.;
+	double minrho = 0., maxrho = greatest.rbegin()->first;
 	map<unsigned, double> channels;
-	unsigned i = 0;
-	for (multimap<double, unsigned>::reverse_iterator it = greatest.rbegin(); i + 33 < encbuf.size(); it++, i++, mrho = it->first)
+	for (multimap<double, unsigned>::reverse_iterator it = greatest.rbegin(); enchead + channels.size() < encodesize; it++, minrho = it->first)
 		channels[it->second] = it->first;
 
-	encbuf[32] = (unsigned)(logamp(mrho, 1000.) * 255. + 0.5);
-	i = 0;
-	for (map<unsigned, double>::iterator it = channels.begin(); it != channels.end(); it++, i++) {
+	encbuf.assign(enchead, 0);
+	encbuf[enchead - 2] = (unsigned)(logamp(minrho, 10000.) * 255. + 0.5);
+	encbuf[enchead - 1] = (unsigned)(logamp(maxrho - minrho, 100.) * 255. + 0.5);
+
+	for (map<unsigned, double>::iterator it = channels.begin(); it != channels.end(); it++) {
 		encbuf[it->first >> 3] |= 1 << (it->first & 7);
-		double amp = (it->second - mrho) / (1. - mrho);
-		double rho = logamp(amp, 2000.) * 31.;
+		double amp = (it->second - minrho) / (maxrho - minrho);
+		double rho = logamp(amp, 1000.) * 31.;
 		double phi = (arg(data[it->first]) + M_PI) / M_PI * 4.;
-		encbuf[33 + i] = ((unsigned)(rho + 0.5) << 3) | ((unsigned)(phi + 0.5) & 7);
+		encbuf.push_back(((unsigned)(rho + 0.5) << 3) | ((unsigned)(phi + 0.5) & 7));
 	}
-
-
-	//~ map<unsigned, double> channels;
-	//~ unsigned i = 0;
-	//~ for (multimap<double, unsigned>::reverse_iterator it = greatest.rbegin(); i + 32 < encbuf.size(); it++, i++, minrho = it->first)
-		//~ channels[it->second] = it->first;
-//~ 
-	//~ i = 0;
-	//~ for (map<unsigned, double>::iterator it = channels.begin(); it != channels.end(); it++, i++) {
-		//~ encbuf[it->first >> 3] |= 1 << (it->first & 7);
-		//~ double rho = log(1. + (it->second - minrho) / (1. - minrho) * 2000.) / log(2001.) * 31.;
-		//~ double phi = (arg(data[it->first]) + M_PI) / M_PI * 4.;
-		//~ encbuf[32 + i] = ((unsigned)(rho + 0.5) << 3) | ((unsigned)(phi + 0.5) & 7);
-	//~ }
 }
 
 
 void Audio::decode(short* out) {
 	valarray<double> output(0., framesize);
 
-	for (unsigned k = 0; k < decbuf.size() && decbuf[k].size() > 32; k++) {
+	for (unsigned k = 0; k < decbuf.size() && enchead < decbuf[k].size(); k++) {
 		data[0] = data[data.size() / 2] = 0.;
-		double mrho = powamp(decbuf[k][32] / 255., 1000.);
-		unsigned i = 0;
-		for (unsigned j = 1; j < data.size() / 2; j++) {
-			if (decbuf[k][j >> 3] & (1 << (j & 7)) && i + 33 < decbuf[k].size()) {
-				double amp = powamp((decbuf[k][33 + i] >> 3) / 31., 2000.);
-				double rho = mrho + amp * (1. - mrho);
-				double phi = (decbuf[k][33 + i] & 7) / 4. * M_PI - M_PI;
+		
+		double minrho = powamp(decbuf[k][enchead - 2] / 255., 10000.);
+		double maxrho = minrho + powamp(decbuf[k][enchead - 1] / 255., 100.);
+
+		for (unsigned j = 1, i = 0; j < data.size() / 2; j++) {
+			if (decbuf[k][j >> 3] & (1 << (j & 7)) && enchead + i < decbuf[k].size()) {
+				double amp = powamp((decbuf[k][enchead + i] >> 3) / 31., 1000.);
+				double rho = minrho + amp * (maxrho - minrho);
+				double phi = (decbuf[k][enchead + i] & 7) / 4. * M_PI - M_PI;
 				data[j] = 0.5 * polar<double>(rho, phi);
 				i++;
 			} else
-				data[j] = 0.5 * polar<double>(mrho * rangen.uniform(), 2. * M_PI * rangen.uniform());
+				data[j] = 0.5 * polar<double>(minrho * rangen.uniform(), 2. * M_PI * rangen.uniform());
 			data[data.size() - j] = conj(data[j]);
 		}
 
-		//~ data[0] = data[data.size() / 2] = 0.;
-		//~ unsigned i = 0;
-		//~ for (unsigned j = 1; j < data.size() / 2; j++) {
-			//~ if (decbuf[k][j >> 3] & (1 << (j & 7)) && i + 32 < decbuf[k].size()) {
-				//~ double rho = minrho + (pow(2001., (decbuf[k][32 + i] >> 3) / 31.) - 1.) / 2000. * (1. - minrho);
-				//~ double phi = (decbuf[k][32 + i] & 7) / 4. * M_PI - M_PI;
-				//~ data[j] = 0.5 * polar<double>(rho, phi);
-				//~ i++;
-			//~ } else
-				//~ data[j] = 0.5 * polar<double>(minrho * rangen.uniform(), 2. * M_PI * rangen.uniform());
-				//~ //data[j] = 0.5 * polar<double>(minrho * rand() / RAND_MAX, rand() * 2. * M_PI / RAND_MAX);
-				//~ //data[j] = polar<double>(0.00005, rand() * 2. * M_PI / RAND_MAX);
-			//~ data[data.size() - j] = conj(data[j]);
-		//~ }
 		fft(data, false);
 		for (unsigned i = 0; i < data.size(); i++)
 			output[i] += data[i].real();

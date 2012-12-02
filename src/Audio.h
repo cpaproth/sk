@@ -35,6 +35,7 @@ class Audio {
 	static const unsigned samplerate = 8000;
 	static const size_t framesize = 512;
 	static const size_t encodesize = 160;
+	static const size_t enchead = 34;
 	static const unsigned maxlatency = 20;
 
 
