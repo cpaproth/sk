@@ -10,7 +10,7 @@ The features of version 1.0 will be:
 * videoconferencing between 3 people with audio and video compression: [v0.1](https://github.com/cpaproth/sk/tags)
 * secure dealing out, i.e. one player alone cannot selectively manipulate the deal or identify the other players cards: [v0.3](https://github.com/cpaproth/sk/tags)
 * bidding procedure and gameplay according to the international Skat Order rules: [v0.5](https://github.com/cpaproth/sk/tags)
-* some unofficial but popular rules (Kontra, Re, Bock, Ramsch) and a list of the played games: under development
+* some unofficial but popular rules (Kontra, Re, Bock, Ramsch) and a list of the played games: [v0.8](https://github.com/cpaproth/sk/tags)
 
 Desirable features of version 2.0 are:
 * echo cancellation to improve audio quality
