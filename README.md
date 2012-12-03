@@ -41,7 +41,7 @@ for other operating systems, you have to create appropriate build files by hand.
 
     mkdir build-directory
     cd build-directory
-    cmake path-to-sk/src/
+    cmake -D CMAKE_BUILD_TYPE=Release path-to-sk/src/
     make
 
 

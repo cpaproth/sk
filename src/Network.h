@@ -37,7 +37,7 @@ class Network {
 	static const size_t maxpeers = 2;
 	static const size_t fifosize = 160;
 	static const size_t fifomax = 5;
-	static const size_t recvsize = 20000;
+	static const size_t recvsize = 70000;
 	static const unsigned timerrate = 4;
 
 	
@@ -52,13 +52,15 @@ class Network {
 		deque<ucharbuf>	fifo;
 		ucharbuf	buffer;
 		deque<string>	messages;
+		ucharbuf	header;
+		bool		known;
 		double		lasttime;
 		unsigned	fifoempty;
 		unsigned	fifofull;
 		unsigned	lastmsgid;
 		unsigned	bucket;
 		unsigned	connections;
-		Peer(const udpendpoint& ep) : endpoint(ep), fifoempty(0), fifofull(0), lastmsgid(-1), bucket(0), connections(0) {}
+		Peer(const udpendpoint& ep) : endpoint(ep), known(false), fifoempty(0), fifofull(0), lastmsgid(-1), bucket(0), connections(0) {}
 	};
 	
 	bool				server;
@@ -77,6 +79,8 @@ class Network {
 	boost::timed_mutex		netmutex;
 
 
+	void insert_header(unsigned);
+	void erase_header(ucharbuf&);
 	void processmessage(unsigned, const string&);
 
 	void worker(void);

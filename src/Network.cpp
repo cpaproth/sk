@@ -100,6 +100,7 @@ void Network::broadcast(const ucharbuf& send, vector<ucharbuf>& recv, unsigned l
 	lock_guard<timed_mutex> lock(netmutex, adopt_lock);
 
 	shared_ptr<ucharbuf> buf(new ucharbuf(send));
+	erase_header(*buf);
 
 	for (unsigned i = 0; i < peers.size(); i++) {
 		if (send.size() == fifosize) {
@@ -111,9 +112,9 @@ void Network::broadcast(const ucharbuf& send, vector<ucharbuf>& recv, unsigned l
 			socket.async_send_to(buffer(*buf), peers[i].endpoint, bind(&Network::sender, this, buf, _1, _2));
 		} else {
 			recv.push_back(peers[i].buffer);
-			if (peers[i].bucket >= send.size()) {
+			if (peers[i].bucket >= buf->size()) {
 				socket.async_send_to(buffer(*buf), peers[i].endpoint, bind(&Network::sender, this, buf, _1, _2));
-				peers[i].bucket -= send.size();
+				peers[i].bucket -= buf->size();
 			}
 		}
 	}
@@ -145,6 +146,27 @@ void Network::stats(void) {
 	cout << "known peers: " << peers.size() << ", network mutex busy: " << mutexbusy << ", messages ignored: " << ignoredmsg << endl;
 	for (unsigned i = 0; i < peers.size(); i++)
 		cout << "peer " << i << " fifo empty/full: " << peers[i].fifoempty << '/' << peers[i].fifofull << endl;
+}
+
+
+void Network::insert_header(unsigned i) {
+	ucharbuf& b = peers[i].buffer;
+	if (b.size() > 1 && b[0] == 255 && b[1] == 216 && peers[i].header.size() == 0) {
+		for (unsigned j = 0; j + 1 < b.size() && !(b[j] == 255 && b[j + 1] == 218); j++)
+			peers[i].header.push_back(b[j]);
+		peers[i].messages.push_back(ss(msgid++) << " knownheader " << peers[i].header.size());
+	} else if (b.size() > 1 && b[0] == 255 && b[1] == 218) {
+		b.insert(b.begin(), peers[i].header.begin(), peers[i].header.end());
+	}
+}
+
+
+void Network::erase_header(ucharbuf& b) {
+	if (b.size() > fifosize && b[0] == 255 && b[1] == 216 && find_if(peers.begin(), peers.end(), bind(&Peer::known, _1) == false) == peers.end()) {
+		unsigned i;
+		for (i = 0; i + 1 < b.size() && !(b[i] == 255 && b[i + 1] == 218); i++);
+		b.erase(b.begin(), b.begin() + i);
+	}
 }
 
 
@@ -184,6 +206,8 @@ void Network::processmessage(unsigned i, const string& message) {
 			peers.front().connections = peers[i].connections = 1;
 			peers.front().messages.push_back(ss(msgid++) << " peerconnected " << count_if(peers.begin(), peers.end(), bind(&Peer::connections, _1)));
 		}
+	} else if (command == "knownheader") {
+		peers[i].known = true;
 	} else if (command == "removepeer") {
 		udpendpoint ep;
 		ss(data) >> ep;
@@ -251,6 +275,7 @@ void Network::receiver(const errorcode& e, size_t n) {
 		}
 	} else {
 		peer->buffer.assign(recvbuf.begin(), recvbuf.begin() + n);
+		insert_header(peer - peers.begin());
 	}
 
 	socket.async_receive_from(buffer(recvbuf), endpoint, bind(&Network::receiver, this, _1, _2));

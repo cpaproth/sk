@@ -81,11 +81,13 @@ static unsigned char dbl_uchar(double d) {
 	int e;
 	double s = frexp(d, &e);
 	if (e > 0) return 240;
-	if (e < -15) return 15;
-	unsigned us = (s - 0.5) * 31. + 0.5;
+	if (d == 0. || e < -15) return 15;
+	unsigned us = (unsigned)((s - 0.5) * 31. + 0.5);
 	return (us << 4) | (-e & 15);
 }
 static double uchar_dbl(unsigned char c) {
+	if (c == 15)
+		return 0.;
 	return ldexp(0.5 + (c >> 4) / 31., -(c & 15));
 }
 
