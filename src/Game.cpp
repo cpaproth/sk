@@ -121,7 +121,7 @@ void Game::reset_game(unsigned d) {
 	drawncards.clear();
 
 	show_info("");
-	show_gameinfo(dealer == right? "Vorhand": dealer == left? "Mittelhand": "Hinterhand");
+	show_gameinfo(string(dealer == right? "Vorhand": dealer == left? "Mittelhand": "Hinterhand") + (rounds.size() > 0 && rounds[0] == 0? ", Bock": ""));
 	show_bid(false, -1, false);
 
 	ui.hand->deactivate();
@@ -140,6 +140,16 @@ void Game::reset_game(unsigned d) {
 	ui.table->show_cards(hand, skat);
 	ui.table->show_trick(trick, 0);
 	ui.table->show_disclosed(lefthand, righthand);
+}
+
+
+void Game::reset_round(void) {
+	scores = leftscores = rightscores = 0;
+	rounds.clear();
+	header.clear();
+	reset_game(myself);
+	send_rules();
+	send_name();
 }
 
 
@@ -245,6 +255,8 @@ string Game::game_name(bool select) {
 
 void Game::send_rules(void) {
 	rules = (ui.foldrule->value()? 1: 0) | (ui.contrarerule->value()? 2: 0) | (ui.bockrule->value()? 4: 0) | (ui.junkrule->value()? 8: 0);
+	rounds.resize(remove(rounds.begin(), rounds.end(), rule(4)? 2: 0) - rounds.begin());
+	rounds.resize(remove(rounds.begin(), rounds.end(), rule(8)? 2: 1) - rounds.begin());
 	network.command(left, "rules", ss(rules));
 	network.command(right, "rules", ss(rules));
 }
@@ -319,6 +331,7 @@ void Game::game_over(void) {
 	uchar values[] = {11, 4, 3, 2, 10, 0, 0, 0};
 	unsigned order[] = {4, 6, 7, 0, 5, 8, 9, 10};
 	unsigned sum = 0, lsum = 0, rsum = 0;
+	bool bock = false;
 
 	if (!playing) {
 		score = 0;
@@ -334,6 +347,7 @@ void Game::game_over(void) {
 		} else {
 			return;
 		}
+		show_gameinfo(ss(game_name(false)) << (contrare == 4? ", Re": contrare == 2? ", Kontra": ""));
 		
 	} else if (gextra == 31 && otricks + ptricks == 30) {
 		for (unsigned i = 0; i < tricks.size(); i++)
@@ -415,12 +429,13 @@ void Game::game_over(void) {
 			score *= gvalue;
 			show_info((player == myself? "Gewonnen": (player == left? leftname: rightname) + " gewinnt") + result);
 		}
-		show_gameinfo(ss(game_name(false)) << ", " << psum << " Augen");
+		show_gameinfo(ss(game_name(false)) << ", " << psum << " Augen" << (contrare == 4? ", Re": contrare == 2? ", Kontra": ""));
+		bock = score >= 100 || psum == 60;
 
 	} else {
 		return;
 	}
-	
+	bock |= (score < 0 && contrare == 2) || contrare == 4;
 	
 	string h = ss("\t\t@c;") << ui.name->text() << '\t' << leftname << '\t' << rightname << '\t' << (rule(1)? "E": "") << (rule(2)? "K": "") << (rule(4)? "B": "") << (rule(8)? "R": "");
 	if (h != header) {
@@ -432,19 +447,32 @@ void Game::game_over(void) {
 
 	if (row++ % 3 == 0)
 		ui.listing->add(new fltk::Divider());
+	
+	string s = contrare == 4? "Re": contrare == 2? "Ko": ""; 
+	score *= contrare > 0? contrare: 1;
+	if (rounds.size() > 0) {
+		score *= 2;
+		s += "2x";
+		rounds.erase(rounds.begin());
+	}
+	
+	if (bock && rule(4))
+		rounds.resize(rounds.size() + 3, 0);
+	if (bock && rule(8))
+		rounds.resize(rounds.size() + 3, 1);
 
 	if (!playing) {
-		ui.listing->add("Eingepasst\t@c;-\t-\t-\t-\t");
+		ui.listing->add(ss("Eingepasst\t@c;-\t-\t-\t-\t") << s | c_str);
 	} else if (gextra == 31) {
 		string m = sum <= lsum && sum <= rsum? ss(scores += score): ss("-");
 		string l = lsum <= sum && lsum <= rsum? ss(leftscores += score): ss("-");
 		string r = rsum <= sum && rsum <= lsum? ss(rightscores += score): ss("-");
-		ui.listing->add(ss("Ramsch\t@c;") << score << '\t' << m << '\t' << l << '\t' << r << '\t' | c_str);
+		ui.listing->add(ss("Ramsch\t@c;") << score << '\t' << m << '\t' << l << '\t' << r << '\t' << s | c_str);
 	} else {
 		string m = player == myself? ss(scores += score): ss("-");
 		string l = player == left? ss(leftscores += score): ss("-");
 		string r = player == right? ss(rightscores += score): ss("-");
-		ui.listing->add(ss(game_name(false)) << "\t@c;" << score << '\t' << m << '\t' << l << '\t' << r << '\t' | c_str);
+		ui.listing->add(ss(game_name(false)) << "\t@c;" << score << '\t' << m << '\t' << l << '\t' << r << '\t' << s | c_str);
 	}
 	ui.listing->select(ui.listing->children() - 1);	
 	
@@ -725,16 +753,14 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 		cout << "2 peers connected, the game can start!" << endl;
 		network.command(0, "seat", "left");
 		network.command(1, "seat", "right");
-		scores = leftscores = rightscores = 0;
-		rounds.clear();
-		reset_game(myself);
-		send_rules();
-		send_name();
+		reset_round();
 		ui.dealout->color(fltk::GREEN);
 		ui.dealout->activate();
 
 	} else if (command == "rules") {
 		ss(data) >> (i == left? leftrules: rightrules);
+		rounds.resize(remove(rounds.begin(), rounds.end(), rule(4)? 2: 0) - rounds.begin());
+		rounds.resize(remove(rounds.begin(), rounds.end(), rule(8)? 2: 1) - rounds.begin());
 
 	} else if (command == "name") {
 		leftname = i == left? data: leftname;
@@ -743,11 +769,7 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 	} else if (command == "seat") {
 		left = data == "left"? 1: 0;
 		right = data == "right"? 1: 0;
-		scores = leftscores = rightscores = 0;
-		rounds.clear();
-		reset_game(myself);
-		send_rules();
-		send_name();
+		reset_round();
 
 
 	} else if (command == "newdeal") {
@@ -779,7 +801,11 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 
 	} else if (command == "drawncards" && i != dealer) {
 		drawncards = string_cards(data);
-		if (drawncards.size() == 30) {
+		if (drawncards.size() == 30 && rounds.size() > 0 && rounds[0] == 1) {
+			network.command(left, "nobid", "junk");
+			network.command(right, "nobid", "junk");
+			junk_player();
+		} else if (drawncards.size() == 30) {
 			show_info("Warte auf Gebot von " + leftname + '.');
 			network.command(left, "bidme", ss(bid = 18));
 		}

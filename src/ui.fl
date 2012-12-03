@@ -209,12 +209,12 @@ f["game select"]();}
               }
               {fltk::Button} contrare {
                 label {Kontra / Re}
-                callback {f["game contrare"]();} selected
+                callback {f["game contrare"]();}
                 xywh {170 20 140 25} type TOGGLE labelfont 1 buttoncolor 0xff000000
               }
               {fltk::Button} giveup {
-                label {Spiel aufgeben}
-                callback {f["game giveup"]();}
+                label {Spiel abbrechen}
+                callback {f["game giveup"]();} selected
                 xywh {170 65 140 25} type TOGGLE labelfont 1
               }
             }

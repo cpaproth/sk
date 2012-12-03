@@ -87,6 +87,7 @@ class Game {
 	vector<uchar> string_cards(const string&);
 
 	void reset_game(unsigned);
+	void reset_round(void);
 	void show_bid(bool, unsigned, bool);
 	void show_contrare(const char*, bool, bool);
 	void show_info(const string&);

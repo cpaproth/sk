@@ -437,7 +437,7 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
             o->buttoncolor((fltk::Color)0xff000000);
             o->callback((fltk::Callback*)cb_contrare);
           }
-           {fltk::Button* o = giveup = new fltk::Button(170, 65, 140, 25, "Spiel aufgeben");
+           {fltk::Button* o = giveup = new fltk::Button(170, 65, 140, 25, "Spiel abbrechen");
             o->type(fltk::Button::TOGGLE);
             o->labelfont(fltk::HELVETICA_BOLD);
             o->callback((fltk::Callback*)cb_giveup);
