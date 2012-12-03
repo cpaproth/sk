@@ -199,23 +199,23 @@ f["game select"]();}
             } {
               {fltk::Button} dealout {
                 label {Karten austeilen}
-                callback {f["game dealout"]();} selected
+                callback {f["game dealout"]();}
                 xywh {15 20 140 25} labelfont 1 buttoncolor 0xff0000
               }
               {fltk::Button} disclose {
                 label {Karten aufdecken}
                 callback {f["game disclose"]();}
-                xywh {15 65 140 25} labelfont 1 labelcolor 0x66000000
+                xywh {15 65 140 25} labelfont 1
               }
               {fltk::Button} contrare {
                 label {Kontra / Re}
-                callback {f["game contrare"]();}
-                xywh {170 20 140 25} type TOGGLE labelfont 1 labelcolor 0x66000000
+                callback {f["game contrare"]();} selected
+                xywh {170 20 140 25} type TOGGLE labelfont 1 buttoncolor 0xff000000
               }
               {fltk::Button} giveup {
                 label {Spiel aufgeben}
                 callback {f["game giveup"]();}
-                xywh {170 65 140 25} type TOGGLE labelfont 1 labelcolor 0x66000000
+                xywh {170 65 140 25} type TOGGLE labelfont 1
               }
             }
           }

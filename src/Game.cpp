@@ -42,6 +42,7 @@ Game::Game(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 	ui.f["game dealout"] = boost::bind(&Game::dealout_game, this);
 	ui.f["game disclose"] = boost::bind(&Game::disclose_hand, this);
 	ui.f["game giveup"] = boost::bind(&Game::giveup_game, this);
+	ui.f["game contrare"] = boost::bind(&Game::contrare_game, this);
 
 	left = 0;
 	right = 1;
@@ -102,6 +103,7 @@ void Game::reset_game(unsigned d) {
 	gtips = 0;
 	playing = false;
 	givingup = false;
+	contrare = 0;
 	
 	hand.clear();
 	skat.clear();
@@ -126,14 +128,14 @@ void Game::reset_game(unsigned d) {
 	ui.skat->deactivate();
 	ui.announce->label("Spiel ansagen");
 	ui.announce->deactivate();
+	ui.announce->redraw();
 	
 	ui.dealout->color(fltk::GRAY75);
 	ui.dealout->deactivate();
 	ui.disclose->deactivate();
-	ui.contrare->value(false);
-	ui.contrare->deactivate();
 	ui.giveup->value(false);
 	ui.giveup->deactivate();
+	show_contrare("Kontra / Re", false, false);
 
 	ui.table->show_cards(hand, skat);
 	ui.table->show_trick(trick, 0);
@@ -158,6 +160,21 @@ void Game::show_bid(bool show, unsigned bid, bool bidding) {
 		ui.fold->color(fltk::GRAY75);
 		ui.fold->deactivate();
 	}
+}
+
+
+void Game::show_contrare(const char* label, bool value, bool active) {
+	if (label != 0)
+		ui.contrare->label(label);
+	ui.contrare->value(value);
+	if (active) {
+		ui.contrare->color(fltk::RED);
+		ui.contrare->activate();
+	} else {
+		ui.contrare->color(fltk::GRAY75);
+		ui.contrare->deactivate();
+	}
+	ui.contrare->redraw();
 }
 
 
@@ -408,10 +425,14 @@ void Game::game_over(void) {
 	string h = ss("\t\t@c;") << ui.name->text() << '\t' << leftname << '\t' << rightname << '\t' << (rule(1)? "E": "") << (rule(2)? "K": "") << (rule(4)? "B": "") << (rule(8)? "R": "");
 	if (h != header) {
 		header = h;
+		row = 0;
 		ui.listing->add(new fltk::Divider());
 		ui.listing->add(header.c_str());
-		ui.listing->add(new fltk::Divider());
 	}
+
+	if (row++ % 3 == 0)
+		ui.listing->add(new fltk::Divider());
+
 	if (!playing) {
 		ui.listing->add("Eingepasst\t@c;-\t-\t-\t-\t");
 	} else if (gextra == 31) {
@@ -443,6 +464,9 @@ void Game::check_trick(void) {
 		starter = dealer == myself? left: dealer == left? right: myself;
 	else
 		ui.table->show_trick(trick, starter == left? 1: starter == right? 2: 0);
+
+	if (tricks.size() + lefttricks.size() + righttricks.size() + trick.size() >= (player == myself? 7u: 4u))
+		show_contrare(contrare == 4? "Re": contrare == 2? "Kontra": "Kontra / Re", contrare > 1, false);
 
 	if (trick.size() == 3) {
 		map<unsigned, unsigned> priority;
@@ -556,10 +580,11 @@ void Game::fold_game(void) {
 	bid = bid == 0? 264: bid;
 	show_bid(false, -1, false);
 	show_info("");
+	contrare = rule(2) && bid > 18? 1: 0;
 
 	if (listener == myself) {
-		network.command(left, "discard", "");
-		network.command(right, "discard", "");
+		network.command(left, "nobid", rule(1)? "junk": "");
+		network.command(right, "nobid", rule(1)? "junk": "");
 		if (rule(1))
 			junk_player();
 		else
@@ -642,6 +667,14 @@ void Game::giveup_game(void) {
 }
 
 
+void Game::contrare_game(void) {
+	contrare = player == myself? 4: 2;
+	network.command(left, "contrare", "");
+	network.command(right, "contrare", "");
+	show_contrare(0, true, false);
+}
+
+
 void Game::deal_cards(unsigned n, bool cipher) {
 	vector<uchar> cards(deck);
 	shuffle();
@@ -692,6 +725,8 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 		cout << "2 peers connected, the game can start!" << endl;
 		network.command(0, "seat", "left");
 		network.command(1, "seat", "right");
+		scores = leftscores = rightscores = 0;
+		rounds.clear();
 		reset_game(myself);
 		send_rules();
 		send_name();
@@ -708,6 +743,8 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 	} else if (command == "seat") {
 		left = data == "left"? 1: 0;
 		right = data == "right"? 1: 0;
+		scores = leftscores = rightscores = 0;
+		rounds.clear();
 		reset_game(myself);
 		send_rules();
 		send_name();
@@ -794,8 +831,8 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 			network.command(dealer, "bidme", data);
 		}
 
-	} else if (command == "discard") {
-		if (rule(1))
+	} else if (command == "nobid") {
+		if (data == "junk")
 			junk_player();
 		else
 			game_over();
@@ -811,6 +848,8 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 		ss(data) >> gname >> gextra;
 		show_gameinfo((player == left? leftname : rightname) + " spielt " + game_name(false) + '.');
 		ui.giveup->activate();
+		if (contrare > 0)
+			show_contrare("Kontra", false, true);
 		playing = true;
 		check_trick();
 
@@ -855,9 +894,17 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 		quitter = i;
 		disclose_hand();
 		ui.giveup->deactivate();
+		ui.contrare->deactivate();
 
 	} else if (command == "givingup") {
 		ss(data) >> givingup;
+
+	} else if (command == "contrare") {
+		contrare = i == player? 4: 2;
+		if (player == myself)
+			show_contrare("Re", false, true);
+		else
+			show_contrare(i != player? "Kontra": "Re", true, false);
 
 
 	} else

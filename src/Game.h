@@ -63,6 +63,9 @@ class Game {
 	bool		givingup;
 
 	string		header;
+	vector<uchar>	rounds;
+	unsigned	row;
+	unsigned	contrare;
 	unsigned	rules;
 	unsigned	leftrules;
 	unsigned	rightrules;
@@ -85,6 +88,7 @@ class Game {
 
 	void reset_game(unsigned);
 	void show_bid(bool, unsigned, bool);
+	void show_contrare(const char*, bool, bool);
 	void show_info(const string&);
 	void show_gameinfo(const string&);
 	void sort_hand(void);
@@ -108,6 +112,7 @@ class Game {
 	void dealout_game(void);
 	void disclose_hand(void);
 	void giveup_game(void);
+	void contrare_game(void);
 
 	void deal_cards(unsigned, bool);
 	void decipher_cards(void);
