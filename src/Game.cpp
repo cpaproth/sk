@@ -47,8 +47,8 @@ Game::Game(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 	left = 0;
 	right = 1;
 
-	rules = (ui.foldrule->value()? 1: 0) | (ui.contrarerule->value()? 2: 0) | (ui.bockrule->value()? 4: 0) | (ui.junkrule->value()? 8: 0);
 	leftrules = rightrules = 0;
+	check_rules();
 
 	deck.resize(32);
 	for (unsigned i = 0; i < deck.size(); i++)
@@ -257,10 +257,15 @@ string Game::game_name(bool select) {
 }
 
 
-void Game::send_rules(void) {
+void Game::check_rules(void) {
 	rules = (ui.foldrule->value()? 1: 0) | (ui.contrarerule->value()? 2: 0) | (ui.bockrule->value()? 4: 0) | (ui.junkrule->value()? 8: 0);
 	rounds.resize(remove(rounds.begin(), rounds.end(), rule(4)? 2: 0) - rounds.begin());
 	rounds.resize(remove(rounds.begin(), rounds.end(), rule(8)? 2: 1) - rounds.begin());
+}
+
+
+void Game::send_rules(void) {
+	check_rules();
 	network.command(left, "rules", ss(rules));
 	network.command(right, "rules", ss(rules));
 }
@@ -446,7 +451,7 @@ void Game::game_over(void) {
 		header = h;
 		row = 0;
 		ui.listing->add(new fltk::Divider());
-		ui.listing->add(header.c_str())->color(fltk::GRAY75);
+		ui.listing->add(header.c_str())->color(fltk::GRAY65);
 	}
 
 	if (row++ % 3 == 0)
@@ -763,8 +768,7 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 
 	} else if (command == "rules") {
 		ss(data) >> (i == left? leftrules: rightrules);
-		rounds.resize(remove(rounds.begin(), rounds.end(), rule(4)? 2: 0) - rounds.begin());
-		rounds.resize(remove(rounds.begin(), rounds.end(), rule(8)? 2: 1) - rounds.begin());
+		check_rules();
 
 	} else if (command == "name") {
 		leftname = i == left? data: leftname;

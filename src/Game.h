@@ -95,6 +95,7 @@ class Game {
 	void sort_hand(void);
 	string game_name(bool);
 
+	void check_rules(void);
 	void send_rules(void);
 	void send_name(void);
 	void select_game(void);
