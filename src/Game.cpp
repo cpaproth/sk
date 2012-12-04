@@ -161,14 +161,18 @@ void Game::show_bid(bool show, unsigned bid, bool bidding) {
 			ui.bid->deactivate();
 		else
 			ui.bid->activate();
+		ui.fold->label(listener == myself && rule(1)? "Ramschen": listener == myself? "Einpassen": "Passen");
 		ui.fold->color(fltk::RED);
 		ui.fold->activate();
+		ui.fold->redraw();
 	} else {
 		ui.bid->reset(bid, bidding);
 		ui.bid->color(fltk::GRAY75);
 		ui.bid->deactivate();
+		ui.fold->label("Passen");
 		ui.fold->color(fltk::GRAY75);
 		ui.fold->deactivate();
+		ui.fold->redraw();
 	}
 }
 
@@ -442,7 +446,7 @@ void Game::game_over(void) {
 		header = h;
 		row = 0;
 		ui.listing->add(new fltk::Divider());
-		ui.listing->add(header.c_str());
+		ui.listing->add(header.c_str())->color(fltk::GRAY75);
 	}
 
 	if (row++ % 3 == 0)

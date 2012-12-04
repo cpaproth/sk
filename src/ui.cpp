@@ -577,8 +577,8 @@ ewinnt er mit 46 Punkten.");
            {fltk::CheckButton* o = contrarerule = new fltk::CheckButton(25, 70, 135, 25, "Kontra und Re (K)");
             o->callback((fltk::Callback*)cb_contrarerule);
             o->tooltip("Gegenspieler, die nicht bei 18 gepasst haben, d\303\274rfen bis zur 4. ausges\
-pielten Karte Kontra sagen. Der Alleinspieler darf daraufhin Re bis zur 7. aus\
-gespielten Karte sagen. Kontra und Re verdoppeln jeweils die Punktzahl des Spi\
+pielten Karte Kontra sagen. Der Alleinspieler darf daraufhin bis zur 7. ausges\
+pielten Karte Re sagen. Kontra und Re verdoppeln jeweils die Punktzahl des Spi\
 els.");
             int i;
             prefs.get("rulecontrare", i, 0);

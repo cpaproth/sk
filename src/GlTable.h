@@ -41,8 +41,6 @@ class GlTable : public fltk::GlWindow {
 	vector<uchar>		righthand;
 	
 	unsigned		selected;
-	int			mx;
-	int			my;
 	bool			pushed;
 
 	void get_position(unsigned, size_t, float&, float&, float&);

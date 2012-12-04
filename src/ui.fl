@@ -214,7 +214,7 @@ f["game select"]();}
               }
               {fltk::Button} giveup {
                 label {Spiel abbrechen}
-                callback {f["game giveup"]();} selected
+                callback {f["game giveup"]();}
                 xywh {170 65 140 25} type TOGGLE labelfont 1
               }
             }
@@ -346,7 +346,7 @@ foldrule->value(i != 0);}
                 label {Kontra und Re (K)}
                 callback {prefs.set("rulecontrare", contrarerule->value());
 f["rule change"]();}
-                tooltip {Gegenspieler, die nicht bei 18 gepasst haben, dürfen bis zur 4. ausgespielten Karte Kontra sagen. Der Alleinspieler darf daraufhin Re bis zur 7. ausgespielten Karte sagen. Kontra und Re verdoppeln jeweils die Punktzahl des Spiels.}
+                tooltip {Gegenspieler, die nicht bei 18 gepasst haben, dürfen bis zur 4. ausgespielten Karte Kontra sagen. Der Alleinspieler darf daraufhin bis zur 7. ausgespielten Karte Re sagen. Kontra und Re verdoppeln jeweils die Punktzahl des Spiels.}
                 xywh {25 70 135 25}
                 extra_code {int i;
 prefs.get("rulecontrare", i, 0);
@@ -365,7 +365,7 @@ bockrule->value(i != 0);}
               {fltk::CheckButton} junkrule {
                 label {Ramschrunde (R)}
                 callback {prefs.set("rulejunk", junkrule->value());
-f["rule change"]();}
+f["rule change"]();} selected
                 tooltip {Eine Ramschrunde wird unter den gleichen Bedingungen wie eine Bockrunde ausgelöst. Auch hier werden die Punkte der Spiele verdoppelt, allerdings ist jedes Spiel Ramsch. Wenn Bock- und Ramschrunde gespielt werden soll, dann folgt die Ramsch- auf die Bockrunde.}
                 xywh {25 130 135 25}
                 extra_code {int i;

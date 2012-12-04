@@ -69,8 +69,6 @@ GlTable::GlTable(int x, int y, int w ,int h, const char* l) : GlWindow(x, y, w, 
 
 	texture = 0;
 	selected = UINT_MAX;
-	mx = -1;
-	my = -1;
 	pushed = false;
 }
 
@@ -212,8 +210,6 @@ void GlTable::draw(void) {
 
 int GlTable::handle(int event) {
 	using namespace fltk;
-	
-	unsigned sel = UINT_MAX;
 
 	switch(event) {
 	case ENTER:
@@ -226,9 +222,10 @@ int GlTable::handle(int event) {
 		pushed = true;
 		redraw();
 	case DRAG:
-	case MOVE:
-		mx = event_x();
-		my = event_y();
+	case MOVE: {
+		unsigned sel = UINT_MAX;
+		int mx = event_x();
+		int my = event_y();
 
 		for (unsigned i = 0; i < hand.size(); i++) {
 			float x, y, a;
@@ -257,7 +254,7 @@ int GlTable::handle(int event) {
 			selected = sel;
 			redraw();
 		}
-		return 1;
+		return 1;}
 	case RELEASE:
 		pushed = false;
 		if (selected != UINT_MAX) {
