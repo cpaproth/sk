@@ -58,13 +58,14 @@ class Video {
 
 	void worker(void);
 
+	bool handle_command(unsigned, const std::string&, const std::string&);
+
 	Video(const Video&);
 	void operator=(const Video&);
 public:
 	Video(UserInterface&, Network&);
 	~Video(void);
 	
-	bool handle_command(unsigned, const std::string&, const std::string&);
 
 };
 

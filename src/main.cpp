@@ -27,23 +27,12 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "Convenience.h"
 
 
-using namespace boost;
 using namespace CPLib;
 using namespace SK;
 
 
-void handle_command(Video& video, Game& game, unsigned i, const string& command, const string& data) {
-	bool handled = video.handle_command(i, command, data);
-	handled |= game.handle_command(i, command, data);
-	
-	if (!handled)
-		cout << "unhandled command: " << command << endl;
-}
-
-
-void connect_network(UserInterface& ui, Network& network, Video& video, Game& game) {
-	network.connect(ui.address->value(), (unsigned short)ui.port->value(), (unsigned)ui.bandwidth->value(),
-		bind(&handle_command, ref(video), ref(game), _1, _2, _3));
+void connect_network(UserInterface& ui, Network& network) {
+	network.connect(ui.address->value(), (unsigned short)ui.port->value(), (unsigned)ui.bandwidth->value());
 }
 
 
@@ -61,16 +50,16 @@ int main(void) {
 		Game		game(ui, network);
 
 
-		ui.f["audio restart"] = bind(&Audio::restart, &audio);
-		ui.f["audio toggle"] = bind(&Audio::toggle_playmic, &audio);
-		ui.f["network stats"] = bind(&Network::stats, &network);
-		ui.f["network connect"] = bind(&connect_network, ref(ui), ref(network), ref(video), ref(game));
+		ui.f["audio restart"] = boost::bind(&Audio::restart, &audio);
+		ui.f["audio toggle"] = boost::bind(&Audio::toggle_playmic, &audio);
+		ui.f["network stats"] = boost::bind(&Network::stats, &network);
+		ui.f["network connect"] = boost::bind(&connect_network, boost::ref(ui), boost::ref(network));
 		
 		audio.restart();
 		try {
 			if (ui.autoconnect->value())
-				connect_network(ui, network, video, game);
-		} catch (std::exception& e) {
+				connect_network(ui, network);
+		} catch (exception& e) {
 			cout << "auto connecting network failed: " << e.what() << endl;
 		}
 
@@ -78,10 +67,10 @@ int main(void) {
 			try {
 				UILock lock;
 				return fltk::run();
-			} catch (std::exception& e) {
+			} catch (exception& e) {
 				cout << "error: " << e.what() << endl;
 			}
-	} catch (std::exception& e) {
+	} catch (exception& e) {
 		fltk::alert(ss("initialization error: ") << e.what() | c_str);
 	}
 

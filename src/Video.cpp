@@ -48,11 +48,13 @@ Video::Video(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 	videothread = thread(bind(&Video::worker, this));
 
 	cout << "video capture started" << endl;
+	network.add_handler(bind(&Video::handle_command, this, _1, _2, _3));
 }
 
 
 Video::~Video(void) {
 	try {
+		network.remove_handler();
 		ui.midimage->set(0);
 		ui.leftimage->set(0);
 		ui.rightimage->set(0);

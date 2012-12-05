@@ -60,11 +60,14 @@ Game::Game(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 	shuffle();
 
 	reset_game(myself);
+
+	network.add_handler(bind(&Game::handle_command, this, _1, _2, _3));
 }
 
 
 Game::~Game(void) {
 	try {
+		network.remove_handler();
 	
 	} catch (...) {}
 }
@@ -757,7 +760,7 @@ void Game::decipher_cards(void) {
 
 bool Game::handle_command(unsigned i, const string& command, const string& data) {
 	UILock lock;
-	
+
 	if (command == "peersconnected" && data == "2") {
 		cout << "2 peers connected, the game can start!" << endl;
 		network.command(0, "seat", "left");

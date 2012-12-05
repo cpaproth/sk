@@ -157,7 +157,9 @@ void GlTable::draw(void) {
 		glEnable(GL_TEXTURE_2D);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glClearColor(0.831f, 0.816f, 0.784f, 1.f);
+		unsigned char r, g, b;
+		fltk::split_color(fltk::GRAY75, r, g, b);
+		glClearColor(r / 255.f, g / 255.f, b / 255.f, 1.f);
 	}
 
 	glClear(GL_COLOR_BUFFER_BIT);

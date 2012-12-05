@@ -48,6 +48,7 @@ Network::Network(void) : socket(io, ip::udp::v4()), timer(io) {
 
 Network::~Network(void) {
 	try {
+		io.stop();
 		lock_guard<timed_mutex> lock(netmutex);
 		timer.cancel();
 		socket.close();
@@ -57,10 +58,22 @@ Network::~Network(void) {
 }
 
 
-void Network::connect(const string& address, unsigned short port, unsigned bw, handler h) {
+void Network::add_handler(handler h) {
 	lock_guard<timed_mutex> lock(netmutex);
+	handlers.push_back(h);
+}
 
+
+void Network::remove_handler(void) {
+	lock_guard<timed_mutex> lock(netmutex);
+	handlers.clear();
+}
+
+
+void Network::connect(const string& address, unsigned short port, unsigned bw) {
 	if (iothread.joinable()) {
+		io.stop();
+		lock_guard<timed_mutex> lock(netmutex);
 		timer.cancel();
 		socket.close();
 		iothread.join();
@@ -71,7 +84,6 @@ void Network::connect(const string& address, unsigned short port, unsigned bw, h
 	}
 
 	bandwidth = bw;
-	cmdfunc = h;
 
 	if (address.empty()) {
 		server = true;
@@ -170,6 +182,16 @@ void Network::erase_header(ucharbuf& b) {
 }
 
 
+void Network::handle_command(unsigned i, const string& command, const string& data) {
+	bool handled = false;
+	for (unsigned j = 0; j < handlers.size(); j++)
+		handled |= handlers[j](i, command, data);
+	
+	if (!handled)
+		cout << "unhandled command: " << command << endl;
+}
+
+
 void Network::processmessage(unsigned i, const string& message) {
 	string id, command, data;
 	data = ss(message) >> id >> command >> ws;
@@ -201,6 +223,8 @@ void Network::processmessage(unsigned i, const string& message) {
 	if (command == "hello") {
 		if (data.find("from server") != string::npos) {
 			peers.front().messages.push_back(ss((msgid = 1)++) << " hello " << peers.front().endpoint << " from client");
+			peers.front().header.clear();
+			peers.front().known = false;
 			peers.resize(1, Peer(udpendpoint()));
 		} else if (data.find("from peer") != string::npos) {
 			peers.front().connections = peers[i].connections = 1;
@@ -222,9 +246,9 @@ void Network::processmessage(unsigned i, const string& message) {
 	} else if (command == "peerconnected") {
 		ss(data) >> peers[i].connections;
 		if (find_if(peers.begin(), peers.end(), bind(&Peer::connections, _1) != peers.size()) == peers.end())
-			io.post(bind(cmdfunc, i, "peersconnected", (string)ss(peers.size())));
+			io.post(bind(&Network::handle_command, this, i, "peersconnected", (string)ss(peers.size())));
 	} else
-		io.post(bind(cmdfunc, i, command, data));
+		io.post(bind(&Network::handle_command, this, i, command, data));
 }
 
 

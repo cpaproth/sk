@@ -119,14 +119,13 @@ class Game {
 	void deal_cards(unsigned, bool);
 	void decipher_cards(void);
 
+	bool handle_command(unsigned, const string&, const string&);
+
 	Game(const Game&);
 	void operator=(const Game&);
 public:
 	Game(UserInterface&, Network&);
 	~Game(void);
-	
-	bool handle_command(unsigned, const string&, const string&);
-
 
 };
 

@@ -42,7 +42,7 @@ class Network {
 
 	
 	typedef vector<unsigned char> ucharbuf;
-	typedef boost::function<void(unsigned, const string&, const string&)> handler;
+	typedef boost::function<bool(unsigned, const string&, const string&)> handler;
 	typedef boost::asio::ip::udp::endpoint udpendpoint;
 	typedef boost::system::error_code errorcode;
 
@@ -68,7 +68,7 @@ class Network {
 	unsigned			bandwidth;
 	unsigned			mutexbusy;
 	unsigned			ignoredmsg;
-	handler				cmdfunc;
+	vector<handler>			handlers;
 	boost::asio::io_service		io;
 	boost::asio::ip::udp::socket	socket;
 	udpendpoint			endpoint;
@@ -81,6 +81,7 @@ class Network {
 
 	void insert_header(unsigned);
 	void erase_header(ucharbuf&);
+	void handle_command(unsigned, const string&, const string&);
 	void processmessage(unsigned, const string&);
 
 	void worker(void);
@@ -94,7 +95,9 @@ public:
 	Network(void);
 	~Network(void);
 
-	void connect(const string&, unsigned short, unsigned, handler);
+	void add_handler(handler);
+	void remove_handler(void);
+	void connect(const string&, unsigned short, unsigned);
 	void broadcast(const ucharbuf&, vector<ucharbuf>&, unsigned);
 	void command(unsigned, const string&, const string&);
 	void stats(void);
