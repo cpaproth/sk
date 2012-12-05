@@ -157,7 +157,7 @@ void Network::stats(void) {
 	lock_guard<timed_mutex> lock(netmutex);
 	cout << "known peers: " << peers.size() << ", network mutex busy: " << mutexbusy << ", messages ignored: " << ignoredmsg << endl;
 	for (unsigned i = 0; i < peers.size(); i++)
-		cout << "peer " << i << " fifo empty/full: " << peers[i].fifoempty << '/' << peers[i].fifofull << endl;
+		cout << "peer " << i << " fifo empty/full/size: " << peers[i].fifoempty << '/' << peers[i].fifofull << '/' << peers[i].fifo.size() << endl;
 }
 
 
