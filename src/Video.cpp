@@ -72,8 +72,8 @@ Video::~Video(void) {
 
 
 bool Video::handle_command(unsigned i, const string& command, const string& data) {
+	UILock lock;
 	if (command == "name") {
-		UILock lock;
 		if (i == left)
 			leftname[("@b;" + data).copy(leftname, namesize - 1)] = 0;
 		else if (i == right)
@@ -155,9 +155,9 @@ void Video::worker(void) {
 				*capture >> cap;
 			}
 
-			if (cap.size().area() == 0)
+			if (cap.size().area() == 0) {
 				throw runtime_error("empty captured image");
-			else {
+			} else {
 				UILock lock;
 				resize(cap, *img, img->size());
 				ui.midimage->redraw();
@@ -166,19 +166,17 @@ void Video::worker(void) {
 			imencode(".jpg", *img, encbuf, params);
 			network.broadcast(encbuf, decbuf, maxlatency);
 			
+			UILock lock;
 			if (decbuf.size() > left && decbuf[left].size() > 0) {
-				UILock lock;
 				*limg = imdecode(Mat(decbuf[left]), 1);
 				deblock(*limg);
 				ui.leftimage->redraw();
 			}
 			if (decbuf.size() > right && decbuf[right].size() > 0) {
-				UILock lock;
 				*rimg = imdecode(Mat(decbuf[right]), 1);
 				deblock(*rimg);
 				ui.rightimage->redraw();
 			}
-			
 			fltk::awake();
 		}
 	} catch (std::exception& e) {

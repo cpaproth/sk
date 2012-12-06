@@ -701,6 +701,7 @@ void Game::giveup_game(void) {
 		if (player != myself || ui.disclose->active())
 			disclose_hand();
 		ui.giveup->deactivate();
+		ui.contrare->deactivate();
 	} else {
 		network.command(player == left? right: left, "givingup", ss(ui.giveup->value()));
 	}
@@ -927,7 +928,7 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 			game_over();
 		}
 
-	} else if (command == "giveup") {
+	} else if (command == "giveup" && ui.giveup->active()) {
 		quitter = i;
 		disclose_hand();
 		ui.giveup->deactivate();
@@ -936,7 +937,7 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 	} else if (command == "givingup") {
 		ss(data) >> givingup;
 
-	} else if (command == "contrare") {
+	} else if (command == "contrare" && contrare < 4) {
 		contrare = i == player? 4: 2;
 		if (player == myself)
 			show_contrare("Re", false, true);

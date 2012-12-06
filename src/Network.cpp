@@ -48,7 +48,6 @@ Network::Network(void) : socket(io, ip::udp::v4()), timer(io) {
 
 Network::~Network(void) {
 	try {
-		io.stop();
 		lock_guard<timed_mutex> lock(netmutex);
 		timer.cancel();
 		socket.close();
@@ -59,23 +58,29 @@ Network::~Network(void) {
 
 
 void Network::add_handler(handler h) {
-	lock_guard<timed_mutex> lock(netmutex);
+	lock_guard<mutex> lock(hdlmutex);
 	handlers.push_back(h);
 }
 
 
 void Network::remove_handler(void) {
-	lock_guard<timed_mutex> lock(netmutex);
+	lock_guard<mutex> lock(hdlmutex);
 	handlers.clear();
 }
 
 
 void Network::connect(const string& address, unsigned short port, unsigned bw) {
 	if (iothread.joinable()) {
-		io.stop();
-		lock_guard<timed_mutex> lock(netmutex);
+		if (!hdlmutex.try_lock()) {
+			cout << "reconnection was not possible, try again" << endl;
+			return;
+		}
+		lock_guard<mutex> hlock(hdlmutex, adopt_lock);
+
+		lock_guard<timed_mutex> nlock(netmutex);
 		timer.cancel();
 		socket.close();
+		io.stop();
 		iothread.join();
 		peers.clear();
 		socket.open(ip::udp::v4());
@@ -183,6 +188,10 @@ void Network::erase_header(ucharbuf& b) {
 
 
 void Network::handle_command(unsigned i, const string& command, const string& data) {
+	if (!hdlmutex.try_lock())
+		return;
+	lock_guard<mutex> lock(hdlmutex, adopt_lock);
+
 	bool handled = false;
 	for (unsigned j = 0; j < handlers.size(); j++)
 		handled |= handlers[j](i, command, data);

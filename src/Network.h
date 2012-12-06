@@ -77,6 +77,7 @@ class Network {
 	vector<Peer>			peers;
 	boost::thread			iothread;
 	boost::timed_mutex		netmutex;
+	boost::mutex			hdlmutex;
 
 
 	void insert_header(unsigned);
