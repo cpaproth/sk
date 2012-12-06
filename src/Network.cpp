@@ -48,9 +48,10 @@ Network::Network(void) : socket(io, ip::udp::v4()), timer(io) {
 
 Network::~Network(void) {
 	try {
-		lock_guard<timed_mutex> lock(netmutex);
+		netmutex.lock();
 		timer.cancel();
 		socket.close();
+		netmutex.unlock();
 		if (iothread.joinable())
 			iothread.join();
 	} catch (...) {}
@@ -71,16 +72,17 @@ void Network::remove_handler(void) {
 
 void Network::connect(const string& address, unsigned short port, unsigned bw) {
 	if (iothread.joinable()) {
-		if (!hdlmutex.try_lock()) {
-			cout << "reconnection was not possible, try again" << endl;
+		if (!hdlmutex.try_lock())
+			return;
+		lock_guard<mutex> hlock(hdlmutex, adopt_lock);
+		if (netmutex.try_lock()) {
+			lock_guard<timed_mutex> nlock(netmutex, adopt_lock);
+			timer.cancel();
+			socket.close();
+		} else {
 			return;
 		}
-		lock_guard<mutex> hlock(hdlmutex, adopt_lock);
 
-		lock_guard<timed_mutex> nlock(netmutex);
-		timer.cancel();
-		socket.close();
-		io.stop();
 		iothread.join();
 		peers.clear();
 		socket.open(ip::udp::v4());
