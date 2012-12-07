@@ -137,7 +137,7 @@ void Audio::decode(short* out) {
 				data[j] = 0.5 * polar<double>(rho, phi);
 				i++;
 			} else
-				data[j] = 0.5 * polar<double>(minrho * rangen.uniform(), 2. * M_PI * rangen.uniform());
+				data[j] = 0.5 * polar<double>(minrho * pow_amp(rangen.uniform(), 100.), 2. * M_PI * rangen.uniform());
 			data[data.size() - j] = conj(data[j]);
 		}
 

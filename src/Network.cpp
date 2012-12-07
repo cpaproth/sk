@@ -190,9 +190,7 @@ void Network::erase_header(ucharbuf& b) {
 
 
 void Network::handle_command(unsigned i, const string& command, const string& data) {
-	if (!hdlmutex.try_lock())
-		return;
-	lock_guard<mutex> lock(hdlmutex, adopt_lock);
+	lock_guard<mutex> lock(hdlmutex);
 
 	bool handled = false;
 	for (unsigned j = 0; j < handlers.size(); j++)
