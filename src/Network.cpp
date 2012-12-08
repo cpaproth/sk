@@ -275,13 +275,13 @@ void Network::worker(void) {
 
 
 void Network::receiver(const errorcode& e, size_t n) {
-	if (e)
+	if (e == error::operation_aborted)
 		return;
 
 	lock_guard<timed_mutex> lock(netmutex);
 	vector<Peer>::iterator peer = find_if(peers.begin(), peers.end(), bind(&Peer::endpoint, _1) == endpoint);
 
-	if (server) {
+	if (!e && server) {
 		if (peer == peers.end() && peers.size() < maxpeers) {
 			peers.push_back(Peer(endpoint));
 			peer = peers.end() - 1;
@@ -297,8 +297,8 @@ void Network::receiver(const errorcode& e, size_t n) {
 			peer->lasttime = (double)clock() / CLOCKS_PER_SEC;
 	}
 
-	if (peer == peers.end()) {
-		//ignore unknown peer
+	if (e || n == 0 || peer == peers.end()) {
+		//ignore error or unknown peer
 	} else if (n < fifosize) {
 		processmessage(peer - peers.begin(), string(recvbuf.begin(), recvbuf.begin() + n));
 	} else if (n == fifosize) {
