@@ -37,7 +37,7 @@ class Network {
 	static const size_t maxpeers = 2;
 	static const size_t fifosize = 160;
 	static const size_t fifomax = 5;
-	static const size_t recvsize = 70000;
+	static const size_t recvsize = 60000;
 	static const unsigned timerrate = 4;
 
 	
