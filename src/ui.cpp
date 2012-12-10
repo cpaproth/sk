@@ -503,7 +503,7 @@ amit sich andere Spieler als Clients mit diesem Server verbinden k\303\266nnen\
             o->callback((fltk::Callback*)cb_bandwidth);
             o->when(fltk::WHEN_RELEASE);
             o->tooltip("Maximale Upload-Bandbreite f\303\274r Video in Byte/s, wird auf die verbunden\
-en Peers aufgeteilt. Der Audiostream ben\303\266tigt pro Peer immer 2500 Byte/\
+en Peers aufgeteilt. Der Audiostream ben\303\266tigt pro Peer immer 3000 Byte/\
 s, sonstiger Netzwerkverkehr ist weniger als 1000 Byte/s pro Peer.");
             double d;
             prefs.get("bandwidth", d, 50000);

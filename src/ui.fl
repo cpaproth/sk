@@ -271,8 +271,8 @@ port->value(d);}
                 label {Video Upload-Bandbreite}
                 callback {if (bandwidth->value() < 0)
   bandwidth->value(0);
-prefs.set("bandwidth", bandwidth->value());}
-                tooltip {Maximale Upload-Bandbreite für Video in Byte/s, wird auf die verbundenen Peers aufgeteilt. Der Audiostream benötigt pro Peer immer 2500 Byte/s, sonstiger Netzwerkverkehr ist weniger als 1000 Byte/s pro Peer.}
+prefs.set("bandwidth", bandwidth->value());} selected
+                tooltip {Maximale Upload-Bandbreite für Video in Byte/s, wird auf die verbundenen Peers aufgeteilt. Der Audiostream benötigt pro Peer immer 3000 Byte/s, sonstiger Netzwerkverkehr ist weniger als 1000 Byte/s pro Peer.}
                 xywh {165 140 195 25} when RELEASE color 0xffffff00 maximum 1e+09 step 1
                 extra_code {double d;
 prefs.get("bandwidth", d, 50000);
@@ -365,7 +365,7 @@ bockrule->value(i != 0);}
               {fltk::CheckButton} junkrule {
                 label {Ramschrunde (R)}
                 callback {prefs.set("rulejunk", junkrule->value());
-f["rule change"]();} selected
+f["rule change"]();}
                 tooltip {Eine Ramschrunde wird unter den gleichen Bedingungen wie eine Bockrunde ausgelöst. Auch hier werden die Punkte der Spiele verdoppelt, allerdings ist jedes Spiel Ramsch. Wenn Bock- und Ramschrunde gespielt werden soll, dann folgt die Ramsch- auf die Bockrunde.}
                 xywh {25 130 135 25}
                 extra_code {int i;

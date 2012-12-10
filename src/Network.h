@@ -35,7 +35,8 @@ using namespace std;
 
 class Network {
 	static const size_t maxpeers = 2;
-	static const size_t fifosize = 302;
+	static const size_t fifosize = 309;
+	static const size_t splitsize = 103;
 	static const size_t fifomax = 5;
 	static const size_t recvsize = 60000;
 	static const unsigned timerrate = 4;
@@ -49,7 +50,7 @@ class Network {
 
 	struct Peer {
 		udpendpoint	endpoint;
-		deque<ucharbuf>	fifo;
+		list<ucharbuf>	fifo;
 		ucharbuf	buffer;
 		deque<string>	messages;
 		ucharbuf	header;
@@ -83,7 +84,7 @@ class Network {
 	void insert_header(unsigned);
 	void erase_header(ucharbuf&);
 	void handle_command(unsigned, const string&, const string&);
-	void processmessage(unsigned, const string&);
+	void process_message(unsigned, const string&);
 
 	void worker(void);
 	void receiver(const errorcode&, size_t);

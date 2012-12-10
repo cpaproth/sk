@@ -93,13 +93,16 @@ static double uchar_dbl(unsigned char c) {
 
 
 void Audio::encode(const short* in) {
+	static unsigned frame = 0;
+	frame++;
+
 	for (unsigned i = 0; i < data.size(); i++)
 		data[i] = in[i] / 32768.;
 	fft(data, true);
 
 	double minrho = 1., maxrho = 0.;
 	vector<double> channels;
-	for (unsigned i = 10; i < data.size() / 2 && i < 310; i++) {
+	for (unsigned i = minfreq; i < data.size() / 2 && i < maxfreq; i++) {
 		double amp = abs(data[i]) / (data.size() / 2);
 		channels.push_back(amp);
 		minrho = amp < minrho? amp: minrho;
@@ -107,77 +110,43 @@ void Audio::encode(const short* in) {
 	}
 
 	encbuf.clear();
-	encbuf.push_back(dbl_uchar(minrho));
-	encbuf.push_back(dbl_uchar(maxrho - minrho));
+	for (unsigned f = 0; f < splitfreqs; f++) {
+		encbuf.push_back((f << 6) | (frame & 63));
+		encbuf.push_back(dbl_uchar(minrho));
+		encbuf.push_back(dbl_uchar(maxrho - minrho));
 
-	for (unsigned i = 0; i < channels.size(); i++) {
-		double amp = (channels[i] - minrho) / (maxrho - minrho);
-		double rho = log_amp(amp, 100.) * 31.;
-		double phi = (arg(data[i + 10]) + M_PI) / M_PI * 4.;
-		encbuf.push_back(((unsigned)(rho + 0.5) << 3) | ((unsigned)(phi + 0.5) & 7));
+		for (unsigned i = f; i < channels.size(); i += splitfreqs) {
+			double amp = (channels[i] - minrho) / (maxrho - minrho);
+			double rho = log_amp(amp, 100.) * 31.;
+			double phi = (arg(data[i + minfreq]) + M_PI) / M_PI * 4.;
+			encbuf.push_back(((unsigned)(rho + 0.5) << 3) | ((unsigned)(phi + 0.5) & 7));
+		}
 	}
-
-	//~ multimap<double, unsigned> greatest;
-	//~ for (unsigned i = 1; i < data.size() / 2; i++)
-		//~ greatest.insert(pair<double, unsigned>(abs(data[i]) / (data.size() / 2), i));
-		//~ 
-	//~ double minrho = 0., maxrho = greatest.rbegin()->first;
-	//~ map<unsigned, double> channels;
-	//~ for (multimap<double, unsigned>::reverse_iterator it = greatest.rbegin(); enchead + channels.size() < encodesize; it++, minrho = it->first)
-		//~ channels[it->second] = it->first;
-//~ 
-	//~ encbuf.assign(enchead, 0);
-	//~ encbuf[enchead - 2] = dbl_uchar(minrho);
-	//~ encbuf[enchead - 1] = dbl_uchar(maxrho - minrho);
-//~ 
-	//~ for (map<unsigned, double>::iterator it = channels.begin(); it != channels.end(); it++) {
-		//~ encbuf[it->first >> 3] |= 1 << (it->first & 7);
-		//~ double amp = (it->second - minrho) / (maxrho - minrho);
-		//~ double rho = log_amp(amp, 100.) * 31.;
-		//~ double phi = (arg(data[it->first]) + M_PI) / M_PI * 4.;
-		//~ encbuf.push_back(((unsigned)(rho + 0.5) << 3) | ((unsigned)(phi + 0.5) & 7));
-	//~ }
 }
 
 
 void Audio::decode(short* out) {
 	valarray<double> output(0., framesize);
 
-	for (unsigned k = 0; k < decbuf.size() && decbuf[k].size() > enchead; k++) {
-		data[0] = data[data.size() / 2] = 0.;
-		
-		double minrho = uchar_dbl(decbuf[k][0]);
-		double maxrho = minrho + uchar_dbl(decbuf[k][1]);
+	for (unsigned k = 0; k < decbuf.size(); k++) {
+		if (decbuf[k].size() < encodesize / splitfreqs)
+			continue;
 
-		for (unsigned j = 1, i = 0; j < data.size() / 2; j++) {
-			if (j >= 10 && j < 310 && enchead + i < decbuf[k].size()) {
-				double amp = pow_amp((decbuf[k][enchead + i] >> 3) / 31., 100.);
+		data = 0.;
+		for (unsigned i = 0; i < decbuf[k].size();) {
+			unsigned f = decbuf[k][i++] >> 6;
+			double minrho = uchar_dbl(decbuf[k][i++]);
+			double maxrho = minrho + uchar_dbl(decbuf[k][i++]);
+
+			for (unsigned j = minfreq + f; j < data.size() && j < maxfreq && i < decbuf[k].size(); j += splitfreqs, i++) {
+				double amp = pow_amp((decbuf[k][i] >> 3) / 31., 100.);
 				double rho = minrho + amp * (maxrho - minrho);
-				double phi = (decbuf[k][enchead + i] & 7) / 4. * M_PI - M_PI;
+				double phi = (decbuf[k][i] & 7) / 4. * M_PI - M_PI;
 				data[j] = 0.5 * polar<double>(rho, phi);
-				i++;
-			} else
-				data[j] = 0.5 * polar<double>(minrho * pow_amp(rangen.uniform(), 100.), 2. * M_PI * rangen.uniform());
-			data[data.size() - j] = conj(data[j]);
+				data[data.size() - j] = conj(data[j]);
+			}
 		}
-
-		//~ data[0] = data[data.size() / 2] = 0.;
-		//~ 
-		//~ double minrho = uchar_dbl(decbuf[k][enchead - 2]);
-		//~ double maxrho = minrho + uchar_dbl(decbuf[k][enchead - 1]);
-//~ 
-		//~ for (unsigned j = 1, i = 0; j < data.size() / 2; j++) {
-			//~ if (decbuf[k][j >> 3] & (1 << (j & 7)) && enchead + i < decbuf[k].size()) {
-				//~ double amp = pow_amp((decbuf[k][enchead + i] >> 3) / 31., 100.);
-				//~ double rho = minrho + amp * (maxrho - minrho);
-				//~ double phi = (decbuf[k][enchead + i] & 7) / 4. * M_PI - M_PI;
-				//~ data[j] = 0.5 * polar<double>(rho, phi);
-				//~ i++;
-			//~ } else
-				//~ data[j] = 0.5 * polar<double>(minrho * pow_amp(rangen.uniform(), 100.), 2. * M_PI * rangen.uniform());
-			//~ data[data.size() - j] = conj(data[j]);
-		//~ }
-
+		
 		fft(data, false);
 		for (unsigned i = 0; i < data.size(); i++)
 			output[i] += data[i].real();

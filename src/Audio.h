@@ -34,14 +34,15 @@ class Network;
 class Audio {
 	static const unsigned samplerate = 8000;
 	static const size_t framesize = 800;
-	static const size_t encodesize = 302;
-	static const size_t enchead = 2;
+	static const unsigned minfreq = 10;
+	static const unsigned maxfreq = 310;
+	static const size_t splitfreqs = 3;
+	static const size_t encodesize = 309;
 	static const unsigned maxlatency = 20;
 
 
 	PaStream*			stream;
 	CPLib::FFT			fft;
-	CPLib::RanGen			rangen;
 	valarray<complex<double> >	data;
 	vector<unsigned char>		encbuf;
 	vector<vector<unsigned char> >	decbuf;
