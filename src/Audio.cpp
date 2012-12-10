@@ -129,16 +129,13 @@ void Audio::decode(short* out) {
 	valarray<double> output(0., framesize);
 
 	for (unsigned k = 0; k < decbuf.size(); k++) {
-		if (decbuf[k].size() < encodesize / splitfreqs)
-			continue;
-
 		data = 0.;
-		for (unsigned i = 0; i < decbuf[k].size();) {
+		for (unsigned i = 0; i + 3 < decbuf[k].size();) {
 			unsigned f = decbuf[k][i++] >> 6;
 			double minrho = uchar_dbl(decbuf[k][i++]);
 			double maxrho = minrho + uchar_dbl(decbuf[k][i++]);
 
-			for (unsigned j = minfreq + f; j < data.size() && j < maxfreq && i < decbuf[k].size(); j += splitfreqs, i++) {
+			for (unsigned j = minfreq + f; j < data.size() / 2 && j < maxfreq && i < decbuf[k].size(); j += splitfreqs, i++) {
 				double amp = pow_amp((decbuf[k][i] >> 3) / 31., 100.);
 				double rho = minrho + amp * (maxrho - minrho);
 				double phi = (decbuf[k][i] & 7) / 4. * M_PI - M_PI;
