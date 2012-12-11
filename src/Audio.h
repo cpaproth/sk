@@ -34,10 +34,10 @@ class Network;
 class Audio {
 	static const unsigned samplerate = 8000;
 	static const size_t framesize = 800;
+	static const size_t fade = 50;
 	static const unsigned minfreq = 10;
 	static const unsigned maxfreq = 310;
 	static const size_t splitfreqs = 3;
-	static const size_t encodesize = 309;
 	static const unsigned maxlatency = 20;
 
 

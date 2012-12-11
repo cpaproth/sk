@@ -30,7 +30,7 @@ bool CPLib::Progress(size_t i, size_t n) {
 
 Audio::Audio(Network& nw) : fft(framesize), network(nw) {
 	data.resize(framesize);
-	encbuf.reserve(encodesize);
+	encbuf.reserve(maxfreq - minfreq + splitfreqs * 3);
 	stream = 0;
 	playmic = false;
 
@@ -149,8 +149,10 @@ void Audio::decode(short* out) {
 			output[i] += data[i].real();
 	}
 
-	for (unsigned i = 0; i < output.size(); i++)
+	for (unsigned i = 0; i < output.size(); i++) {
+		output[i] *= i < fade? sin(M_PI / 2. * i / fade): i > output.size() - fade? sin(M_PI / 2. * (output.size() - i) / fade): 1.;
 		out[i] = output[i] > 1.? 32767: output[i] < -1.? -32768: (short)(output[i] * 32767.);
+	}
 }
 
 

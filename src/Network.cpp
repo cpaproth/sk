@@ -150,7 +150,7 @@ void Network::command(unsigned i, const string& command, const string& data) {
 		
 	peers[i].messages.push_back(ss(msgid++) << ' ' << command << ' ' << data);
 	
-	if (peers[i].messages.back().length() >= fifosize) {
+	if (peers[i].messages.back().length() >= splitsize) {
 		peers[i].messages.pop_back();
 		return;
 	}
