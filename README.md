@@ -4,7 +4,8 @@ Skat-Konferenz is the popular German card game Skat played online combined with 
 This program is free software and comes with ABSOLUTELY NO WARRANTY. Licensed under the terms of [GPLv3](http://www.gnu.org/licenses/).
 
 Skat-Konferenz is written in C++ using portable libraries exclusively, so it should be compatible with UNIX/Linux (X11), MS Windows, and Mac OS X. Till now,
-it has been tested on Xubuntu 11.10 (32-bit and 64-bit), Xubuntu 12.04 (64-bit), and MS Windows XP and 7 ([32-bit](https://github.com/cpaproth/sk/downloads)).
+it has been tested on Xubuntu 11.10 (32-bit and 64-bit), Xubuntu 12.04 (64-bit), and
+[MS Windows XP and 7](https://github.com/cpaproth/sk/raw/master/downloads/sk_windows_binary_32-bit.zip).
 
 This software is in [beta state](https://github.com/cpaproth/sk/tags) and needs some testing. All features of the upcoming release version 1.0 are already implemented:
 * videoconferencing between 3 people with audio and video compression (v0.1)
@@ -12,7 +13,7 @@ This software is in [beta state](https://github.com/cpaproth/sk/tags) and needs 
 * bidding procedure and gameplay according to the international Skat Order rules (v0.5)
 * some unofficial but popular rules (Kontra, Re, Bock, Ramsch) and keeping a list of the played games (v0.8)
 * robust audio broadcast, every audio frame is split into three spectral frames which are broadcasted independently,
-thus a lost audio UDP packet will cause only a slight loss of audio quality (v1.0)
+thus a lost audio UDP packet will cause only a slight loss of audio quality (v1.0-beta)
 
 Desirable features of version 2.0 are:
 * echo cancellation to improve audio quality
@@ -35,7 +36,8 @@ Playing card images are copied from [GNOME Aisleriot](https://live.gnome.org/Ais
 ## Building
 
 To build *sk*, you need to install the dependencies with the corresponding development files first. If you are using some kind of Linux, they are probably available from
-your package manager. Unfortunately, FLTK-2.0 is an inactive branch of FLTK, it is likely that you have to install it [manually](https://github.com/cpaproth/sk/downloads).
+your package manager. Unfortunately, FLTK-2.0 is an inactive branch of FLTK, it is likely that you have to install it
+[manually](https://github.com/cpaproth/sk/raw/master/downloads/fltk-2.0.x-alpha-r9204.tar.bz2).
 In this case, you need the OpenGL and X11 dev packages already installed on your system.
 
 *sk* comes with a simple CMakeLists.txt file, thus you can use CMake to generate a makefile. Currently, this procedure works only on Linux,
