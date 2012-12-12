@@ -11,6 +11,8 @@ This software is in [beta state](https://github.com/cpaproth/sk/tags) and needs 
 * secure dealing out, i.e. one player alone cannot selectively manipulate the deal or identify the other players cards (v0.3)
 * bidding procedure and gameplay according to the international Skat Order rules (v0.5)
 * some unofficial but popular rules (Kontra, Re, Bock, Ramsch) and keeping a list of the played games (v0.8)
+* robust audio broadcast, every audio frame is split into three spectral frames which are broadcasted independently,
+thus a lost audio UDP packet will cause only a slight loss of audio quality (v1.0)
 
 Desirable features of version 2.0 are:
 * echo cancellation to improve audio quality
