@@ -434,7 +434,7 @@ void Game::game_over(void) {
 		if ((int)bid > score * gvalue) {
 			score = ((bid - 1) / gvalue + 1) * gvalue * -2;
 			show_info((player == myself? "Überreizt": (player == left? leftname: rightname) + " überreizt") + result);
-		} else if ((gextra >= 7 && ptricks > 0) || (gextra >= 3 && psum < 90) || psum <= 60) {
+		} else if ((gextra >= 7 && otricks > 0) || (gextra >= 3 && psum < 90) || psum <= 60) {
 			score *= gvalue * -2;
 			show_info((player == myself? "Verloren": (player == left? leftname: rightname) + " verliert") + result);
 		} else {
