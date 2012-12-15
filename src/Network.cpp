@@ -95,11 +95,13 @@ void Network::connect(const string& address, unsigned short port, unsigned bw) {
 	if (address.empty()) {
 		server = true;
 		socket.bind(udpendpoint(ip::udp::v4(), port));
-		
 	} else {
 		server = false;
 		endpoint = udpendpoint(ip::address_v4::from_string(address), port);
 		peers.push_back(Peer(endpoint));
+		
+		socket.bind(udpendpoint(ip::udp::v4(), 0));
+		socket.send_to(buffer(recvbuf, 0), endpoint);
 	}
 	
 	timer.expires_from_now(posix_time::milliseconds(1000 / timerrate));
