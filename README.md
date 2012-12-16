@@ -1,11 +1,12 @@
+![screenshot](https://github.com/cpaproth/sk/raw/master/images/screenshot.jpg)
+
 # *sk*
 
 Skat-Konferenz is the popular German card game Skat played online combined with videoconferencing. Copyright (C) 2012 Carsten Paproth (carpa at freenet dot de).
 This program is free software and comes with ABSOLUTELY NO WARRANTY. Licensed under the terms of [GPLv3](http://www.gnu.org/licenses/).
 
 Skat-Konferenz is written in C++ using portable libraries exclusively, so it should be compatible with UNIX/Linux (X11), MS Windows, and Mac OS X. Till now,
-it has been tested on Xubuntu 11.10 (32-bit and 64-bit), Xubuntu 12.04 (64-bit), and
-[MS Windows XP and 7](https://github.com/cpaproth/sk/raw/master/downloads/sk_windows_binary_32-bit.zip).
+it has been tested on Xubuntu 11.10 (32-bit and 64-bit), Xubuntu 12.04 (64-bit), MS Windows XP and Windows 7 ([download](https://github.com/cpaproth/sk/raw/master/downloads/sk_windows_binary_32-bit.zip)).
 
 This software is in [beta state](https://github.com/cpaproth/sk/tags) and needs some testing. All features of the upcoming release version 1.0 are already implemented:
 * videoconferencing between 3 people with audio and video compression (v0.1)
@@ -57,5 +58,3 @@ and click connect. Then tell the other two players your publicly reachable IP ad
 Now, the other two can start *sk* and connect to this disclosed IP address and UDP port. If a connection can be established, the videoconferencing starts.
 If two peers are connected to the server, the server initiates UDP hole punching between these two peers and if successful, the game starts.
 The game consists of secure dealing out, bidding, choosing the Skat cards, announcing the game, playing the hand, and especially small talk: Hinten ist die Ente fett!
-
-![screenshot](https://github.com/cpaproth/sk/raw/master/images/screenshot.jpg)
