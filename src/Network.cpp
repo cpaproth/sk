@@ -71,24 +71,25 @@ void Network::remove_handler(void) {
 
 
 void Network::connect(const string& address, unsigned short port, unsigned bw) {
-	if (iothread.joinable()) {
-		if (!hdlmutex.try_lock())
-			return;
-		lock_guard<mutex> hlock(hdlmutex, adopt_lock);
-		if (netmutex.try_lock()) {
-			lock_guard<timed_mutex> nlock(netmutex, adopt_lock);
-			timer.cancel();
-			socket.close();
-		} else {
-			return;
-		}
-
-		iothread.join();
-		peers.clear();
-		socket.open(ip::udp::v4());
-		endpoint = udpendpoint();
-		io.reset();
+	if (!hdlmutex.try_lock())
+		return;
+	lock_guard<mutex> hlock(hdlmutex, adopt_lock);
+	if (netmutex.try_lock()) {
+		lock_guard<timed_mutex> nlock(netmutex, adopt_lock);
+		timer.cancel();
+		socket.close();
+	} else {
+		return;
 	}
+
+	if (iothread.joinable())
+		iothread.join();
+
+	lock_guard<timed_mutex> lock(netmutex);
+	peers.clear();
+	socket.open(ip::udp::v4());
+	endpoint = udpendpoint();
+	io.reset();
 
 	bandwidth = bw;
 
@@ -100,11 +101,9 @@ void Network::connect(const string& address, unsigned short port, unsigned bw) {
 		
 		ip::udp::resolver resolver(io);
 		ip::udp::resolver::query query(ip::udp::v4(), address, ss(port));
-		
-		endpoint = *resolver.resolve(query);//udpendpoint(ip::address_v4::from_string(address), port);
+		endpoint = *resolver.resolve(query);
 		peers.push_back(Peer(endpoint));
 		
-		socket.bind(udpendpoint(ip::udp::v4(), 0));
 		socket.send_to(buffer(recvbuf, 1), endpoint);
 	}
 	
@@ -318,7 +317,7 @@ void Network::receiver(const errorcode& e, size_t n) {
 			peer->lasttime = (double)clock() / CLOCKS_PER_SEC;
 	}
 
-	if (e || n == 0 || peer == peers.end()) {
+	if (e || n <= 1 || peer == peers.end()) {
 		//ignore error or unknown peer
 	} else if (n < splitsize) {
 		process_message(peer - peers.begin(), string(recvbuf.begin(), recvbuf.begin() + n));
