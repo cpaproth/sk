@@ -97,11 +97,15 @@ void Network::connect(const string& address, unsigned short port, unsigned bw) {
 		socket.bind(udpendpoint(ip::udp::v4(), port));
 	} else {
 		server = false;
-		endpoint = udpendpoint(ip::address_v4::from_string(address), port);
+		
+		ip::udp::resolver resolver(io);
+		ip::udp::resolver::query query(ip::udp::v4(), address, ss(port));
+		
+		endpoint = *resolver.resolve(query);//udpendpoint(ip::address_v4::from_string(address), port);
 		peers.push_back(Peer(endpoint));
 		
 		socket.bind(udpendpoint(ip::udp::v4(), 0));
-		socket.send_to(buffer(recvbuf, 0), endpoint);
+		socket.send_to(buffer(recvbuf, 1), endpoint);
 	}
 	
 	timer.expires_from_now(posix_time::milliseconds(1000 / timerrate));
