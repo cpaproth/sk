@@ -55,7 +55,7 @@ namespace SK {open
           xywh {0 0 960 700}
         } {
           {fltk::Group} {} {
-            label Spiel open
+            label Spiel open selected
             xywh {0 25 960 675}
           } {
             {fltk::InvisibleBox} table {
@@ -242,13 +242,13 @@ f["game select"]();}
             }
             {fltk::Group} {} {
               label Netzwerk open
-              xywh {90 60 390 290} align 33 box DOWN_BOX labeltype ENGRAVED_LABEL
+              xywh {65 45 355 290} align 33 box DOWN_BOX labeltype ENGRAVED_LABEL
             } {
               {fltk::Input} address {
                 label {IP-Adresse}
                 callback {prefs.set("ipaddress", address->value());}
                 tooltip {Das Feld leer lassen, um beim Verbinden des Netzwerks als Server zu dienen. Damit sich andere Spieler als Clients mit diesem Server verbinden können, musst du ihnen die öffentlich erreichbare IP-Adresse und den ausgewählten UDP-Port mitteilen.}
-                xywh {165 40 195 25}
+                xywh {135 40 195 25}
                 extra_code {char* c;
 prefs.get("ipaddress", c, "");
 address->value(c);
@@ -262,40 +262,40 @@ if (port->value() > 65535)
   port->value(65535);
 prefs.set("udpport", port->value());}
                 tooltip {Um einen Server mit einer Portnummer kleiner als 1024 zu starten, benötigt man evtl. Root-Rechte.}
-                xywh {165 90 195 25} when RELEASE color 0xffffff00 maximum 65535 step 1
+                xywh {135 90 195 25} when RELEASE color 0xffffff00 maximum 65535 step 1
                 extra_code {double d;
 prefs.get("udpport", d, 34588);
-port->value(d);}
+port->value(d < 0? 0: d > 65535? 65535: d);}
               }
               {fltk::ValueInput} bandwidth {
-                label {Video Upload-Bandbreite}
-                callback {if (bandwidth->value() < 0)
-  bandwidth->value(0);
-prefs.set("bandwidth", bandwidth->value());} selected
-                tooltip {Maximale Upload-Bandbreite für Video in Byte/s, wird auf die verbundenen Peers aufgeteilt. Der Audiostream benötigt pro Peer immer 3000 Byte/s, sonstiger Netzwerkverkehr ist weniger als 1000 Byte/s pro Peer.}
-                xywh {165 140 195 25} when RELEASE color 0xffffff00 maximum 1e+09 step 1
+                label {Upload-Bandbreite}
+                callback {if (bandwidth->value() < 8000)
+  bandwidth->value(8000);
+prefs.set("bandwidth", bandwidth->value());}
+                tooltip {Maximale Upload-Bandbreite in Byte/s, die auf die verbundenen Peers aufgeteilt werden kann. Dieser Wert sollte nicht größer sein als die eigene Internetverbindung zulässt. Wenn der Wert zu klein ist, dann wird kein Video mehr übertragen. Der Audiostream benötigt pro Peer immer 3000 Byte/s, sonstiger Netzwerkverkehr ist weniger als 1000 Byte/s pro Peer.}
+                xywh {135 140 195 25} when RELEASE color 0xffffff00 maximum 1e+09 step 1
                 extra_code {double d;
-prefs.get("bandwidth", d, 50000);
-bandwidth->value(d);
+prefs.get("bandwidth", d, 16000);
+bandwidth->value(d < 8000? 8000: d);
 bandwidth->linesize(1000);}
               }
               {fltk::Button} {} {
                 label Verbinden
                 callback {f["network connect"]();}
                 tooltip {Wenn das IP-Adressenfeld leer ist, dann startest du hiermit die Skat-Konferenz als Server, ansonsten wird eine Verbindung zu der angegebenen IP-Adresse und UDP-Port aufgebaut. Wenn die Verbindung erfolgreich ist, dann beginnt die Videokonferenz. Wenn 3 Peers miteinander verbunden sind, dann startet das Spiel.}
-                xywh {165 190 195 25}
+                xywh {135 190 195 25}
               }
               {fltk::Button} {} {
                 label Stats
                 callback {f["network stats"]();}
                 tooltip {Gibt ein paar Statistiken über die verbundenen Peers im Log-Fenster aus.}
-                xywh {165 240 195 25}
+                xywh {135 240 195 25}
               }
               {fltk::CheckButton} autoconnect {
                 label Auto
                 callback {prefs.set("autoconnect", autoconnect->value());}
                 tooltip {Wenn aktiviert, dann wird das Netzwerk beim nächsten Programmstart automatisch verbunden. Nur sinnvoll beim Start als Server oder bei Verbindung zu statischer IP-Adresse.}
-                xywh {70 190 60 25}
+                xywh {55 190 60 25}
                 extra_code {int i;
 prefs.get("autoconnect", i, 0);
 autoconnect->value(i != 0);}

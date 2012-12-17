@@ -190,8 +190,8 @@ void UserInterface::cb_port(fltk::ValueInput* o, void* v) {
 }
 
 inline void UserInterface::cb_bandwidth_i(fltk::ValueInput*, void*) {
-  if (bandwidth->value() < 0)
-    bandwidth->value(0);
+  if (bandwidth->value() < 8000)
+    bandwidth->value(8000);
   prefs.set("bandwidth", bandwidth->value());
 }
 void UserInterface::cb_bandwidth(fltk::ValueInput* o, void* v) {
@@ -468,12 +468,12 @@ chtig einstellen zu k\303\266nnen, damit z.B. Echos verringert werden. ");
           }
           o->end();
         }
-         {fltk::Group* o = new fltk::Group(90, 60, 390, 290, "Netzwerk");
+         {fltk::Group* o = new fltk::Group(65, 45, 355, 290, "Netzwerk");
           o->box(fltk::DOWN_BOX);
           o->labeltype(fltk::ENGRAVED_LABEL);
           o->align(fltk::ALIGN_TOP|fltk::ALIGN_INSIDE);
           o->begin();
-           {fltk::Input* o = address = new fltk::Input(165, 40, 195, 25, "IP-Adresse");
+           {fltk::Input* o = address = new fltk::Input(135, 40, 195, 25, "IP-Adresse");
             o->callback((fltk::Callback*)cb_address);
             o->tooltip("Das Feld leer lassen, um beim Verbinden des Netzwerks als Server zu dienen. D\
 amit sich andere Spieler als Clients mit diesem Server verbinden k\303\266nnen\
@@ -484,7 +484,7 @@ amit sich andere Spieler als Clients mit diesem Server verbinden k\303\266nnen\
             address->value(c);
             delete[] c;
           }
-           {fltk::ValueInput* o = port = new fltk::ValueInput(165, 90, 195, 25, "UDP-Port");
+           {fltk::ValueInput* o = port = new fltk::ValueInput(135, 90, 195, 25, "UDP-Port");
             o->color((fltk::Color)0xffffff00);
             o->maximum(65535);
             o->step(1);
@@ -494,35 +494,38 @@ amit sich andere Spieler als Clients mit diesem Server verbinden k\303\266nnen\
 \266tigt man evtl. Root-Rechte.");
             double d;
             prefs.get("udpport", d, 34588);
-            port->value(d);
+            port->value(d < 0? 0: d > 65535? 65535: d);
           }
-           {fltk::ValueInput* o = bandwidth = new fltk::ValueInput(165, 140, 195, 25, "Video Upload-Bandbreite");
+           {fltk::ValueInput* o = bandwidth = new fltk::ValueInput(135, 140, 195, 25, "Upload-Bandbreite");
             o->color((fltk::Color)0xffffff00);
             o->maximum(1e+09);
             o->step(1);
             o->callback((fltk::Callback*)cb_bandwidth);
             o->when(fltk::WHEN_RELEASE);
-            o->tooltip("Maximale Upload-Bandbreite f\303\274r Video in Byte/s, wird auf die verbunden\
-en Peers aufgeteilt. Der Audiostream ben\303\266tigt pro Peer immer 3000 Byte/\
-s, sonstiger Netzwerkverkehr ist weniger als 1000 Byte/s pro Peer.");
+            o->tooltip("Maximale Upload-Bandbreite in Byte/s, die auf die verbundenen Peers aufgeteil\
+t werden kann. Dieser Wert sollte nicht gr\303\266\303\237""er sein als die ei\
+gene Internetverbindung zul\303\244sst. Wenn der Wert zu klein ist, dann wird \
+kein Video mehr \303\274""bertragen. Der Audiostream ben\303\266tigt pro Peer \
+immer 3000 Byte/s, sonstiger Netzwerkverkehr ist weniger als 1000 Byte/s pro P\
+eer.");
             double d;
-            prefs.get("bandwidth", d, 50000);
-            bandwidth->value(d);
+            prefs.get("bandwidth", d, 16000);
+            bandwidth->value(d < 8000? 8000: d);
             bandwidth->linesize(1000);
           }
-           {fltk::Button* o = new fltk::Button(165, 190, 195, 25, "Verbinden");
+           {fltk::Button* o = new fltk::Button(135, 190, 195, 25, "Verbinden");
             o->callback((fltk::Callback*)cb_Verbinden);
             o->tooltip("Wenn das IP-Adressenfeld leer ist, dann startest du hiermit die Skat-Konferen\
 z als Server, ansonsten wird eine Verbindung zu der angegebenen IP-Adresse und\
  UDP-Port aufgebaut. Wenn die Verbindung erfolgreich ist, dann beginnt die Vid\
 eokonferenz. Wenn 3 Peers miteinander verbunden sind, dann startet das Spiel.");
           }
-           {fltk::Button* o = new fltk::Button(165, 240, 195, 25, "Stats");
+           {fltk::Button* o = new fltk::Button(135, 240, 195, 25, "Stats");
             o->callback((fltk::Callback*)cb_Stats);
             o->tooltip("Gibt ein paar Statistiken \303\274""ber die verbundenen Peers im Log-Fenster \
 aus.");
           }
-           {fltk::CheckButton* o = autoconnect = new fltk::CheckButton(70, 190, 60, 25, "Auto");
+           {fltk::CheckButton* o = autoconnect = new fltk::CheckButton(55, 190, 60, 25, "Auto");
             o->callback((fltk::Callback*)cb_autoconnect);
             o->tooltip("Wenn aktiviert, dann wird das Netzwerk beim n\303\244""chsten Programmstart a\
 utomatisch verbunden. Nur sinnvoll beim Start als Server oder bei Verbindung z\

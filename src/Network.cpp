@@ -39,7 +39,7 @@ istream& operator>>(istream& s, ip::udp::endpoint& ep) {
 
 Network::Network(void) : socket(io, ip::udp::v4()), timer(io) {
 	msgid = 0;
-	bandwidth = 0;
+	bandwidth = maxpeers * minbw;
 	mutexbusy = 0;
 	ignoredmsg = 0;
 	recvbuf.resize(recvsize);
@@ -91,7 +91,7 @@ void Network::connect(const string& address, unsigned short port, unsigned bw) {
 	endpoint = udpendpoint();
 	io.reset();
 
-	bandwidth = bw;
+	minimal(bandwidth = bw, (unsigned)(maxpeers * minbw));
 
 	if (address.empty()) {
 		server = true;
@@ -379,9 +379,8 @@ void Network::deadline(const errorcode& e) {
 			socket.async_send_to(buffer(*buf), peers[i].endpoint, bind(&Network::sender, this, buf, _1, _2));
 		}
 		
-		peers[i].bucket += bandwidth / peers.size() / timerrate;
-		if (peers[i].bucket > bandwidth / peers.size())
-			peers[i].bucket = bandwidth / peers.size();
+		peers[i].bucket += (bandwidth / peers.size() - minbw) / timerrate;
+		maximal(peers[i].bucket, (unsigned)(bandwidth / peers.size() - minbw));
 	}
 	
 	timer.expires_at(timer.expires_at() + posix_time::milliseconds(1000 / timerrate));
