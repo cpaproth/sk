@@ -272,7 +272,7 @@ port->value(d < 0? 0: d > 65535? 65535: d);}
                 callback {if (bandwidth->value() < 8000)
   bandwidth->value(8000);
 prefs.set("bandwidth", bandwidth->value());}
-                tooltip {Maximale Upload-Bandbreite in Byte/s, die auf die verbundenen Peers aufgeteilt werden kann. Dieser Wert sollte nicht größer sein als die eigene Internetverbindung zulässt. Wenn der Wert zu klein ist, dann wird kein Video mehr übertragen. Der Audiostream benötigt pro Peer immer 3000 Byte/s, sonstiger Netzwerkverkehr ist weniger als 1000 Byte/s pro Peer.}
+                tooltip {Maximale Upload-Bandbreite in Byte/s, die auf die verbundenen Peers aufgeteilt werden kann. Dieser Wert sollte nicht größer sein als die eigene Internetverbindung zulässt. Der Audiostream benötigt pro Peer immer 3000 Byte/s, sonstiger Netzwerkverkehr ist weniger als 1000 Byte/s pro Peer, der Videostream verwendet den Rest.}
                 xywh {135 140 195 25} when RELEASE color 0xffffff00 maximum 1e+09 step 1
                 extra_code {double d;
 prefs.get("bandwidth", d, 16000);

@@ -504,10 +504,9 @@ amit sich andere Spieler als Clients mit diesem Server verbinden k\303\266nnen\
             o->when(fltk::WHEN_RELEASE);
             o->tooltip("Maximale Upload-Bandbreite in Byte/s, die auf die verbundenen Peers aufgeteil\
 t werden kann. Dieser Wert sollte nicht gr\303\266\303\237""er sein als die ei\
-gene Internetverbindung zul\303\244sst. Wenn der Wert zu klein ist, dann wird \
-kein Video mehr \303\274""bertragen. Der Audiostream ben\303\266tigt pro Peer \
-immer 3000 Byte/s, sonstiger Netzwerkverkehr ist weniger als 1000 Byte/s pro P\
-eer.");
+gene Internetverbindung zul\303\244sst. Der Audiostream ben\303\266tigt pro Pe\
+er immer 3000 Byte/s, sonstiger Netzwerkverkehr ist weniger als 1000 Byte/s pr\
+o Peer, der Videostream verwendet den Rest.");
             double d;
             prefs.get("bandwidth", d, 16000);
             bandwidth->value(d < 8000? 8000: d);

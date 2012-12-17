@@ -379,8 +379,8 @@ void Network::deadline(const errorcode& e) {
 			socket.async_send_to(buffer(*buf), peers[i].endpoint, bind(&Network::sender, this, buf, _1, _2));
 		}
 		
-		peers[i].bucket += (bandwidth / peers.size() - minbw) / timerrate;
-		maximal(peers[i].bucket, (unsigned)(bandwidth / peers.size() - minbw));
+		peers[i].bucket += max(bandwidth / peers.size() - minbw, (size_t)500) / timerrate;
+		maximal(peers[i].bucket, bandwidth);
 	}
 	
 	timer.expires_at(timer.expires_at() + posix_time::milliseconds(1000 / timerrate));
