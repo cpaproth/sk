@@ -178,6 +178,7 @@ void Video::worker(void) {
 				ui.rightimage->redraw();
 			}
 			fltk::awake();
+			this_thread::sleep(posix_time::milliseconds(10));
 		}
 	} catch (std::exception& e) {
 		cout << "video failure: " << e.what() << endl;

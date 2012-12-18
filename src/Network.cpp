@@ -85,7 +85,7 @@ void Network::connect(const string& address, unsigned short port, unsigned bw) {
 	if (iothread.joinable())
 		iothread.join();
 
-	lock_guard<timed_mutex> lock(netmutex);
+	lock_guard<timed_mutex> nlock(netmutex);
 	peers.clear();
 	socket.open(ip::udp::v4());
 	endpoint = udpendpoint();
@@ -138,6 +138,7 @@ void Network::broadcast(const ucharbuf& send, vector<ucharbuf>& recv, unsigned l
 				socket.async_send_to(buffer(&(*buf)[s], splitsize), peers[i].endpoint, bind(&Network::sender, this, buf, _1, _2));
 		} else {
 			recv.push_back(peers[i].buffer);
+			peers[i].buffer.clear();
 			if (peers[i].bucket >= buf->size()) {
 				socket.async_send_to(buffer(*buf), peers[i].endpoint, bind(&Network::sender, this, buf, _1, _2));
 				peers[i].bucket -= buf->size();
@@ -197,7 +198,9 @@ void Network::erase_header(ucharbuf& b) {
 
 
 void Network::handle_command(unsigned i, const string& command, const string& data) {
-	lock_guard<mutex> lock(hdlmutex);
+	if (!hdlmutex.try_lock())
+		return;
+	lock_guard<mutex> lock(hdlmutex, adopt_lock);
 
 	bool handled = false;
 	for (unsigned j = 0; j < handlers.size(); j++)
@@ -316,7 +319,7 @@ void Network::receiver(const errorcode& e, size_t n) {
 				}
 		}
 		if (peer != peers.end())
-			peer->lasttime = time(0);
+			peer->lasttime = (size_t)time(0);
 	}
 
 	if (e || n <= 1 || peer == peers.end()) {
