@@ -763,7 +763,7 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 	UILock lock;
 
 	if (command == "peersconnected" && data == "2") {
-		cout << "2 peers connected, the game can start!" << endl;
+		cout << "3 peers connected with each other, the game can start!" << endl;
 		network.command(0, "seat", "left");
 		network.command(1, "seat", "right");
 		reset_round();

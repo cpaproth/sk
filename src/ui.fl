@@ -55,7 +55,7 @@ namespace SK {open
           xywh {0 0 960 700}
         } {
           {fltk::Group} {} {
-            label Spiel open selected
+            label Skat selected
             xywh {0 25 960 675}
           } {
             {fltk::InvisibleBox} table {
@@ -225,29 +225,29 @@ f["game select"]();}
           } {
             {fltk::Group} {} {
               label Audio open
-              xywh {630 85 220 145} align 33 box DOWN_BOX labeltype ENGRAVED_LABEL
+              xywh {630 85 220 140} align 33 box DOWN_BOX labeltype ENGRAVED_LABEL
             } {
               {fltk::Button} {} {
-                label {Neustart Audiostream}
+                label {Restart Audio Stream}
                 callback {f["audio restart"]();}
-                tooltip {Falls der Audiostream verzögert läuft, kann ein Neustart dies evtl. beheben. Zeigt zusätzlich die gegenwärtige CPU Auslastung des Audiostreams im Log-Fenster an.}
+                tooltip {Restart the audio stream and print the current CPU load of the audio stream into the log window.}
                 private xywh {35 40 150 25}
               }
               {fltk::CheckButton} {} {
-                label {Mikrofon abspielen}
+                label {Playback Microphone}
                 callback {f["audio toggle"]();}
-                tooltip {Wenn aktiviert, dann wird die Mikrofonaufnahme nicht übers Netzwerk gesendet, sondern direkt abgespielt. Kann nützlich sein um den Mixer richtig einstellen zu können, damit z.B. Echos verringert werden. }
+                tooltip {When activated, the microphone recording will not be broadcasted but directly played back. Use this to adjust your mixer settings, e.g. to reduce echoes.}
                 xywh {35 90 150 25}
               }
             }
             {fltk::Group} {} {
-              label Netzwerk open
+              label Network open
               xywh {65 45 355 290} align 33 box DOWN_BOX labeltype ENGRAVED_LABEL
             } {
               {fltk::Input} address {
-                label {IP-Adresse}
+                label {IP address}
                 callback {prefs.set("ipaddress", address->value());}
-                tooltip {Das Feld leer lassen, um beim Verbinden des Netzwerks als Server zu dienen. Damit sich andere Spieler als Clients mit diesem Server verbinden können, musst du ihnen die öffentlich erreichbare IP-Adresse und den ausgewählten UDP-Port mitteilen.}
+                tooltip {The IP address or hostname of the server you want to connect to. If you want to be the server (one of the peers has to be the server), leave this field empty and click connect. Then tell the other peers your publicly reachable IP address or hostname, and UDP port.}
                 xywh {135 40 195 25}
                 extra_code {char* c;
 prefs.get("ipaddress", c, "");
@@ -255,24 +255,24 @@ address->value(c);
 delete[] c;}
               }
               {fltk::ValueInput} port {
-                label {UDP-Port}
+                label {UDP port}
                 callback {if (port->value() < 0)
   port->value(0);
 if (port->value() > 65535)
   port->value(65535);
 prefs.set("udpport", port->value());}
-                tooltip {Um einen Server mit einer Portnummer kleiner als 1024 zu starten, benötigt man evtl. Root-Rechte.}
+                tooltip {The UDP port of the server.}
                 xywh {135 90 195 25} when RELEASE color 0xffffff00 maximum 65535 step 1
                 extra_code {double d;
 prefs.get("udpport", d, 34588);
 port->value(d < 0? 0: d > 65535? 65535: d);}
               }
               {fltk::ValueInput} bandwidth {
-                label {Upload-Bandbreite}
+                label {Upload bandwidth}
                 callback {if (bandwidth->value() < 8000)
   bandwidth->value(8000);
 prefs.set("bandwidth", bandwidth->value());}
-                tooltip {Maximale Upload-Bandbreite in Byte/s, die auf die verbundenen Peers aufgeteilt werden kann. Dieser Wert sollte nicht größer sein als die eigene Internetverbindung zulässt. Der Audiostream benötigt pro Peer immer 3000 Byte/s, sonstiger Netzwerkverkehr ist weniger als 1000 Byte/s pro Peer, der Videostream verwendet den Rest.}
+                tooltip {Maximal bandwidth for the upload in bytes per second. This value shouldn't be greater than the upload speed of your internet connection. The bandwidth is distributed among the connnected peers, the audio stream always needs 3000 bytes per second per peer.}
                 xywh {135 140 195 25} when RELEASE color 0xffffff00 maximum 1e+09 step 1
                 extra_code {double d;
 prefs.get("bandwidth", d, 16000);
@@ -280,21 +280,21 @@ bandwidth->value(d < 8000? 8000: d);
 bandwidth->linesize(1000);}
               }
               {fltk::Button} {} {
-                label Verbinden
+                label Connect
                 callback {f["network connect"]();}
-                tooltip {Wenn das IP-Adressenfeld leer ist, dann startest du hiermit die Skat-Konferenz als Server, ansonsten wird eine Verbindung zu der angegebenen IP-Adresse und UDP-Port aufgebaut. Wenn die Verbindung erfolgreich ist, dann beginnt die Videokonferenz. Wenn 3 Peers miteinander verbunden sind, dann startet das Spiel.}
+                tooltip {Connect to the server or start the server (if the IP address field is empty). If a connection can be established, the videoconferencing starts. If 3 peers are connected with each other, the game starts.}
                 xywh {135 190 195 25}
               }
               {fltk::Button} {} {
                 label Stats
                 callback {f["network stats"]();}
-                tooltip {Gibt ein paar Statistiken über die verbundenen Peers im Log-Fenster aus.}
+                tooltip {Print some stats on the connected peers into the log window.}
                 xywh {135 240 195 25}
               }
               {fltk::CheckButton} autoconnect {
                 label Auto
                 callback {prefs.set("autoconnect", autoconnect->value());}
-                tooltip {Wenn aktiviert, dann wird das Netzwerk beim nächsten Programmstart automatisch verbunden. Nur sinnvoll beim Start als Server oder bei Verbindung zu statischer IP-Adresse.}
+                tooltip {When activated, the network will be connected automatically during the next program start. This is only reasonable for the server or the connection to a static IP address or hostname.}
                 xywh {55 190 60 25}
                 extra_code {int i;
 prefs.get("autoconnect", i, 0);
@@ -302,25 +302,25 @@ autoconnect->value(i != 0);}
               }
             }
             {fltk::Group} {} {
-              label Benutzer open
-              xywh {525 295 265 135} align 33 box DOWN_BOX labeltype ENGRAVED_LABEL
+              label Player open
+              xywh {525 295 245 135} align 33 box DOWN_BOX labeltype ENGRAVED_LABEL
             } {
               {fltk::Input} name {
-                label Spielername
+                label Name
                 callback {prefs.set("username", name->value());
 f["name change"]();}
-                tooltip {Dein Spielername.}
-                xywh {85 40 165 25}
+                tooltip {Your name during the game.}
+                xywh {55 40 165 25}
                 extra_code {char* c;
 prefs.get("username", c, "nobody");
 name->value(c);
 delete[] c;}
               }
               {fltk::Input} secret {
-                label Geheimnis
+                label Secret
                 callback {prefs.set("secret", secret->value());}
-                tooltip {Wird zusätzlich zur Zeit verwendet um den Zufallsgenerator zu initialisieren.}
-                xywh {85 85 165 25}
+                tooltip {The secret and the time are used to initialize your random number generator at program start.}
+                xywh {55 85 165 25}
                 extra_code {char* c;
 prefs.get("secret", c, "");
 secret->value(c);
@@ -328,7 +328,7 @@ delete[] c;}
               }
             }
             {fltk::Group} {} {
-              label Sonderregeln open
+              label {Sonderregeln (SR)} open
               tooltip {Es gelten die Regeln der internationalen Skatordnung. Es sind nur die Sonderregeln wirksam, die bei allen Spielern aktiviert sind. Ramsch wird ohne Schieben, Grand Hand und Durchmarsch gespielt. Der Spieler mit den wenigsten Augen gewinnt das Ramsch-Spiel mit 23 Punkten, macht er gar keinen Stich (Jungfrau), gewinnt er mit 46 Punkten.}
               xywh {170 400 275 175} align 33 box DOWN_BOX labeltype ENGRAVED_LABEL
             } {
@@ -385,7 +385,7 @@ junkrule->value(i != 0);}
             {fltk::Browser} listing {open
               xywh {480 0 480 675}
               extra_code {const int widths[] = {150, 50, 80, 80, 80, -1, 0};
-const char* labels[] = {"Spiel", "Punkte", "Du", "Links", "Rechts", "", 0};
+const char* labels[] = {"Spiel", "Punkte", "Du", "Links", "Rechts", "SR", 0};
 listing->column_widths(widths);
 listing->column_labels(labels);}
             } {}

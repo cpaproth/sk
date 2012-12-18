@@ -3,7 +3,7 @@
 #include "ui.h"
 //Copyright (C) 2012 Carsten Paproth
 using namespace SK;
-using namespace images;
+using namespace SK::images;
 
 inline void UserInterface::cb_mainwnd_i(fltk::Window*, void*) {
   mainwnd->hide();
@@ -157,18 +157,18 @@ void UserInterface::cb_giveup(fltk::Button* o, void* v) {
   ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_giveup_i(o,v);
 }
 
-inline void UserInterface::cb_Neustart_i(fltk::Button*, void*) {
+inline void UserInterface::cb_Restart_i(fltk::Button*, void*) {
   f["audio restart"]();
 }
-void UserInterface::cb_Neustart(fltk::Button* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_Neustart_i(o,v);
+void UserInterface::cb_Restart(fltk::Button* o, void* v) {
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_Restart_i(o,v);
 }
 
-inline void UserInterface::cb_Mikrofon_i(fltk::CheckButton*, void*) {
+inline void UserInterface::cb_Playback_i(fltk::CheckButton*, void*) {
   f["audio toggle"]();
 }
-void UserInterface::cb_Mikrofon(fltk::CheckButton* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_Mikrofon_i(o,v);
+void UserInterface::cb_Playback(fltk::CheckButton* o, void* v) {
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_Playback_i(o,v);
 }
 
 inline void UserInterface::cb_address_i(fltk::Input*, void*) {
@@ -198,11 +198,11 @@ void UserInterface::cb_bandwidth(fltk::ValueInput* o, void* v) {
   ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_bandwidth_i(o,v);
 }
 
-inline void UserInterface::cb_Verbinden_i(fltk::Button*, void*) {
+inline void UserInterface::cb_Connect_i(fltk::Button*, void*) {
   f["network connect"]();
 }
-void UserInterface::cb_Verbinden(fltk::Button* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_Verbinden_i(o,v);
+void UserInterface::cb_Connect(fltk::Button* o, void* v) {
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_Connect_i(o,v);
 }
 
 inline void UserInterface::cb_Stats_i(fltk::Button*, void*) {
@@ -292,7 +292,7 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
     o->begin();
      {fltk::TabGroup* o = new fltk::TabGroup(0, 0, 960, 700);
       o->begin();
-       {fltk::Group* o = new fltk::Group(0, 25, 960, 675, "Spiel");
+       {fltk::Group* o = new fltk::Group(0, 25, 960, 675, "Skat");
         o->begin();
          {GlTable* o = table = new GlTable(0, 240, 640, 435);
           o->box(fltk::FLAT_BOX);
@@ -449,109 +449,103 @@ UserInterface::UserInterface(void):prefs(fltk::Preferences::USER, "cpaproth", "s
        {fltk::Group* o = new fltk::Group(0, 25, 960, 675, "System");
         o->hide();
         o->begin();
-         {fltk::Group* o = new fltk::Group(630, 85, 220, 145, "Audio");
+         {fltk::Group* o = new fltk::Group(630, 85, 220, 140, "Audio");
           o->box(fltk::DOWN_BOX);
           o->labeltype(fltk::ENGRAVED_LABEL);
           o->align(fltk::ALIGN_TOP|fltk::ALIGN_INSIDE);
           o->begin();
-           {fltk::Button* o = new fltk::Button(35, 40, 150, 25, "Neustart Audiostream");
-            o->callback((fltk::Callback*)cb_Neustart);
-            o->tooltip("Falls der Audiostream verz\303\266gert l\303\244uft, kann ein Neustart dies e\
-vtl. beheben. Zeigt zus\303\244tzlich die gegenw\303\244rtige CPU Auslastung d\
-es Audiostreams im Log-Fenster an.");
+           {fltk::Button* o = new fltk::Button(35, 40, 150, 25, "Restart Audio Stream");
+            o->callback((fltk::Callback*)cb_Restart);
+            o->tooltip("Restart the audio stream and print the current CPU load of the audio stream i\
+nto the log window.");
           }
-           {fltk::CheckButton* o = new fltk::CheckButton(35, 90, 150, 25, "Mikrofon abspielen");
-            o->callback((fltk::Callback*)cb_Mikrofon);
-            o->tooltip("Wenn aktiviert, dann wird die Mikrofonaufnahme nicht \303\274""bers Netzwerk \
-gesendet, sondern direkt abgespielt. Kann n\303\274tzlich sein um den Mixer ri\
-chtig einstellen zu k\303\266nnen, damit z.B. Echos verringert werden. ");
+           {fltk::CheckButton* o = new fltk::CheckButton(35, 90, 150, 25, "Playback Microphone");
+            o->callback((fltk::Callback*)cb_Playback);
+            o->tooltip("When activated, the microphone recording will not be broadcasted but directly\
+ played back. Use this to adjust your mixer settings, e.g. to reduce echoes.");
           }
           o->end();
         }
-         {fltk::Group* o = new fltk::Group(65, 45, 355, 290, "Netzwerk");
+         {fltk::Group* o = new fltk::Group(65, 45, 355, 290, "Network");
           o->box(fltk::DOWN_BOX);
           o->labeltype(fltk::ENGRAVED_LABEL);
           o->align(fltk::ALIGN_TOP|fltk::ALIGN_INSIDE);
           o->begin();
-           {fltk::Input* o = address = new fltk::Input(135, 40, 195, 25, "IP-Adresse");
+           {fltk::Input* o = address = new fltk::Input(135, 40, 195, 25, "IP address");
             o->callback((fltk::Callback*)cb_address);
-            o->tooltip("Das Feld leer lassen, um beim Verbinden des Netzwerks als Server zu dienen. D\
-amit sich andere Spieler als Clients mit diesem Server verbinden k\303\266nnen\
-, musst du ihnen die \303\266""ffentlich erreichbare IP-Adresse und den ausgew\
-\303\244hlten UDP-Port mitteilen.");
+            o->tooltip("The IP address or hostname of the server you want to connect to. If you want \
+to be the server (one of the peers has to be the server), leave this field emp\
+ty and click connect. Then tell the other peers your publicly reachable IP add\
+ress or hostname, and UDP port.");
             char* c;
             prefs.get("ipaddress", c, "");
             address->value(c);
             delete[] c;
           }
-           {fltk::ValueInput* o = port = new fltk::ValueInput(135, 90, 195, 25, "UDP-Port");
+           {fltk::ValueInput* o = port = new fltk::ValueInput(135, 90, 195, 25, "UDP port");
             o->color((fltk::Color)0xffffff00);
             o->maximum(65535);
             o->step(1);
             o->callback((fltk::Callback*)cb_port);
             o->when(fltk::WHEN_RELEASE);
-            o->tooltip("Um einen Server mit einer Portnummer kleiner als 1024 zu starten, ben\303\
-\266tigt man evtl. Root-Rechte.");
+            o->tooltip("The UDP port of the server.");
             double d;
             prefs.get("udpport", d, 34588);
             port->value(d < 0? 0: d > 65535? 65535: d);
           }
-           {fltk::ValueInput* o = bandwidth = new fltk::ValueInput(135, 140, 195, 25, "Upload-Bandbreite");
+           {fltk::ValueInput* o = bandwidth = new fltk::ValueInput(135, 140, 195, 25, "Upload bandwidth");
             o->color((fltk::Color)0xffffff00);
             o->maximum(1e+09);
             o->step(1);
             o->callback((fltk::Callback*)cb_bandwidth);
             o->when(fltk::WHEN_RELEASE);
-            o->tooltip("Maximale Upload-Bandbreite in Byte/s, die auf die verbundenen Peers aufgeteil\
-t werden kann. Dieser Wert sollte nicht gr\303\266\303\237""er sein als die ei\
-gene Internetverbindung zul\303\244sst. Der Audiostream ben\303\266tigt pro Pe\
-er immer 3000 Byte/s, sonstiger Netzwerkverkehr ist weniger als 1000 Byte/s pr\
-o Peer, der Videostream verwendet den Rest.");
+            o->tooltip("Maximal bandwidth for the upload in bytes per second. This value shouldn't be\
+ greater than the upload speed of your internet connection. The bandwidth is d\
+istributed among the connnected peers, the audio stream always needs 3000 byte\
+s per second per peer.");
             double d;
             prefs.get("bandwidth", d, 16000);
             bandwidth->value(d < 8000? 8000: d);
             bandwidth->linesize(1000);
           }
-           {fltk::Button* o = new fltk::Button(135, 190, 195, 25, "Verbinden");
-            o->callback((fltk::Callback*)cb_Verbinden);
-            o->tooltip("Wenn das IP-Adressenfeld leer ist, dann startest du hiermit die Skat-Konferen\
-z als Server, ansonsten wird eine Verbindung zu der angegebenen IP-Adresse und\
- UDP-Port aufgebaut. Wenn die Verbindung erfolgreich ist, dann beginnt die Vid\
-eokonferenz. Wenn 3 Peers miteinander verbunden sind, dann startet das Spiel.");
+           {fltk::Button* o = new fltk::Button(135, 190, 195, 25, "Connect");
+            o->callback((fltk::Callback*)cb_Connect);
+            o->tooltip("Connect to the server or start the server (if the IP address field is empty).\
+ If a connection can be established, the videoconferencing starts. If 3 peers \
+are connected with each other, the game starts.");
           }
            {fltk::Button* o = new fltk::Button(135, 240, 195, 25, "Stats");
             o->callback((fltk::Callback*)cb_Stats);
-            o->tooltip("Gibt ein paar Statistiken \303\274""ber die verbundenen Peers im Log-Fenster \
-aus.");
+            o->tooltip("Print some stats on the connected peers into the log window.");
           }
            {fltk::CheckButton* o = autoconnect = new fltk::CheckButton(55, 190, 60, 25, "Auto");
             o->callback((fltk::Callback*)cb_autoconnect);
-            o->tooltip("Wenn aktiviert, dann wird das Netzwerk beim n\303\244""chsten Programmstart a\
-utomatisch verbunden. Nur sinnvoll beim Start als Server oder bei Verbindung z\
-u statischer IP-Adresse.");
+            o->tooltip("When activated, the network will be connected automatically during the next p\
+rogram start. This is only reasonable for the server or the connection to a st\
+atic IP address or hostname.");
             int i;
             prefs.get("autoconnect", i, 0);
             autoconnect->value(i != 0);
           }
           o->end();
         }
-         {fltk::Group* o = new fltk::Group(525, 295, 265, 135, "Benutzer");
+         {fltk::Group* o = new fltk::Group(525, 295, 245, 135, "Player");
           o->box(fltk::DOWN_BOX);
           o->labeltype(fltk::ENGRAVED_LABEL);
           o->align(fltk::ALIGN_TOP|fltk::ALIGN_INSIDE);
           o->begin();
-           {fltk::Input* o = name = new fltk::Input(85, 40, 165, 25, "Spielername");
+           {fltk::Input* o = name = new fltk::Input(55, 40, 165, 25, "Name");
             o->callback((fltk::Callback*)cb_name);
-            o->tooltip("Dein Spielername.");
+            o->tooltip("Your name during the game.");
             char* c;
             prefs.get("username", c, "nobody");
             name->value(c);
             delete[] c;
           }
-           {fltk::Input* o = secret = new fltk::Input(85, 85, 165, 25, "Geheimnis");
+           {fltk::Input* o = secret = new fltk::Input(55, 85, 165, 25, "Secret");
             o->callback((fltk::Callback*)cb_secret);
-            o->tooltip("Wird zus\303\244tzlich zur Zeit verwendet um den Zufallsgenerator zu initiali\
-sieren.");
+            o->tooltip("The secret and the time are used to initialize your random number generator a\
+t program start.");
             char* c;
             prefs.get("secret", c, "");
             secret->value(c);
@@ -559,7 +553,7 @@ sieren.");
           }
           o->end();
         }
-         {fltk::Group* o = new fltk::Group(170, 400, 275, 175, "Sonderregeln");
+         {fltk::Group* o = new fltk::Group(170, 400, 275, 175, "Sonderregeln (SR)");
           o->box(fltk::DOWN_BOX);
           o->labeltype(fltk::ENGRAVED_LABEL);
           o->align(fltk::ALIGN_TOP|fltk::ALIGN_INSIDE);
@@ -618,7 +612,7 @@ gt die Ramsch- auf die Bockrunde.");
          {fltk::Browser* o = listing = new fltk::Browser(480, 0, 480, 675);
           o->set_vertical();
           const int widths[] = {150, 50, 80, 80, 80, -1, 0};
-          const char* labels[] = {"Spiel", "Punkte", "Du", "Links", "Rechts", "", 0};
+          const char* labels[] = {"Spiel", "Punkte", "Du", "Links", "Rechts", "SR", 0};
           listing->column_widths(widths);
           listing->column_labels(labels);
         }

@@ -259,6 +259,8 @@ void Network::process_message(unsigned i, const string& message) {
 		ss(data) >> ep;
 		peers.push_back(Peer(ep));
 		peers.back().messages.push_back(ss(msgid++) << " hello " << ep << " from peer");
+
+		socket.send_to(buffer(recvbuf, 1), ep);
 	} else if (command == "peerconnected") {
 		ss(data) >> peers[i].connections;
 		if (find_if(peers.begin(), peers.end(), bind(&Peer::connections, _1) != peers.size()) == peers.end())
@@ -314,7 +316,7 @@ void Network::receiver(const errorcode& e, size_t n) {
 				}
 		}
 		if (peer != peers.end())
-			peer->lasttime = (double)clock() / CLOCKS_PER_SEC;
+			peer->lasttime = time(0);
 	}
 
 	if (e || n <= 1 || peer == peers.end()) {
@@ -362,7 +364,7 @@ void Network::deadline(const errorcode& e) {
 	lock_guard<timed_mutex> lock(netmutex);
 
 	if (server) {
-		vector<Peer>::iterator peer = find_if(peers.begin(), peers.end(), bind(&Peer::lasttime, _1) < (double)clock() / CLOCKS_PER_SEC - 5.);
+		vector<Peer>::iterator peer = find_if(peers.begin(), peers.end(), bind(&Peer::lasttime, _1) < time(0) - 5);
 		if (peer != peers.end()) {
 			cout << "peer " << peer - peers.begin() << " timed out" << endl;
 			for (vector<Peer>::iterator it = peers.begin(); it != peers.end(); it++) {

@@ -143,10 +143,10 @@ public:
 private:
           inline void cb_giveup_i(fltk::Button*, void*);
           static void cb_giveup(fltk::Button*, void*);
-          inline void cb_Neustart_i(fltk::Button*, void*);
-          static void cb_Neustart(fltk::Button*, void*);
-          inline void cb_Mikrofon_i(fltk::CheckButton*, void*);
-          static void cb_Mikrofon(fltk::CheckButton*, void*);
+          inline void cb_Restart_i(fltk::Button*, void*);
+          static void cb_Restart(fltk::Button*, void*);
+          inline void cb_Playback_i(fltk::CheckButton*, void*);
+          static void cb_Playback(fltk::CheckButton*, void*);
 public:
           fltk::Input *address;
 private:
@@ -162,8 +162,8 @@ public:
 private:
           inline void cb_bandwidth_i(fltk::ValueInput*, void*);
           static void cb_bandwidth(fltk::ValueInput*, void*);
-          inline void cb_Verbinden_i(fltk::Button*, void*);
-          static void cb_Verbinden(fltk::Button*, void*);
+          inline void cb_Connect_i(fltk::Button*, void*);
+          static void cb_Connect(fltk::Button*, void*);
           inline void cb_Stats_i(fltk::Button*, void*);
           static void cb_Stats(fltk::Button*, void*);
 public:

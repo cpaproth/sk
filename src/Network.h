@@ -56,7 +56,7 @@ class Network {
 		deque<string>	messages;
 		ucharbuf	header;
 		bool		known;
-		double		lasttime;
+		size_t		lasttime;
 		unsigned	fifoempty;
 		unsigned	fifofull;
 		unsigned	lastmsgid;
