@@ -32,6 +32,8 @@ class GlTable : public fltk::GlWindow {
 	unsigned		texture;
 	unsigned		width;
 	unsigned		height;
+	unsigned		potwidth;
+	unsigned		potheight;
 	vector<uchar>		mem;
 	vector<uchar>		hand;
 	vector<uchar>		skat;

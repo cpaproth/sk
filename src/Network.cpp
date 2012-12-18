@@ -104,7 +104,11 @@ void Network::connect(const string& address, unsigned short port, unsigned bw) {
 		endpoint = *resolver.resolve(query);
 		peers.push_back(Peer(endpoint));
 		
-		socket.send_to(buffer(recvbuf, 1), endpoint);
+		errorcode ec;
+		socket.bind(udpendpoint(ip::udp::v4(), port + 1), ec);
+		cout << "bind to port " << port + 1 << ": " << ec.message() << endl;
+		socket.send_to(buffer(recvbuf, 1), endpoint, 0, ec);
+		cout << "send 1 byte to " << endpoint << ": " << ec.message() << endl;
 	}
 	
 	timer.expires_from_now(posix_time::milliseconds(1000 / timerrate));

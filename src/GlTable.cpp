@@ -49,10 +49,13 @@ GlTable::GlTable(int x, int y, int w ,int h, const char* l) : GlWindow(x, y, w, 
 	if (width == 0 || height == 0 || depth < 3)
 		throw runtime_error("loading card images failed");
 
-	mem.resize(width * height * 4);
+	for (potwidth = 1; potwidth < width; potwidth <<= 1);
+	for (potheight = 1; potheight < height; potheight <<= 1);
+
+	mem.resize(potwidth * potheight * 4);
 	for (unsigned y = 0; y < height; y++)
 		for (unsigned x = 0; x < width; x++) {
-			unsigned mpos = (height - 1 - y) * width * 4 + x * 4;
+			unsigned mpos = (height - 1 - y) * potwidth * 4 + x * 4;
 			unsigned ipos = y * width * depth + x * depth;
 			if (data[ipos] == 255 && data[ipos + 1] == 0 && data[ipos + 2] == 255) {
 				mem[mpos] = 128;
@@ -115,17 +118,19 @@ void GlTable::draw_card(uchar card, float x, float y, float a, float sy) {
 	unsigned r = card / 8;
 	float sx = sy / height * width / 4.f;
 	sy /= 2.f;
+	float cw = 0.125f * width / potwidth;
+	float ch = 0.25f * height / potheight;
 
-	glTexCoord2f(c * 0.125f, r * 0.25f);
+	glTexCoord2f(c * cw, r * ch);
 	glVertex2f(x - cos(a) * sx + sin(a) * sy, y - sin(a) * sx - cos(a) * sy);
 
-	glTexCoord2f((c + 1) * 0.125f, r * 0.25f);
+	glTexCoord2f((c + 1) * cw, r * ch);
 	glVertex2f(x + cos(a) * sx + sin(a) * sy, y + sin(a) * sx - cos(a) * sy);
 
-	glTexCoord2f((c + 1) * 0.125f, (r + 1) * 0.25f);
+	glTexCoord2f((c + 1) * cw, (r + 1) * ch);
 	glVertex2f(x + cos(a) * sx - sin(a) * sy, y + sin(a) * sx + cos(a) * sy);
 
-	glTexCoord2f(c * 0.125f, (r + 1) * 0.25f);
+	glTexCoord2f(c * cw, (r + 1) * ch);
 	glVertex2f(x - cos(a) * sx - sin(a) * sy, y - sin(a) * sx + cos(a) * sy);
 }
 
@@ -153,7 +158,7 @@ void GlTable::draw(void) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, &mem[0]);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, potwidth, potheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, &mem[0]);
 		glEnable(GL_TEXTURE_2D);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
