@@ -133,7 +133,7 @@ void Network::broadcast(const ucharbuf& send, vector<ucharbuf>& recv, unsigned l
 
 	for (unsigned i = 0; i < peers.size(); i++) {
 		if (send.size() == fifosize) {
-			if (peers[i].fifo.size() > 1) {
+			if (peers[i].fifo.size() > 0) {
 				recv.push_back(peers[i].fifo.front());
 				peers[i].fifo.pop_front();
 			} else {
