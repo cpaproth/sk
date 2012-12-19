@@ -148,6 +148,7 @@ void Video::worker(void) {
 		params.push_back(25);
 
 		while (working) {
+			this_thread::sleep(posix_time::milliseconds(10));
 			*capture >> cap;
 
 			if (cap.size().area() == 0) {
@@ -178,7 +179,6 @@ void Video::worker(void) {
 				ui.rightimage->redraw();
 			}
 			fltk::awake();
-			this_thread::sleep(posix_time::milliseconds(10));
 		}
 	} catch (std::exception& e) {
 		cout << "video failure: " << e.what() << endl;

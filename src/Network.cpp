@@ -103,14 +103,15 @@ void Network::connect(const string& address, unsigned short port, unsigned bw) {
 		ip::udp::resolver::query query(ip::udp::v4(), address, ss(port));
 		endpoint = *resolver.resolve(query);
 		peers.push_back(Peer(endpoint));
-		
+
+		static unsigned short inc = 1;
 		errorcode ec;
-		socket.bind(udpendpoint(ip::udp::v4(), port + 1), ec);
-		cout << "bind to port " << port + 1 << ": " << ec.message() << endl;
+		socket.bind(udpendpoint(ip::udp::v4(), port += inc++), ec);
+		cout << "bind to port " << port << ": " << ec.message() << endl;
 		socket.send_to(buffer(recvbuf, 1), endpoint, 0, ec);
 		cout << "send 1 byte to " << endpoint << ": " << ec.message() << endl;
 	}
-	
+
 	timer.expires_from_now(posix_time::milliseconds(1000 / timerrate));
 	timer.async_wait(bind(&Network::deadline, this, _1));
 	socket.async_receive_from(buffer(recvbuf), endpoint, bind(&Network::receiver, this, _1, _2));
@@ -132,7 +133,7 @@ void Network::broadcast(const ucharbuf& send, vector<ucharbuf>& recv, unsigned l
 
 	for (unsigned i = 0; i < peers.size(); i++) {
 		if (send.size() == fifosize) {
-			if (peers[i].fifo.size() > 0) {
+			if (peers[i].fifo.size() > 1) {
 				recv.push_back(peers[i].fifo.front());
 				peers[i].fifo.pop_front();
 			} else {
