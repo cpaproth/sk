@@ -104,12 +104,7 @@ void Network::connect(const string& address, unsigned short port, unsigned bw) {
 		endpoint = *resolver.resolve(query);
 		peers.push_back(Peer(endpoint));
 
-		static unsigned short inc = 1;
-		errorcode ec;
-		socket.bind(udpendpoint(ip::udp::v4(), port += inc++), ec);
-		cout << "bind to port " << port << ": " << ec.message() << endl;
-		socket.send_to(buffer(recvbuf, 1), endpoint, 0, ec);
-		cout << "send 1 byte to " << endpoint << ": " << ec.message() << endl;
+		socket.send_to(buffer(recvbuf, 1), endpoint);
 	}
 
 	timer.expires_from_now(posix_time::milliseconds(1000 / timerrate));
@@ -175,9 +170,9 @@ void Network::command(unsigned i, const string& command, const string& data) {
 
 void Network::stats(void) {
 	lock_guard<timed_mutex> lock(netmutex);
-	cout << "known peers: " << peers.size() << ", network mutex busy: " << mutexbusy << ", messages ignored: " << ignoredmsg << endl;
+	cout << "known peers: " << peers.size() << ", local port: " << socket.local_endpoint().port() << ", mutex busy: " << mutexbusy << ", messages ignored: " << ignoredmsg << endl;
 	for (unsigned i = 0; i < peers.size(); i++)
-		cout << "peer " << i << " fifo empty/full/size: " << peers[i].fifoempty << '/' << peers[i].fifofull << '/' << peers[i].fifo.size() << endl;
+		cout << "peer " << i << " (" << peers[i].endpoint << ") fifo empty/full/size: " << peers[i].fifoempty << '/' << peers[i].fifofull << '/' << peers[i].fifo.size() << endl;
 }
 
 
@@ -256,19 +251,19 @@ void Network::process_message(unsigned i, const string& message) {
 		}
 	} else if (command == "knownheader") {
 		peers[i].known = true;
-	} else if (command == "removepeer") {
+	} else if (command == "removepeer" || command == "holepunching") {
 		udpendpoint ep;
 		ss(data) >> ep;
 		vector<Peer>::iterator peer = find_if(peers.begin(), peers.end(), bind(&Peer::endpoint, _1) == ep);
 		if (peer != peers.end())
 			peers.erase(peer);
-	} else if (command == "holepunching") {
-		udpendpoint ep;
-		ss(data) >> ep;
-		peers.push_back(Peer(ep));
-		peers.back().messages.push_back(ss(msgid++) << " hello " << ep << " from peer");
+			
+		if (command == "holepunching" && peers.size() < maxpeers) {
+			peers.push_back(Peer(ep));
+			peers.back().messages.push_back(ss(msgid++) << " hello " << ep << " from peer");
 
-		socket.send_to(buffer(recvbuf, 1), ep);
+			socket.send_to(buffer(recvbuf, 1), ep);
+		}
 	} else if (command == "peerconnected") {
 		ss(data) >> peers[i].connections;
 		if (find_if(peers.begin(), peers.end(), bind(&Peer::connections, _1) != peers.size()) == peers.end())
@@ -328,7 +323,8 @@ void Network::receiver(const errorcode& e, size_t n) {
 	}
 
 	if (e || n <= 1 || peer == peers.end()) {
-		//ignore error or unknown peer
+		if (e)
+			cout << "receive error: " << e.message() << endl;
 	} else if (n < splitsize) {
 		process_message(peer - peers.begin(), string(recvbuf.begin(), recvbuf.begin() + n));
 	} else if (n == splitsize) {
@@ -361,7 +357,9 @@ void Network::receiver(const errorcode& e, size_t n) {
 }
 
 
-void Network::sender(shared_ptr<ucharbuf>, const errorcode&, size_t) {
+void Network::sender(shared_ptr<ucharbuf>, const errorcode& e, size_t) {
+	if (e)
+		cout << "send error: " << e.message() << endl;
 }
 
 
