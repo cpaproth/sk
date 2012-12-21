@@ -55,12 +55,12 @@ int main(void) {
 		ui.f["network stats"] = boost::bind(&Network::stats, &network);
 		ui.f["network connect"] = boost::bind(&connect_network, boost::ref(ui), boost::ref(network));
 		
-		audio.restart();
 		try {
 			if (ui.autoconnect->value())
 				connect_network(ui, network);
+			audio.restart();
 		} catch (exception& e) {
-			cout << "auto connecting network failed: " << e.what() << endl;
+			cout << "start error: " << e.what() << endl;
 		}
 
 		while(true)
@@ -68,7 +68,7 @@ int main(void) {
 				UILock lock;
 				return fltk::run();
 			} catch (exception& e) {
-				cout << "error: " << e.what() << endl;
+				cout << "runtime error: " << e.what() << endl;
 			}
 	} catch (exception& e) {
 		fltk::alert(ss("initialization error: ") << e.what() | c_str);

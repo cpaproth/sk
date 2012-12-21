@@ -305,6 +305,14 @@ void Network::receiver(const errorcode& e, size_t n) {
 
 	lock_guard<timed_mutex> lock(netmutex);
 	vector<Peer>::iterator peer = find_if(peers.begin(), peers.end(), bind(&Peer::endpoint, _1) == endpoint);
+	
+	//~ for (vector<Peer>::iterator it = peers.begin(); it != peers.end() && peer == peers.end(); it++) {
+		//~ if (it->endpoint.address() == endpoint.address()) {
+			//~ it->endpoint = endpoint;
+			//~ peer = it;
+			//~ break;
+		//~ }
+	//~ }
 
 	if (!e && server) {
 		if (peer == peers.end() && peers.size() < maxpeers) {
