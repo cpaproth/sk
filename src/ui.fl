@@ -39,13 +39,14 @@ namespace SK {open
       {fltk::Window} mainwnd {
         label {Skat-Konferenz}
         callback {mainwnd->hide();} open
-        private xywh {93 32 960 700} resizable
+        private xywh {224 22 960 700} resizable
         extra_code {\#include <map>
 \#include <string>
 \#include <boost/function/function0.hpp>
 \#include <fltk/run.h>
 \#include <fltk/Preferences.h>
 \#include <fltk/xpmImage.h>
+\#include <fltk/ColorChooser.h>
 \#include "LogDisplay.h"
 \#include "GlImage.h"
 \#include "GlTable.h"
@@ -55,7 +56,7 @@ namespace SK {open
           xywh {0 0 960 700}
         } {
           {fltk::Group} {} {
-            label Skat selected
+            label Skat open
             xywh {0 25 960 675}
           } {
             {fltk::InvisibleBox} table {
@@ -72,7 +73,7 @@ namespace SK {open
               class GlImage
             }
             {fltk::InvisibleBox} midimage {
-              xywh {640 435 320 240} box FLAT_BOX color 56
+              xywh {640 415 320 240} box FLAT_BOX color 56
               class GlImage
             }
             {fltk::Group} {} {open
@@ -109,7 +110,6 @@ namespace SK {open
                   callback {f["game select"]();}
                   tooltip {Karo ist Trumpf.}
                   xywh {0 0 50 35} type RADIO value 1
-                  extra_code {diamonds->take_focus();}
                 }
                 {fltk::Button} hearts {
                   label {@hea}
@@ -195,28 +195,33 @@ f["game select"]();}
               }
             }
             {fltk::Group} {} {open
-              xywh {640 325 320 110} box DOWN_BOX
+              xywh {640 325 320 90} box DOWN_BOX
             } {
               {fltk::Button} dealout {
                 label {Karten austeilen}
                 callback {f["game dealout"]();}
-                xywh {15 20 140 25} labelfont 1 buttoncolor 0xff0000
+                xywh {15 15 140 25} labelfont 1 buttoncolor 0xff0000
               }
               {fltk::Button} disclose {
                 label {Karten aufdecken}
                 callback {f["game disclose"]();}
-                xywh {15 65 140 25} labelfont 1
+                xywh {15 50 140 25} labelfont 1
               }
               {fltk::Button} contrare {
                 label {Kontra / Re}
                 callback {f["game contrare"]();}
-                xywh {170 20 140 25} type TOGGLE labelfont 1 buttoncolor 0xff000000
+                xywh {170 15 140 25} type TOGGLE labelfont 1 buttoncolor 0xff000000
               }
               {fltk::Button} giveup {
                 label {Spiel abbrechen}
                 callback {f["game giveup"]();}
-                xywh {170 65 140 25} type TOGGLE labelfont 1
+                xywh {170 50 140 25} type TOGGLE labelfont 1
               }
+            }
+            {fltk::Input} chat {
+              callback {f["chat message"]();} selected
+              xywh {640 655 320 20} when ENTER_KEY box NO_BOX
+              extra_code {chat->take_focus();}
             }
           }
           {fltk::Group} {} {
@@ -303,7 +308,7 @@ autoconnect->value(i != 0);}
             }
             {fltk::Group} {} {
               label Player open
-              xywh {525 295 245 135} align 33 box DOWN_BOX labeltype ENGRAVED_LABEL
+              xywh {525 295 245 175} align 33 box DOWN_BOX labeltype ENGRAVED_LABEL
             } {
               {fltk::Input} name {
                 label Name
@@ -325,6 +330,21 @@ delete[] c;}
 prefs.get("secret", c, "");
 secret->value(c);
 delete[] c;}
+              }
+              {fltk::Button} bgcolor {
+                label Color
+                callback {fltk::Color color(bgcolor->color());
+fltk::color_chooser("Choose Color", color);
+bgcolor->color(color);
+bgcolor->redraw();
+table->set_bgcolor(color);
+prefs.set("bgcolor", (int)color);}
+                tooltip {Choose the color of the table background.}
+                xywh {55 130 165 25} align 4
+                extra_code {int i;
+prefs.get("bgcolor", i, (int)fltk::GRAY75);
+bgcolor->color(i);
+table->set_bgcolor(i);}
               }
             }
             {fltk::Group} {} {

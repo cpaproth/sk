@@ -73,6 +73,13 @@ GlTable::GlTable(int x, int y, int w ,int h, const char* l) : GlWindow(x, y, w, 
 	texture = 0;
 	selected = UINT_MAX;
 	pushed = false;
+	bgcolor = fltk::GRAY75;
+}
+
+
+void GlTable::set_bgcolor(fltk::Color color) {
+	bgcolor = color == 0? fltk::GRAY75: color;
+	redraw();
 }
 
 
@@ -162,11 +169,11 @@ void GlTable::draw(void) {
 		glEnable(GL_TEXTURE_2D);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		unsigned char r, g, b;
-		fltk::split_color(fltk::GRAY75, r, g, b);
-		glClearColor(r / 255.f, g / 255.f, b / 255.f, 1.f);
 	}
 
+	unsigned char r, g, b;
+	fltk::split_color(bgcolor, r, g, b);
+	glClearColor(r / 255.f, g / 255.f, b / 255.f, 1.f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 
