@@ -336,7 +336,7 @@ void Network::receiver(const errorcode& e, size_t n) {
 	} else if (peer == peers.end()) {
 		if (server && ignorepeers.insert(endpoint).second) {
 			cout << "ignored peer: " << endpoint << endl;
-			socket.send_to(buffer(ss(msgid++) << " hello all seats of the server are occupied"), endpoint);
+			socket.send_to(buffer((string)(ss(msgid++) << " hello all seats of the server are occupied")), endpoint);
 		}
 	} else if (n > 1 && n < splitsize) {
 		process_message(peer - peers.begin(), string(recvbuf.begin(), recvbuf.begin() + n));

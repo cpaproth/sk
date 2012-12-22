@@ -57,7 +57,7 @@ void GlImage::draw(void) {
 	if (!str.empty()) {
 		glColor4f(0.f, 0.f, 0.f, 0.3f);
 		glEnable(GL_BLEND);
-		glRectf(0.f , 10.f - fltk::glgetdescent(), w(), 10.f + fltk::glgetascent());
+		glRectf(0.f , 10.f - fltk::glgetdescent(), (float)w(), 10.f + fltk::glgetascent());
 		glDisable(GL_BLEND);
 		
 		glColor3f(1.f, 1.f, 1.f);
