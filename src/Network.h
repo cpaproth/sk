@@ -26,6 +26,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #include <vector>
 #include <deque>
 #include <string>
+#include <set>
 
 
 namespace SK {
@@ -80,6 +81,7 @@ class Network {
 	boost::thread			iothread;
 	boost::timed_mutex		netmutex;
 	boost::mutex			hdlmutex;
+	set<udpendpoint>		ignorepeers;
 
 
 	void insert_header(unsigned);

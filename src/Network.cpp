@@ -219,8 +219,9 @@ void Network::process_message(unsigned i, const string& message) {
 		if (peers[i].messages.size() > 0 && peers[i].messages[0].compare(0, id.length() + 1, id + ' ') == 0) {
 			cout << i << " < " << string(ss(peers[i].messages[0]) >> id >> ws) << endl;
 			peers[i].messages.pop_front();
-		} else
+		} else {
 			ignoredmsg++;
+		}
 		return;
 	} else {
 		string reply = id + " reply";
@@ -333,9 +334,9 @@ void Network::receiver(const errorcode& e, size_t n) {
 	if (e) {
 		cout << "receive error: " << e.message() << endl;
 	} else if (peer == peers.end()) {
-		if (server && time(0) % 5 == 0) {
-			cout << "unknown peer: " << endpoint << endl;
-			socket.send_to(buffer(ss(msgid++) << " chat server is full"), endpoint);
+		if (server && ignorepeers.insert(endpoint).second) {
+			cout << "ignored peer: " << endpoint << endl;
+			socket.send_to(buffer(ss(msgid++) << " hello all seats of the server are occupied"), endpoint);
 		}
 	} else if (n > 1 && n < splitsize) {
 		process_message(peer - peers.begin(), string(recvbuf.begin(), recvbuf.begin() + n));
@@ -382,6 +383,10 @@ void Network::deadline(const errorcode& e) {
 	lock_guard<timed_mutex> lock(netmutex);
 
 	if (server) {
+		static unsigned count = 0;
+		if (++count % (10 * timerrate) == 0)
+			ignorepeers.clear();
+		
 		vector<Peer>::iterator peer = find_if(peers.begin(), peers.end(), bind(&Peer::lasttime, _1) < time(0) - 5);
 		if (peer != peers.end()) {
 			cout << "peer " << peer - peers.begin() << " timed out" << endl;
