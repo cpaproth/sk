@@ -334,7 +334,7 @@ void Network::receiver(const errorcode& e, size_t n) {
 	if (e) {
 		cout << "receive error: " << e.message() << endl;
 	} else if (peer == peers.end()) {
-		if (server && ignorepeers.insert(endpoint).second) {
+		if (server && ignorepeers.size() < 10 && ignorepeers.insert(endpoint).second) {
 			cout << "ignored peer: " << endpoint << endl;
 			socket.send_to(buffer((string)(ss(msgid++) << " hello all seats of the server are occupied")), endpoint);
 		}
