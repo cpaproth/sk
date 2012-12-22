@@ -36,12 +36,12 @@ Playing card images are copied from [GNOME Aisleriot](https://live.gnome.org/Ais
 
 ## Building
 
-To build *sk*, you need to install the dependencies with the corresponding development files first. If you are using some kind of Linux, they are probably available from
-your package manager. Unfortunately, FLTK-2.0 is an inactive branch of FLTK, it is likely that you have to install it
-[manually](https://github.com/cpaproth/sk/raw/master/downloads/fltk-2.0.x-alpha-r9204.tar.bz2).
-In this case, you need the following OpenGL and X11 dev packages already installed on your system:
-
-    libgl...-dev, libglu...-dev, libx11-dev, libxft-dev, and libxi-dev
+To build *sk*, you need to install the dependencies with the corresponding development files first, use your package manager (if available) to install them.
+Unfortunately, FLTK-2.0 is an inactive branch of FLTK, it is likely that you have to install it manually:
+* [download](https://github.com/cpaproth/sk/raw/master/downloads/fltk-2.0.x-alpha-r9204.tar.bz2) and unpack it
+* on Linux, you also have to install: libx11-dev, libxft-dev, libxi-dev, libgl...-dev, and libglu...-dev
+* then run "./configure; make; make install" in the unpacked folder
+* there are some IDE project files which you can use for building it on Windows
 
 *sk* comes with a simple CMakeLists.txt file, thus you can use CMake to generate a makefile. Currently, this procedure works only on Linux,
 for other operating systems, you have to create appropriate build files by hand. After installing all the dependencies and maybe CMake, you can build *sk*:

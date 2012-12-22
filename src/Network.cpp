@@ -330,10 +330,14 @@ void Network::receiver(const errorcode& e, size_t n) {
 			peer->lasttime = (size_t)time(0);
 	}
 
-	if (e || n <= 1 || peer == peers.end()) {
-		if (e)
-			cout << "receive error: " << e.message() << endl;
-	} else if (n < splitsize) {
+	if (e) {
+		cout << "receive error: " << e.message() << endl;
+	} else if (peer == peers.end()) {
+		if (server && time(0) % 5 == 0) {
+			cout << "unknown peer: " << endpoint << endl;
+			socket.send_to(buffer(ss(msgid++) << " chat server is full"), endpoint);
+		}
+	} else if (n > 1 && n < splitsize) {
 		process_message(peer - peers.begin(), string(recvbuf.begin(), recvbuf.begin() + n));
 	} else if (n == splitsize) {
 		if (peer->fifo.size() == 0 || cmp_pos(peer->fifo.back().front(), recvbuf[0]) < 0) {
@@ -356,7 +360,7 @@ void Network::receiver(const errorcode& e, size_t n) {
 			while (peer->fifo.size() > 1)
 				peer->fifo.pop_front();
 		}
-	} else {
+	} else if (n > fifosize) {
 		peer->buffer.assign(recvbuf.begin(), recvbuf.begin() + n);
 		insert_header(peer - peers.begin());
 	}
