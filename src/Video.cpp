@@ -71,6 +71,15 @@ Video::~Video(void) {
 }
 
 
+void Video::send_chat(void) {
+	network.command(left, "chat", ui.chat->value());
+	network.command(right, "chat", ui.chat->value());
+	ui.chat->value("");
+	ui.leftimage->set("");
+	ui.rightimage->set("");
+}
+
+
 bool Video::handle_command(unsigned i, const string& command, const string& data) {
 	UILock lock;
 	if (command == "name") {
@@ -78,9 +87,12 @@ bool Video::handle_command(unsigned i, const string& command, const string& data
 			leftname[("@b;" + data).copy(leftname, namesize - 1)] = 0;
 		else if (i == right)
 			rightname[("@b;" + data).copy(rightname, namesize - 1)] = 0;
+		(i == left? ui.leftimage: ui.rightimage)->set(data);
 	} else if (command == "seat") {
 		left = data == "left"? 1: 0;
 		right = data == "right"? 1: 0;
+	} else if (command == "chat") {
+		(i == left? ui.leftimage: ui.rightimage)->set(data);
 	} else
 		return false;
 	return true;

@@ -65,7 +65,8 @@ class Video {
 public:
 	Video(UserInterface&, Network&);
 	~Video(void);
-	
+
+	void send_chat(void);
 
 };
 

@@ -52,6 +52,7 @@ int main(void) {
 
 		ui.f["audio restart"] = boost::bind(&Audio::restart, &audio);
 		ui.f["audio toggle"] = boost::bind(&Audio::toggle_playmic, &audio);
+		ui.f["chat message"] = boost::bind(&Video::send_chat, &video);
 		ui.f["network stats"] = boost::bind(&Network::stats, &network);
 		ui.f["network connect"] = boost::bind(&connect_network, boost::ref(ui), boost::ref(network));
 		

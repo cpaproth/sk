@@ -19,6 +19,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #define SK_GLIMAGE_H
 
 
+#include <string>
 #include <fltk/GlWindow.h>
 
 
@@ -31,6 +32,7 @@ namespace SK {
 
 class GlImage : public fltk::GlWindow {
 	cv::Mat*	img;
+	std::string	str;
 
 	void draw(void);
 
@@ -38,6 +40,7 @@ public:
 	GlImage(int, int, int, int, const char* = 0);
 	
 	void set(cv::Mat*);
+	void set(const std::string&);
 
 };
 

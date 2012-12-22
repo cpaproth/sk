@@ -33,16 +33,34 @@ void GlImage::set(cv::Mat* cvimg) {
 }
 
 
+void GlImage::set(const std::string& s) {
+	str = s;
+	redraw();
+}
+
+
 void GlImage::draw(void) {
 	if (!valid()) {
 		ortho();
-		glRasterPos2i(0, h());
 		glPixelZoom(1.f, -1.f);
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		fltk::glsetfont(fltk::HELVETICA, 12.f);
 	}
 
+	glRasterPos2i(0, h());
 	if (img && img->size().area() > 0 && img->elemSize() == 3)
 		glDrawPixels(img->cols, img->rows, GL_BGR_EXT, GL_UNSIGNED_BYTE, img->data);
 	else
 		glClear(GL_COLOR_BUFFER_BIT);
+		
+	if (!str.empty()) {
+		glColor4f(0.f, 0.f, 0.f, 0.3f);
+		glEnable(GL_BLEND);
+		glRectf(0.f , 10.f - fltk::glgetdescent(), w(), 10.f + fltk::glgetascent());
+		glDisable(GL_BLEND);
+		
+		glColor3f(1.f, 1.f, 1.f);
+		fltk::gldrawtext(str.c_str(), std::max(0.f, (w() - fltk::glgetwidth(str.c_str())) / 2.f), 10.f);
+	}
 }
