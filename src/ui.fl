@@ -38,7 +38,7 @@ namespace SK {open
       code {UILock lock;} {}
       {fltk::Window} mainwnd {
         label {Skat-Konferenz}
-        callback {mainwnd->hide();} open
+        callback {mainwnd->hide();} open selected
         private xywh {224 22 960 700} resizable
         extra_code {\#include <map>
 \#include <string>
@@ -219,7 +219,7 @@ f["game select"]();}
               }
             }
             {fltk::Input} chat {
-              callback {f["chat message"]();} selected
+              callback {f["chat message"]();}
               xywh {640 655 320 20} when ENTER_KEY box NO_BOX
               extra_code {chat->take_focus();}
             }
@@ -348,8 +348,8 @@ table->set_bgcolor(i);}
               }
             }
             {fltk::Group} {} {
-              label {Sonderregeln (SR)} open
-              tooltip {Es gelten die Regeln der internationalen Skatordnung. Es sind nur die Sonderregeln wirksam, die bei allen Spielern aktiviert sind. Ramsch wird ohne Schieben, Grand Hand und Durchmarsch gespielt. Der Spieler mit den wenigsten Augen gewinnt das Ramsch-Spiel mit 23 Punkten, macht er gar keinen Stich (Jungfrau), gewinnt er mit 46 Punkten.}
+              label {Sonderregeln (SR)}
+              tooltip {Es gelten die Regeln der internationalen Skatordnung. Es sind nur die Sonderregeln wirksam, die bei allen Spielern aktiviert sind. Ramsch wird ohne Schieben und Grand Hand gespielt. Der Spieler mit den wenigsten Augen gewinnt das Ramsch-Spiel mit 23 Punkten, macht er gar keinen Stich (Jungfrau), gewinnt er mit 46 Punkten, außer einem Spieler gelingt es alle Stiche zu bekommen (Durchmarsch), dann gewinnt dieser mit 120 Punkten.}
               xywh {170 400 275 175} align 33 box DOWN_BOX labeltype ENGRAVED_LABEL
             } {
               {fltk::CheckButton} foldrule {

@@ -368,13 +368,17 @@ void Game::game_over(void) {
 			lsum += values[lefttricks[i] & 7];
 		for (unsigned i = 0; i < righttricks.size(); i++)
 			rsum += values[righttricks[i] & 7];
-			
-		if (ptricks == 0 || lefttricks.size() == 0 || righttricks.size() == 0)
+		
+		if (ptricks == 30 || lefttricks.size() == 30 || righttricks.size() == 30)
+			score = 120;
+		else if (ptricks == 0 || lefttricks.size() == 0 || righttricks.size() == 0)
 			score = 46;
 		else
 			score = 23;
 			
-		if (sum <= lsum && sum <= rsum)
+		if (ptricks == 30)
+			show_info("Durchmarsch!");
+		else if (lefttricks.size() != 30 && righttricks.size() != 30 && sum <= lsum && sum <= rsum)
 			show_info(ptricks == 0? "Jungfrau!": "Gewonnen!");
 		else
 			show_info("Nicht gewonnen.");
@@ -476,9 +480,9 @@ void Game::game_over(void) {
 	if (!playing) {
 		ui.listing->add(ss("Eingepasst\t@c;-\t-\t-\t-\t") << s | c_str);
 	} else if (gextra == 31) {
-		string m = sum <= lsum && sum <= rsum? ss(scores += score): ss("-");
-		string l = lsum <= sum && lsum <= rsum? ss(leftscores += score): ss("-");
-		string r = rsum <= sum && rsum <= lsum? ss(rightscores += score): ss("-");
+		string m = tricks.size() == 30 || (lefttricks.size() != 30 && righttricks.size() != 30 && sum <= lsum && sum <= rsum)? ss(scores += score): ss("-");
+		string l = lefttricks.size() == 30 || (tricks.size() != 30 && righttricks.size() != 30 && lsum <= sum && lsum <= rsum)? ss(leftscores += score): ss("-");
+		string r = righttricks.size() == 30 || (lefttricks.size() != 30 && tricks.size() != 30 && rsum <= sum && rsum <= lsum)? ss(rightscores += score): ss("-");
 		ui.listing->add(ss("Ramsch\t@c;") << score << '\t' << m << '\t' << l << '\t' << r << '\t' << s | c_str);
 	} else {
 		string m = player == myself? ss(scores += score): ss("-");

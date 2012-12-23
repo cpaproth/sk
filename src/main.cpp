@@ -57,9 +57,9 @@ int main(void) {
 		ui.f["network connect"] = boost::bind(&connect_network, boost::ref(ui), boost::ref(network));
 		
 		try {
+			audio.restart();
 			if (ui.autoconnect->value())
 				connect_network(ui, network);
-			audio.restart();
 		} catch (exception& e) {
 			cout << "start error: " << e.what() << endl;
 		}
