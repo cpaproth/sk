@@ -1,4 +1,4 @@
-/*Copyright (C) 2012 Carsten Paproth
+/*Copyright (C) 2012, 2013 Carsten Paproth
 
 This file is part of Skat-Konferenz.
 
@@ -20,7 +20,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 
 #include <string>
-#include <fltk/GlWindow.h>
+#include <FL/Fl_Gl_Window.h>
 
 
 namespace cv {
@@ -30,7 +30,7 @@ class Mat;
 namespace SK {
 
 
-class GlImage : public fltk::GlWindow {
+class GlImage : public Fl_Gl_Window {
 	cv::Mat*	img;
 	std::string	str;
 

@@ -1,4 +1,4 @@
-/*Copyright (C) 2012 Carsten Paproth
+/*Copyright (C) 2012, 2013 Carsten Paproth
 
 This file is part of Skat-Konferenz.
 
@@ -19,7 +19,6 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "Network.h"
 #include "ui.h"
 #include "Convenience.h"
-#include <fltk/Divider.h>
 #include <iostream>
 #include <set>
 
@@ -55,7 +54,7 @@ Game::Game(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 		deck[i] = i;
 
 	unsigned secret = 0;
-	string(ui.secret->text()).copy((char*)&secret, sizeof(unsigned));
+	string(ui.secret->value()).copy((char*)&secret, sizeof(unsigned));
 	rangen.seed(secret ^ (unsigned)time(0));
 	shuffle();
 
@@ -133,7 +132,7 @@ void Game::reset_game(unsigned d) {
 	ui.announce->deactivate();
 	ui.announce->redraw();
 	
-	ui.dealout->color(fltk::GRAY75);
+	ui.dealout->color(FL_GRAY);
 	ui.dealout->deactivate();
 	ui.disclose->deactivate();
 	ui.giveup->value(false);
@@ -159,21 +158,21 @@ void Game::reset_round(void) {
 void Game::show_bid(bool show, unsigned bid, bool bidding) {
 	if (show) {
 		ui.bid->reset(bid, bidding);
-		ui.bid->color(fltk::GREEN);
+		ui.bid->color(FL_GREEN);
 		if (string(ui.bid->label()) == "Reizen")
 			ui.bid->deactivate();
 		else
 			ui.bid->activate();
 		ui.fold->label(listener == myself && rule(1)? "Ramschen": listener == myself? "Einpassen": "Passen");
-		ui.fold->color(fltk::RED);
+		ui.fold->color(FL_RED);
 		ui.fold->activate();
 		ui.fold->redraw();
 	} else {
 		ui.bid->reset(bid, bidding);
-		ui.bid->color(fltk::GRAY75);
+		ui.bid->color(FL_GRAY);
 		ui.bid->deactivate();
 		ui.fold->label("Passen");
-		ui.fold->color(fltk::GRAY75);
+		ui.fold->color(FL_GRAY);
 		ui.fold->deactivate();
 		ui.fold->redraw();
 	}
@@ -185,10 +184,10 @@ void Game::show_contrare(const char* label, bool value, bool active) {
 		ui.contrare->label(label);
 	ui.contrare->value(value);
 	if (active) {
-		ui.contrare->color(fltk::RED);
+		ui.contrare->color(FL_RED);
 		ui.contrare->activate();
 	} else {
-		ui.contrare->color(fltk::GRAY75);
+		ui.contrare->color(FL_GRAY);
 		ui.contrare->deactivate();
 	}
 	ui.contrare->redraw();
@@ -275,8 +274,8 @@ void Game::send_rules(void) {
 
 
 void Game::send_name(void) {
-	network.command(left, "name", ui.name->text());
-	network.command(right, "name", ui.name->text());
+	network.command(left, "name", ui.name->value());
+	network.command(right, "name", ui.name->value());
 }
 
 
@@ -453,16 +452,16 @@ void Game::game_over(void) {
 	}
 	bock |= (score < 0 && contrare == 2) || contrare == 4;
 	
-	string h = ss("\t\t@c;") << ui.name->text() << '\t' << leftname << '\t' << rightname << '\t' << (rule(1)? "E": "") << (rule(2)? "K": "") << (rule(4)? "B": "") << (rule(8)? "R": "");
+	string h = ss("\t\t@c;") << ui.name->value() << '\t' << leftname << '\t' << rightname << '\t' << (rule(1)? "E": "") << (rule(2)? "K": "") << (rule(4)? "B": "") << (rule(8)? "R": "");
 	if (h != header) {
 		header = h;
 		row = 0;
-		ui.listing->add(new fltk::Divider());
-		ui.listing->add(header.c_str())->color(fltk::GRAY65);
+		ui.listing->add("");
+		ui.listing->add(header.c_str());
 	}
 
 	if (row++ % 3 == 0)
-		ui.listing->add(new fltk::Divider());
+		ui.listing->add("");
 	
 	string s = contrare == 4? "Re": contrare == 2? "Ko": ""; 
 	score *= contrare > 0? contrare: 1;
@@ -497,7 +496,7 @@ void Game::game_over(void) {
 	ui.giveup->deactivate();
 	ui.disclose->deactivate();
 	if (dealer == right) {
-		ui.dealout->color(fltk::GREEN);
+		ui.dealout->color(FL_GREEN);
 		ui.dealout->activate();
 	}
 }
@@ -771,7 +770,7 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 		network.command(0, "seat", "left");
 		network.command(1, "seat", "right");
 		reset_round();
-		ui.dealout->color(fltk::GREEN);
+		ui.dealout->color(FL_GREEN);
 		ui.dealout->activate();
 
 	} else if (command == "rules") {
@@ -952,6 +951,6 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 	} else
 		return false;
 		
-	fltk::awake();
+	Fl::awake();
 	return true;
 }

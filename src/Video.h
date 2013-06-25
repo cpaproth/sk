@@ -1,4 +1,4 @@
-/*Copyright (C) 2012 Carsten Paproth
+/*Copyright (C) 2012, 2013 Carsten Paproth
 
 This file is part of Skat-Konferenz.
 
@@ -27,10 +27,10 @@ class VideoCapture;
 class Mat;
 }
 
+class UserInterface;
 
 namespace SK {
 
-class UserInterface;
 class Network;
 
 class Video {

@@ -1,4 +1,4 @@
-/*Copyright (C) 2012 Carsten Paproth
+/*Copyright (C) 2012, 2013 Carsten Paproth
 
 This file is part of Skat-Konferenz.
 
@@ -19,22 +19,24 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #define SK_LOGDISPLAY_H
 
 
-#include <fltk/TextDisplay.h>
+#include <FL/Fl_Text_Display.h>
 #include <boost/thread/mutex.hpp>
 
 namespace SK {
 
 using namespace std;
 
-class LogDisplay : streambuf, public fltk::TextDisplay {
+class LogDisplay : streambuf, public Fl_Text_Display {
 	
+	Fl_Text_Buffer	textbuf;
 	streambuf*	oldsbuf;
-	string		buffer;
+	string		strbuf;
 	boost::mutex	bufmutex;
 
 	int overflow(int);
 	int handle(int);
 
+	static void timeout(void*);
 public:
 	LogDisplay(int, int, int, int, const char* = 0);
 	~LogDisplay(void);

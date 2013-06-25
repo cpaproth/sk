@@ -1,4 +1,4 @@
-/*Copyright (C) 2012 Carsten Paproth
+/*Copyright (C) 2012, 2013 Carsten Paproth
 
 This file is part of Skat-Konferenz.
 
@@ -16,13 +16,14 @@ You should have received a copy of the GNU General Public License
 along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 
-#include "ui.h"
 #include "Network.h"
+#include "ui.h"
+//#include "Network.h"
 #include "Audio.h"
 #include "Video.h"
 #include "Game.h"
 
-#include <fltk/ask.h>
+#include <FL/fl_ask.h>
 #include <iostream>
 #include "Convenience.h"
 
@@ -67,12 +68,12 @@ int main(void) {
 		while(true)
 			try {
 				UILock lock;
-				return fltk::run();
+				return Fl::run();
 			} catch (exception& e) {
 				cout << "runtime error: " << e.what() << endl;
 			}
 	} catch (exception& e) {
-		fltk::alert(ss("initialization error: ") << e.what() | c_str);
+		fl_alert(ss("initialization error: ") << e.what() | c_str);
 	}
 
 	return 1;

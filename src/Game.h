@@ -1,4 +1,4 @@
-/*Copyright (C) 2012 Carsten Paproth
+/*Copyright (C) 2012, 2013 Carsten Paproth
 
 This file is part of Skat-Konferenz.
 
@@ -21,12 +21,12 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 #include "MathLib.h"
 
+class UserInterface;
 
 namespace SK {
 
 using namespace std;
 
-class UserInterface;
 class Network;
 
 class Game {

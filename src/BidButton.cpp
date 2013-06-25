@@ -1,4 +1,4 @@
-/*Copyright (C) 2012 Carsten Paproth
+/*Copyright (C) 2012, 2013 Carsten Paproth
 
 This file is part of Skat-Konferenz.
 
@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 #include "BidButton.h"
-#include <fltk/events.h>
+#include <FL/Fl.h>
 #include "Convenience.h"
 
 
@@ -24,7 +24,7 @@ using namespace SK;
 using namespace CPLib;
 
 
-BidButton::BidButton(int x, int y, int w ,int h, const char* l) : Button(x, y, w, h, l) {
+BidButton::BidButton(int x, int y, int w ,int h, const char* l) : Fl_Button(x, y, w, h, l) {
 	for (unsigned i = 2; i <= 18; i++) {
 		bidorder.insert(i * 9);
 		bidorder.insert(i * 10);
@@ -58,12 +58,12 @@ void BidButton::reset(unsigned min, bool b) {
 
 
 int BidButton::handle(int event) {
-	using namespace fltk;
+	//using namespace fltk;
 	
-	if (bidding && event == MOUSEWHEEL) {
-		for (int i = event_dy(); i < 0 && bid != minbid; i++)
+	if (bidding && event == FL_MOUSEWHEEL) {
+		for (int i = Fl::event_dy(); i < 0 && bid != minbid; i++)
 			bid--;
-		for (int i = event_dy(); i > 0 && bid != maxbid; i--)
+		for (int i = Fl::event_dy(); i > 0 && bid != maxbid; i--)
 			bid++;
 
 		copy_label(ss(*bid) << " Reizen" | c_str);
@@ -72,5 +72,5 @@ int BidButton::handle(int event) {
 		return 1;
 	}
 
-	return Button::handle(event);
+	return Fl_Button::handle(event);
 }

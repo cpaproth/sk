@@ -1,4 +1,4 @@
-/*Copyright (C) 2012 Carsten Paproth
+/*Copyright (C) 2012, 2013 Carsten Paproth
 
 This file is part of Skat-Konferenz.
 
@@ -16,22 +16,24 @@ You should have received a copy of the GNU General Public License
 along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 #include "GlTable.h"
-#include <fltk/gl.h>
-#include <fltk/events.h>
+#include <FL/gl.h>
+#include <FL/Fl.h>
 #include <opencv/highgui.h>
 #include <stdexcept>
-#include <fltk/xpmImage.h>
+#include <FL/Fl_Device.h>
+#include <FL/fl_draw.h>
 #include "../images/cards.xpm"
 
 
 using namespace SK;
 
 
-GlTable::GlTable(int x, int y, int w ,int h, const char* l) : GlWindow(x, y, w, h, l) {
+GlTable::GlTable(int x, int y, int w ,int h, const char* l) : Fl_Gl_Window(x, y, w, h, l) {
 	uchar* data;
 	unsigned depth;
 	cv::Mat pngimg = cv::imread("cards.png");
-	fltk::xpmImage xpmimg(cards_xpm);
+	Fl_Pixmap xpmimg(cards_xpm);
+	vector<uchar> xpmdata;
 
 	if (pngimg.size().area() != 0) {
 		width = pngimg.cols;
@@ -39,11 +41,17 @@ GlTable::GlTable(int x, int y, int w ,int h, const char* l) : GlWindow(x, y, w, 
 		data = pngimg.data;
 		depth = pngimg.elemSize();
 	} else {
-		xpmimg.fetch();
-		width = xpmimg.buffer_width();
-		height = xpmimg.buffer_height();
-		data = xpmimg.buffer();
-		depth = xpmimg.buffer_depth();
+		width = xpmimg.w();
+		height = xpmimg.h();
+		depth = 3;
+		xpmdata.resize(width * height * depth);
+		data = &xpmdata[0];
+		Fl_Offscreen osbuf = fl_create_offscreen(width, height);
+		fl_begin_offscreen(osbuf);
+		xpmimg.draw(0, 0);
+		fl_read_image(&xpmdata[0], 0, 0, width, height);
+		fl_end_offscreen();
+		fl_delete_offscreen(osbuf);
 	}
 
 	if (width == 0 || height == 0 || depth < 3)
@@ -73,12 +81,12 @@ GlTable::GlTable(int x, int y, int w ,int h, const char* l) : GlWindow(x, y, w, 
 	texture = 0;
 	selected = UINT_MAX;
 	pushed = false;
-	bgcolor = fltk::GRAY75;
+	bgcolor = FL_GRAY;
 }
 
 
-void GlTable::set_bgcolor(fltk::Color color) {
-	bgcolor = color == 0? fltk::GRAY75: color;
+void GlTable::set_bgcolor(Fl_Color color) {
+	bgcolor = color == 0? FL_GRAY: color;
 	redraw();
 }
 
@@ -172,7 +180,8 @@ void GlTable::draw(void) {
 	}
 
 	unsigned char r, g, b;
-	fltk::split_color(bgcolor, r, g, b);
+	Fl::get_color(bgcolor, r, g, b);
+	//fltk::split_color(bgcolor, r, g, b);
 	glClearColor(r / 255.f, g / 255.f, b / 255.f, 1.f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -223,23 +232,23 @@ void GlTable::draw(void) {
 
 
 int GlTable::handle(int event) {
-	using namespace fltk;
+	//using namespace fltk;
 
 	switch(event) {
-	case ENTER:
+	case FL_ENTER:
 		return 1;
-	case LEAVE:
+	case FL_LEAVE:
 		selected = UINT_MAX;
 		redraw();
 		return 1;
-	case PUSH:
+	case FL_PUSH:
 		pushed = true;
 		redraw();
-	case DRAG:
-	case MOVE: {
+	case FL_DRAG:
+	case FL_MOVE: {
 		unsigned sel = UINT_MAX;
-		int mx = event_x();
-		int my = event_y();
+		int mx = Fl::event_x();
+		int my = Fl::event_y();
 
 		for (unsigned i = 0; i < hand.size(); i++) {
 			float x, y, a;
@@ -269,7 +278,7 @@ int GlTable::handle(int event) {
 			redraw();
 		}
 		return 1;}
-	case RELEASE:
+	case FL_RELEASE:
 		pushed = false;
 		if (selected != UINT_MAX) {
 			do_callback();
@@ -279,5 +288,5 @@ int GlTable::handle(int event) {
 		return 1;
 	}
 
-	return GlWindow::handle(event);
+	return Fl_Gl_Window::handle(event);
 }

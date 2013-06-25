@@ -1,4 +1,4 @@
-/*Copyright (C) 2012 Carsten Paproth
+/*Copyright (C) 2012, 2013 Carsten Paproth
 
 This file is part of Skat-Konferenz.
 
@@ -19,14 +19,14 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #define SK_BIDBUTTON_H
 
 
-#include <fltk/Button.h>
+#include <FL/Fl_Button.h>
 #include <set>
 
 
 namespace SK {
 
 
-class BidButton : public fltk::Button {
+class BidButton : public Fl_Button {
 	std::set<unsigned>		bidorder;
 	std::set<unsigned>::iterator	minbid;
 	std::set<unsigned>::iterator	maxbid;

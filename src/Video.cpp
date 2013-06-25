@@ -1,4 +1,4 @@
-/*Copyright (C) 2012 Carsten Paproth
+/*Copyright (C) 2012, 2013 Carsten Paproth
 
 This file is part of Skat-Konferenz.
 
@@ -190,7 +190,7 @@ void Video::worker(void) {
 				deblock(*rimg);
 				ui.rightimage->redraw();
 			}
-			fltk::awake();
+			Fl::awake();
 		}
 	} catch (std::exception& e) {
 		cout << "video failure: " << e.what() << endl;

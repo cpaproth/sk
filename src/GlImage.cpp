@@ -1,4 +1,4 @@
-/*Copyright (C) 2012 Carsten Paproth
+/*Copyright (C) 2012, 2013 Carsten Paproth
 
 This file is part of Skat-Konferenz.
 
@@ -16,14 +16,14 @@ You should have received a copy of the GNU General Public License
 along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 #include "GlImage.h"
-#include <fltk/gl.h>
+#include <FL/gl.h>
 #include <opencv/cxcore.h>
 
 
 using namespace SK;
 
 
-GlImage::GlImage(int x, int y, int w ,int h, const char* l) : GlWindow(x, y, w, h, l) {
+GlImage::GlImage(int x, int y, int w ,int h, const char* l) : Fl_Gl_Window(x, y, w, h, l) {
 	img = 0;
 }
 
@@ -45,7 +45,7 @@ void GlImage::draw(void) {
 		glPixelZoom(1.f, -1.f);
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		fltk::glsetfont(fltk::HELVETICA, 12.f);
+		gl_font(FL_HELVETICA, 12);
 	}
 
 	glRasterPos2i(0, h());
@@ -57,10 +57,10 @@ void GlImage::draw(void) {
 	if (!str.empty()) {
 		glColor4f(0.f, 0.f, 0.f, 0.3f);
 		glEnable(GL_BLEND);
-		glRectf(0.f , 10.f - fltk::glgetdescent(), (float)w(), 10.f + fltk::glgetascent());
+		glRectf(0.f , 10.f - gl_descent(), (float)w(), 10.f + gl_height());
 		glDisable(GL_BLEND);
 		
 		glColor3f(1.f, 1.f, 1.f);
-		fltk::gldrawtext(str.c_str(), std::max(0.f, (w() - fltk::glgetwidth(str.c_str())) / 2.f), 10.f);
+		gl_draw(str.c_str(), std::max(0.f, (w() - (float)gl_width(str.c_str())) / 2.f), 10.f);
 	}
 }
