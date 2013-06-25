@@ -19,7 +19,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #define SK_LOGDISPLAY_H
 
 
-#include <FL/Fl_Text_Display.h>
+#include <FL/Fl_Text_Display.H>
 #include <boost/thread/mutex.hpp>
 
 namespace SK {

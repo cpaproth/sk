@@ -18,12 +18,11 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 #include "Network.h"
 #include "ui.h"
-//#include "Network.h"
 #include "Audio.h"
 #include "Video.h"
 #include "Game.h"
 
-#include <FL/fl_ask.h>
+#include <FL/fl_ask.H>
 #include <iostream>
 #include "Convenience.h"
 

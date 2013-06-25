@@ -17,11 +17,10 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 #include "GlTable.h"
 #include <FL/gl.h>
-#include <FL/Fl.h>
+#include <FL/Fl.H>
 #include <opencv/highgui.h>
 #include <stdexcept>
-#include <FL/Fl_Device.h>
-#include <FL/fl_draw.h>
+#include <FL/fl_draw.H>
 #include "../images/cards.xpm"
 
 

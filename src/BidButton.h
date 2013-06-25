@@ -19,7 +19,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #define SK_BIDBUTTON_H
 
 
-#include <FL/Fl_Button.h>
+#include <FL/Fl_Button.H>
 #include <set>
 
 

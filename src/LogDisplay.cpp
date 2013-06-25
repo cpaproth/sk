@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 #include "LogDisplay.h"
-#include <FL/Fl.h>
+#include <FL/Fl.H>
 #include <iostream>
 #include <climits>
 

@@ -19,7 +19,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #define SK_GLTABLE_H
 
 
-#include <FL/Fl_Gl_Window.h>
+#include <FL/Fl_Gl_Window.H>
 #include <vector>
 
 

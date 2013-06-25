@@ -17,9 +17,9 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 #include "Video.h"
 #include "Network.h"
-#include "ui.h"
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
+#include "ui.h"
 #include <iostream>
 #include "Convenience.h"
 

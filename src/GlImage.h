@@ -20,7 +20,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 
 #include <string>
-#include <FL/Fl_Gl_Window.h>
+#include <FL/Fl_Gl_Window.H>
 
 
 namespace cv {
