@@ -426,17 +426,20 @@ void UserInterface::cb_junkrule(Fl_Check_Button* o, void* v) {
 UserInterface::UserInterface(void):prefs(Fl_Preferences::USER, "cpaproth", "sk") {
   UILock lock;
   { mainwnd = new Fl_Double_Window(960, 700, "Skat-Konferenz");
+    mainwnd->labelsize(11);
     mainwnd->callback((Fl_Callback*)cb_mainwnd, (void*)(this));
+    mainwnd->align(Fl_Align(FL_ALIGN_CLIP|FL_ALIGN_INSIDE));
     { Fl_Tabs* o = new Fl_Tabs(0, 0, 960, 700);
+      o->labelsize(11);
       { Fl_Group* o = new Fl_Group(0, 25, 960, 675, "Skat");
-        o->hide();
+        o->labelsize(11);
         { table = new SK::GlTable(0, 265, 640, 435);
           table->box(FL_FLAT_BOX);
           table->color((Fl_Color)1908830464);
           table->selection_color(FL_BACKGROUND_COLOR);
           table->labeltype(FL_NORMAL_LABEL);
           table->labelfont(0);
-          table->labelsize(14);
+          table->labelsize(11);
           table->labelcolor(FL_FOREGROUND_COLOR);
           table->callback((Fl_Callback*)cb_table);
           table->align(Fl_Align(FL_ALIGN_CENTER));
@@ -448,7 +451,7 @@ UserInterface::UserInterface(void):prefs(Fl_Preferences::USER, "cpaproth", "sk")
           leftimage->selection_color(FL_BACKGROUND_COLOR);
           leftimage->labeltype(FL_NORMAL_LABEL);
           leftimage->labelfont(0);
-          leftimage->labelsize(14);
+          leftimage->labelsize(11);
           leftimage->labelcolor(FL_FOREGROUND_COLOR);
           leftimage->align(Fl_Align(FL_ALIGN_CENTER));
           leftimage->when(FL_WHEN_RELEASE);
@@ -459,7 +462,7 @@ UserInterface::UserInterface(void):prefs(Fl_Preferences::USER, "cpaproth", "sk")
           rightimage->selection_color(FL_BACKGROUND_COLOR);
           rightimage->labeltype(FL_NORMAL_LABEL);
           rightimage->labelfont(0);
-          rightimage->labelsize(14);
+          rightimage->labelsize(11);
           rightimage->labelcolor(FL_FOREGROUND_COLOR);
           rightimage->align(Fl_Align(FL_ALIGN_CENTER));
           rightimage->when(FL_WHEN_RELEASE);
@@ -470,20 +473,21 @@ UserInterface::UserInterface(void):prefs(Fl_Preferences::USER, "cpaproth", "sk")
           midimage->selection_color(FL_BACKGROUND_COLOR);
           midimage->labeltype(FL_NORMAL_LABEL);
           midimage->labelfont(0);
-          midimage->labelsize(14);
+          midimage->labelsize(11);
           midimage->labelcolor(FL_FOREGROUND_COLOR);
           midimage->align(Fl_Align(FL_ALIGN_CENTER));
           midimage->when(FL_WHEN_RELEASE);
         } // SK::GlImage* midimage
         { Fl_Group* o = new Fl_Group(640, 25, 320, 85);
           o->box(FL_DOWN_BOX);
+          o->labelsize(11);
           { bid = new SK::BidButton(680, 70, 105, 25, "Reizen");
             bid->box(FL_UP_BOX);
             bid->color(FL_BACKGROUND_COLOR);
             bid->selection_color(FL_BACKGROUND_COLOR);
             bid->labeltype(FL_NORMAL_LABEL);
             bid->labelfont(1);
-            bid->labelsize(14);
+            bid->labelsize(11);
             bid->labelcolor(FL_FOREGROUND_COLOR);
             bid->callback((Fl_Callback*)cb_bid);
             bid->align(Fl_Align(FL_ALIGN_CENTER));
@@ -491,73 +495,89 @@ UserInterface::UserInterface(void):prefs(Fl_Preferences::USER, "cpaproth", "sk")
           } // SK::BidButton* bid
           { fold = new Fl_Button(815, 70, 105, 25, "Passen");
             fold->labelfont(1);
+            fold->labelsize(11);
             fold->callback((Fl_Callback*)cb_fold);
           } // Fl_Button* fold
           { info = new Fl_Box(640, 35, 320, 25, "Information");
             info->labelfont(1);
+            info->labelsize(11);
             info->align(Fl_Align(FL_ALIGN_TEXT_OVER_IMAGE));
           } // Fl_Box* info
           o->end();
         } // Fl_Group* o
         { Fl_Group* o = new Fl_Group(640, 110, 320, 240);
           o->box(FL_DOWN_BOX);
+          o->labelsize(11);
           { gameinfo = new Fl_Box(640, 120, 320, 25, "Spielinfo");
             gameinfo->labelfont(1);
+            gameinfo->labelsize(11);
             gameinfo->align(Fl_Align(FL_ALIGN_TEXT_OVER_IMAGE));
           } // Fl_Box* gameinfo
           { Fl_Group* o = new Fl_Group(700, 155, 200, 70);
+            o->labelsize(11);
             { diamonds = new Fl_Button(700, 155, 50, 35);
               diamonds->tooltip("Karo ist Trumpf.");
               diamonds->value(1);
               diamonds->image(image_diamonds);
+              diamonds->labelsize(11);
               diamonds->callback((Fl_Callback*)cb_diamonds);
             } // Fl_Button* diamonds
             { hearts = new Fl_Button(750, 155, 50, 35);
               hearts->tooltip("Herz ist Trumpf.");
               hearts->image(image_hearts);
+              hearts->labelsize(11);
               hearts->callback((Fl_Callback*)cb_hearts);
             } // Fl_Button* hearts
             { spades = new Fl_Button(800, 155, 50, 35);
               spades->tooltip("Pik ist Trumpf.");
               spades->image(image_spades);
+              spades->labelsize(11);
               spades->callback((Fl_Callback*)cb_spades);
             } // Fl_Button* spades
             { clubs = new Fl_Button(850, 155, 50, 35);
               clubs->tooltip("Kreuz ist Trumpf.");
               clubs->image(image_clubs);
+              clubs->labelsize(11);
               clubs->callback((Fl_Callback*)cb_clubs);
             } // Fl_Button* clubs
             { grand = new Fl_Button(700, 190, 60, 35, "Grand");
               grand->tooltip("Nur Buben sind Trumpf.");
               grand->labelfont(1);
+              grand->labelsize(11);
               grand->callback((Fl_Callback*)cb_grand);
             } // Fl_Button* grand
             { null = new Fl_Button(760, 190, 45, 35, "Null");
               null->tooltip("Nullspiel, es gibt kein Trumpf.");
               null->labelfont(1);
+              null->labelsize(11);
               null->callback((Fl_Callback*)cb_null);
             } // Fl_Button* null
             { nullouvert = new Fl_Button(805, 190, 95, 35, "Null Ouvert");
               nullouvert->tooltip("Offenes Nullspiel, es gibt kein Trumpf.");
               nullouvert->labelfont(1);
+              nullouvert->labelsize(11);
               nullouvert->callback((Fl_Callback*)cb_nullouvert);
             } // Fl_Button* nullouvert
             o->end();
           } // Fl_Group* o
           { hand = new Fl_Group(700, 225, 200, 35);
+            hand->labelsize(11);
             { schneider = new Fl_Button(700, 225, 80, 35, "Schneider");
               schneider->tooltip("Handspiel, Schneider angesagt.");
               schneider->labelfont(1);
+              schneider->labelsize(11);
               schneider->callback((Fl_Callback*)cb_schneider);
             } // Fl_Button* schneider
             { schwarz = new Fl_Button(780, 225, 65, 35, "Schwarz");
               schwarz->tooltip("Handspiel, Schneider und Schwarz angesagt.");
               schwarz->labelfont(1);
+              schwarz->labelsize(11);
               schwarz->callback((Fl_Callback*)cb_schwarz);
             } // Fl_Button* schwarz
             { ouvert = new Fl_Button(845, 225, 55, 35, "Ouvert");
               ouvert->tooltip("Offenes Handspiel, Schneider und Schwarz angesagt.");
               ouvert->labelfont(1);
+              ouvert->labelsize(11);
               ouvert->callback((Fl_Callback*)cb_ouvert);
             } // Fl_Button* ouvert
             hand->end();
@@ -565,36 +585,45 @@ UserInterface::UserInterface(void):prefs(Fl_Preferences::USER, "cpaproth", "sk")
           { skat = new Fl_Button(700, 270, 200, 25, "Skat aufnehmen");
             skat->tooltip("Kein Handspiel.");
             skat->labelfont(1);
+            skat->labelsize(11);
             skat->callback((Fl_Callback*)cb_skat);
           } // Fl_Button* skat
           { announce = new Fl_Button(700, 305, 200, 25, "Spiel ansagen");
             announce->labelfont(1);
+            announce->labelsize(11);
             announce->callback((Fl_Callback*)cb_announce);
           } // Fl_Button* announce
           o->end();
         } // Fl_Group* o
         { Fl_Group* o = new Fl_Group(640, 350, 320, 90);
           o->box(FL_DOWN_BOX);
+          o->labelsize(11);
           { dealout = new Fl_Button(655, 365, 140, 25, "Karten austeilen");
             dealout->labelfont(1);
+            dealout->labelsize(11);
             dealout->callback((Fl_Callback*)cb_dealout);
           } // Fl_Button* dealout
           { disclose = new Fl_Button(655, 400, 140, 25, "Karten aufdecken");
             disclose->labelfont(1);
+            disclose->labelsize(11);
             disclose->callback((Fl_Callback*)cb_disclose);
           } // Fl_Button* disclose
           { contrare = new Fl_Button(810, 365, 140, 25, "Kontra / Re");
             contrare->labelfont(1);
+            contrare->labelsize(11);
             contrare->callback((Fl_Callback*)cb_contrare);
           } // Fl_Button* contrare
           { giveup = new Fl_Button(810, 400, 140, 25, "Spiel abbrechen");
             giveup->labelfont(1);
+            giveup->labelsize(11);
             giveup->callback((Fl_Callback*)cb_giveup);
           } // Fl_Button* giveup
           o->end();
         } // Fl_Group* o
         { chat = new Fl_Input(640, 680, 320, 20);
           chat->box(FL_FLAT_BOX);
+          chat->labelsize(11);
+          chat->textsize(11);
           chat->callback((Fl_Callback*)cb_chat);
           chat->when(FL_WHEN_ENTER_KEY);
           chat->take_focus();
@@ -602,19 +631,24 @@ UserInterface::UserInterface(void):prefs(Fl_Preferences::USER, "cpaproth", "sk")
         o->end();
       } // Fl_Group* o
       { Fl_Group* o = new Fl_Group(0, 25, 960, 675, "System");
+        o->labelsize(11);
+        o->hide();
         { Fl_Group* o = new Fl_Group(630, 110, 220, 140, "Audio");
           o->box(FL_DOWN_BOX);
           o->labeltype(FL_ENGRAVED_LABEL);
+          o->labelsize(11);
           o->align(Fl_Align(33));
           { Fl_Button* o = new Fl_Button(665, 150, 150, 25, "Restart Audio Stream");
             o->tooltip("Restart the audio stream and print the current CPU load of the audio stream i\
 nto the log window.");
+            o->labelsize(11);
             o->callback((Fl_Callback*)cb_Restart);
           } // Fl_Button* o
           { Fl_Check_Button* o = new Fl_Check_Button(665, 200, 150, 25, "Playback Microphone");
             o->tooltip("When activated, the microphone recording will not be broadcasted but directly\
  played back. Use this to adjust your mixer settings, e.g. to reduce echoes.");
             o->down_box(FL_DOWN_BOX);
+            o->labelsize(11);
             o->callback((Fl_Callback*)cb_Playback);
           } // Fl_Check_Button* o
           o->end();
@@ -622,12 +656,15 @@ nto the log window.");
         { Fl_Group* o = new Fl_Group(65, 70, 355, 290, "Network");
           o->box(FL_DOWN_BOX);
           o->labeltype(FL_ENGRAVED_LABEL);
+          o->labelsize(11);
           o->align(Fl_Align(33));
           { address = new Fl_Input(200, 110, 195, 25, "IP address");
             address->tooltip("The IP address or hostname of the server you want to connect to. If you want \
 to be the server (one of the peers has to be the server), leave this field emp\
 ty and click connect. Then tell the other peers your publicly reachable IP add\
 ress or hostname, and UDP port.");
+            address->labelsize(11);
+            address->textsize(11);
             address->callback((Fl_Callback*)cb_address);
             char* c;
 prefs.get("ipaddress", c, "");
@@ -637,8 +674,10 @@ delete[] c;
           { port = new Fl_Value_Input(200, 160, 195, 25, "UDP port");
             port->tooltip("The UDP port of the server.");
             port->color((Fl_Color)-256);
+            port->labelsize(11);
             port->maximum(65535);
             port->step(1);
+            port->textsize(11);
             port->callback((Fl_Callback*)cb_port);
             double d;
 prefs.get("udpport", d, 34588);
@@ -650,8 +689,10 @@ e greater than the upload speed of your internet connection. The bandwidth is \
 distributed among the connnected peers, the audio stream always needs 3000 byt\
 es per second per peer.");
             bandwidth->color((Fl_Color)-256);
+            bandwidth->labelsize(11);
             bandwidth->maximum(1e+009);
             bandwidth->step(1000);
+            bandwidth->textsize(11);
             bandwidth->callback((Fl_Callback*)cb_bandwidth);
             double d;
 prefs.get("bandwidth", d, 16000);
@@ -661,10 +702,12 @@ bandwidth->value(d < 8000? 8000: d);
             o->tooltip("Connect to the server or start the server (if the IP address field is empty).\
  If a connection can be established, the videoconferencing starts. If 3 peers \
 are connected with each other, the game starts.");
+            o->labelsize(11);
             o->callback((Fl_Callback*)cb_Connect);
           } // Fl_Button* o
           { Fl_Button* o = new Fl_Button(200, 310, 195, 25, "Stats");
             o->tooltip("Print some stats on the connected peers into the log window.");
+            o->labelsize(11);
             o->callback((Fl_Callback*)cb_Stats);
           } // Fl_Button* o
           { autoconnect = new Fl_Check_Button(120, 260, 60, 25, "Auto");
@@ -672,6 +715,7 @@ are connected with each other, the game starts.");
 rogram start. This is only reasonable for the server or the connection to a st\
 atic IP address or hostname.");
             autoconnect->down_box(FL_DOWN_BOX);
+            autoconnect->labelsize(11);
             autoconnect->callback((Fl_Callback*)cb_autoconnect);
             int i;
 prefs.get("autoconnect", i, 0);
@@ -682,9 +726,12 @@ autoconnect->value(i != 0);
         { Fl_Group* o = new Fl_Group(525, 320, 245, 175, "Player");
           o->box(FL_DOWN_BOX);
           o->labeltype(FL_ENGRAVED_LABEL);
+          o->labelsize(11);
           o->align(Fl_Align(33));
           { name = new Fl_Input(580, 360, 165, 25, "Name");
             name->tooltip("Your name during the game.");
+            name->labelsize(11);
+            name->textsize(11);
             name->callback((Fl_Callback*)cb_name);
             char* c;
 prefs.get("username", c, "nobody");
@@ -694,6 +741,8 @@ delete[] c;
           { secret = new Fl_Input(580, 405, 165, 25, "Secret");
             secret->tooltip("The secret and the time are used to initialize your random number generator a\
 t program start.");
+            secret->labelsize(11);
+            secret->textsize(11);
             secret->callback((Fl_Callback*)cb_secret);
             char* c;
 prefs.get("secret", c, "");
@@ -702,6 +751,7 @@ delete[] c;
           } // Fl_Input* secret
           { bgcolor = new Fl_Button(580, 450, 165, 25, "Color");
             bgcolor->tooltip("Choose the color of the table background.");
+            bgcolor->labelsize(11);
             bgcolor->callback((Fl_Callback*)cb_bgcolor);
             bgcolor->align(Fl_Align(FL_ALIGN_LEFT));
             int i;
@@ -720,10 +770,12 @@ sch-Spiel mit 23 Punkten, macht er gar keinen Stich (Jungfrau), gewinnt er mit\
 Durchmarsch), dann gewinnt dieser mit 120 Punkten.");
           o->box(FL_DOWN_BOX);
           o->labeltype(FL_ENGRAVED_LABEL);
+          o->labelsize(11);
           o->align(Fl_Align(33));
           { foldrule = new Fl_Check_Button(195, 465, 210, 25, "Ramschen statt Einpassen (E)");
             foldrule->tooltip("Wenn alle Spieler passen, wird mit der Hand Ramsch gespielt.");
             foldrule->down_box(FL_DOWN_BOX);
+            foldrule->labelsize(11);
             foldrule->callback((Fl_Callback*)cb_foldrule);
             int i;
 prefs.get("rulefold", i, 0);
@@ -735,6 +787,7 @@ pielten Karte Kontra sagen. Der Alleinspieler darf daraufhin bis zur 7. ausges\
 pielten Karte Re sagen. Kontra und Re verdoppeln jeweils die Punktzahl des Spi\
 els.");
             contrarerule->down_box(FL_DOWN_BOX);
+            contrarerule->labelsize(11);
             contrarerule->callback((Fl_Callback*)cb_contrarerule);
             int i;
 prefs.get("rulecontrare", i, 0);
@@ -745,6 +798,7 @@ contrarerule->value(i != 0);
 wird gespielt nach verlorenem Kontra-Spiel, Kontra-Re-Spiel, Spiel mit 60 zu 6\
 0 Augen oder gewonnenem Spiel mit wenigstens 100 Punkten Grundwert.");
             bockrule->down_box(FL_DOWN_BOX);
+            bockrule->labelsize(11);
             bockrule->callback((Fl_Callback*)cb_bockrule);
             int i;
 prefs.get("rulebock", i, 0);
@@ -756,6 +810,7 @@ l\303\266st. Auch hier werden die Punkte der Spiele verdoppelt, allerdings ist\
  jedes Spiel Ramsch. Wenn Bock- und Ramschrunde gespielt werden soll, dann fol\
 gt die Ramsch- auf die Bockrunde.");
             junkrule->down_box(FL_DOWN_BOX);
+            junkrule->labelsize(11);
             junkrule->callback((Fl_Callback*)cb_junkrule);
             int i;
 prefs.get("rulejunk", i, 0);
@@ -766,6 +821,7 @@ junkrule->value(i != 0);
         o->end();
       } // Fl_Group* o
       { Fl_Group* o = new Fl_Group(0, 25, 960, 675, "Log");
+        o->labelsize(11);
         o->hide();
         { SK::LogDisplay* o = new SK::LogDisplay(0, 25, 480, 675);
           o->box(FL_DOWN_BOX);
@@ -773,12 +829,15 @@ junkrule->value(i != 0);
           o->selection_color(FL_SELECTION_COLOR);
           o->labeltype(FL_NORMAL_LABEL);
           o->labelfont(0);
-          o->labelsize(14);
+          o->labelsize(11);
           o->labelcolor(FL_FOREGROUND_COLOR);
+          o->textsize(11);
           o->align(Fl_Align(FL_ALIGN_TOP));
           o->when(FL_WHEN_RELEASE);
         } // SK::LogDisplay* o
         { listing = new Fl_Browser(480, 25, 480, 675);
+          listing->labelsize(11);
+          listing->textsize(11);
           const int widths[] = {150, 50, 80, 80, 80, -1, 0};
 const char* labels[] = {"Spiel", "Punkte", "Du", "Links", "Rechts", "SR", 0};
 listing->column_widths(widths);

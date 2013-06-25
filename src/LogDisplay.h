@@ -34,8 +34,6 @@ class LogDisplay : streambuf, public Fl_Text_Display {
 	boost::mutex	bufmutex;
 
 	int overflow(int);
-	int handle(int);
-
 	static void timeout(void*);
 public:
 	LogDisplay(int, int, int, int, const char* = 0);

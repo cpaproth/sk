@@ -25,13 +25,14 @@ using namespace SK;
 
 
 LogDisplay::LogDisplay(int x, int y, int w ,int h, const char* l) : Fl_Text_Display(x, y, w, h, l) {
-	Fl::add_timeout(0.1, timeout, this);
 	oldsbuf = cout.rdbuf(this);
 	buffer(textbuf);
+	Fl::add_timeout(0.1, timeout, this);
 }
 
 
 LogDisplay::~LogDisplay(void) {
+	Fl::remove_timeout(timeout, this);
 	buffer(0);
 	cout.rdbuf(oldsbuf);
 }
@@ -56,25 +57,4 @@ void LogDisplay::timeout(void* v) {
 	}
 
 	Fl::repeat_timeout(0.1, timeout, v);
-}
-
-
-int LogDisplay::handle(int event) {
-	//using namespace fltk;
-
-	//if (event == TIMEOUT) {
-	if (event == FL_PUSH) {
-		boost::lock_guard<boost::mutex> lock(bufmutex);
-		if (strbuf.length() > 0) {
-			textbuf.append(strbuf.c_str());
-			strbuf.clear();
-			scroll(INT_MAX, 0);
-			redraw();
-		}
-
-		//repeat_timeout(0.1f);
-		return 1;
-	}
-
-	return Fl_Text_Display::handle(event);
 }

@@ -72,7 +72,7 @@ int main(void) {
 				cout << "runtime error: " << e.what() << endl;
 			}
 	} catch (exception& e) {
-		fl_alert(ss("initialization error: ") << e.what() | c_str);
+		fl_alert("%s", ss("initialization error: ") << e.what() | c_str);
 	}
 
 	return 1;
