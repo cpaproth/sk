@@ -706,7 +706,7 @@ void Game::giveup_game(void) {
 		ui.giveup->deactivate();
 		ui.contrare->deactivate();
 	} else {
-		network.command(player == left? right: left, "givingup", ss(ui.giveup->value()));
+		network.command(player == left? right: left, "givingup", ui.giveup->value()? "1": "0");
 	}
 }
 

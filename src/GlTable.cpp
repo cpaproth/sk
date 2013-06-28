@@ -20,47 +20,59 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #include <FL/Fl.H>
 #include <opencv/highgui.h>
 #include <stdexcept>
-#include <FL/fl_draw.H>
 #include "../images/cards.xpm"
+#include "Convenience.h"
 
 
 using namespace SK;
 
 
 GlTable::GlTable(int x, int y, int w ,int h, const char* l) : Fl_Gl_Window(x, y, w, h, l) {
-	uchar* data;
-	unsigned depth;
+	uchar* data = 0;
+	unsigned depth = 0;
 	cv::Mat pngimg = cv::imread("cards.png");
-	Fl_Pixmap xpmimg(cards_xpm);
-	vector<uchar> xpmdata;
+	vector<uchar> xpmimg;
+	size_t c, d, s = sizeof(cards_xpm) / sizeof(char*);
+
+
+	CPLib::ss(s > 0? cards_xpm[0]: "0 0 0 0") >> width >> height >> c >> d;
 
 	if (pngimg.size().area() != 0) {
 		width = pngimg.cols;
 		height = pngimg.rows;
 		data = pngimg.data;
 		depth = pngimg.elemSize();
-	} else {
-		width = xpmimg.w();
-		height = xpmimg.h();
+	} else if (d == 1 && s == height + c + 1) {
 		depth = 3;
-		xpmdata.resize(width * height * depth);
-		data = &xpmdata[0];
-		Fl_Offscreen osbuf = fl_create_offscreen(width, height);
-		fl_begin_offscreen(osbuf);
-		xpmimg.draw(0, 0);
-		fl_read_image(&xpmdata[0], 0, 0, width, height);
-		fl_end_offscreen();
-		fl_delete_offscreen(osbuf);
+		xpmimg.resize(width * height * depth);
+		data = &xpmimg[0];
+
+		map<char, unsigned> colors;
+		for (unsigned i = 1; i <= c; i++) {
+			string color(cards_xpm[i]);
+			if (color.length() > 5)
+				CPLib::ss(color.substr(5)) >> hex >> colors[color[0]];
+		}
+
+		for (unsigned y = 0; y < height; y++) {
+			string row(cards_xpm[y + c + 1]);
+			for (unsigned x = 0; x < width && x < row.length(); x++) {
+				data[(y * width + x) * depth] = colors[row[x]];
+				data[(y * width + x) * depth + 1] = colors[row[x]] >> 8;
+				data[(y * width + x) * depth + 2] = colors[row[x]] >> 16;
+			}
+		}
 	}
 
-	if (width == 0 || height == 0 || depth < 3)
+
+	if (width == 0 || height == 0 || depth < 3 || data == 0)
 		throw runtime_error("loading card images failed");
 
 	for (potwidth = 1; potwidth < width; potwidth <<= 1);
 	for (potheight = 1; potheight < height; potheight <<= 1);
 
 	mem.resize(potwidth * potheight * 4);
-	for (unsigned y = 0; y < height; y++)
+	for (unsigned y = 0; y < height; y++) {
 		for (unsigned x = 0; x < width; x++) {
 			unsigned mpos = (height - 1 - y) * potwidth * 4 + x * 4;
 			unsigned ipos = y * width * depth + x * depth;
@@ -76,6 +88,7 @@ GlTable::GlTable(int x, int y, int w ,int h, const char* l) : Fl_Gl_Window(x, y,
 				mem[mpos + 3] = 255;
 			}
 		}
+	}
 
 	texture = 0;
 	selected = UINT_MAX;

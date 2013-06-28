@@ -2,16 +2,22 @@
 version 1.0302 
 header_name {.h} 
 code_name {.cpp}
-decl {//Copyright (C) 2012 Carsten Paproth} {private local
-} 
+comment {/*Copyright (C) 2012, 2013 Carsten Paproth
 
-decl {\#include <map>} {public global
-} 
+This file is part of Skat-Konferenz.
 
-decl {\#include <string>} {public global
-} 
+Skat-Konferenz is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-decl {\#include <boost/function/function0.hpp>} {public global
+Skat-Konferenz is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/} {in_source in_header
 } 
 
 class UILock {} {
@@ -35,11 +41,10 @@ class UserInterface {open
     Fl_Window mainwnd {
       label {Skat-Konferenz}
       callback {mainwnd->hide();} open
-      private xywh {217 119 960 700} type Double labelsize 11 align 80
-      code0 {\#include "LogDisplay.h"
-\#include "GlImage.h"
-\#include "GlTable.h"
-\#include "BidButton.h"} visible
+      private xywh {222 160 960 700} type Double labelsize 11 align 80
+      code0 {\#include <map>}
+      code1 {\#include <string>}
+      code2 {\#include <boost/function/function0.hpp>} visible
     } {
       Fl_Tabs {} {open
         xywh {0 0 960 700} labelsize 11
@@ -51,10 +56,12 @@ class UserInterface {open
           Fl_Box table {
             callback {f["table event"]();}
             xywh {0 265 640 435} box FLAT_BOX color 1908830464 labelsize 11
+            code0 {\#include "GlTable.h"}
             class {SK::GlTable}
           }
           Fl_Box leftimage {
             xywh {0 25 320 240} box FLAT_BOX color 56 labelsize 11
+            code0 {\#include "GlImage.h"}
             class {SK::GlImage}
           }
           Fl_Box rightimage {
@@ -68,20 +75,21 @@ class UserInterface {open
           Fl_Group {} {open
             xywh {640 25 320 85} box DOWN_BOX labelsize 11
           } {
+            Fl_Box info {
+              label Information
+              xywh {640 35 320 25} labelfont 1 labelsize 11 align 32
+            }
             Fl_Button bid {
               label Reizen
               callback {f["game bid"]();}
-              xywh {680 70 105 25} labelfont 1 labelsize 11
+              xywh {680 70 105 25} box PLASTIC_UP_BOX color 2 labelfont 1 labelsize 11
+              code0 {\#include "BidButton.h"}
               class {SK::BidButton}
             }
             Fl_Button fold {
               label Passen
               callback {f["game fold"]();}
-              xywh {815 70 105 25} labelfont 1 labelsize 11
-            }
-            Fl_Box info {
-              label Information
-              xywh {640 35 320 25} labelfont 1 labelsize 11 align 32
+              xywh {815 70 105 25} box PLASTIC_UP_BOX color 1 labelfont 1 labelsize 11
             }
           }
           Fl_Group {} {open
@@ -96,34 +104,34 @@ class UserInterface {open
             } {
               Fl_Button diamonds {
                 callback {f["game select"]();}
-                tooltip {Karo ist Trumpf.} image {../images/diamonds.xpm} xywh {700 155 50 35} value 1 labelsize 11
+                tooltip {Karo ist Trumpf.} image {../images/diamonds.xpm} xywh {700 155 50 35} type Radio value 1 labelsize 11
               }
               Fl_Button hearts {
                 callback {f["game select"]();}
-                tooltip {Herz ist Trumpf.} image {../images/hearts.xpm} xywh {750 155 50 35} labelsize 11
+                tooltip {Herz ist Trumpf.} image {../images/hearts.xpm} xywh {750 155 50 35} type Radio labelsize 11
               }
               Fl_Button spades {
                 callback {f["game select"]();}
-                tooltip {Pik ist Trumpf.} image {../images/spades.xpm} xywh {800 155 50 35} labelsize 11
+                tooltip {Pik ist Trumpf.} image {../images/spades.xpm} xywh {800 155 50 35} type Radio labelsize 11
               }
               Fl_Button clubs {
                 callback {f["game select"]();}
-                tooltip {Kreuz ist Trumpf.} image {../images/clubs.xpm} xywh {850 155 50 35} labelsize 11
+                tooltip {Kreuz ist Trumpf.} image {../images/clubs.xpm} xywh {850 155 50 35} type Radio labelsize 11
               }
               Fl_Button grand {
                 label Grand
                 callback {f["game select"]();}
-                tooltip {Nur Buben sind Trumpf.} xywh {700 190 60 35} labelfont 1 labelsize 11
+                tooltip {Nur Buben sind Trumpf.} xywh {700 190 60 35} type Radio labelfont 1 labelsize 11
               }
               Fl_Button null {
                 label Null
                 callback {f["game select"]();}
-                tooltip {Nullspiel, es gibt kein Trumpf.} xywh {760 190 45 35} labelfont 1 labelsize 11
+                tooltip {Nullspiel, es gibt kein Trumpf.} xywh {760 190 45 35} type Radio labelfont 1 labelsize 11
               }
               Fl_Button nullouvert {
                 label {Null Ouvert}
                 callback {f["game select"]();}
-                tooltip {Offenes Nullspiel, es gibt kein Trumpf.} xywh {805 190 95 35} labelfont 1 labelsize 11
+                tooltip {Offenes Nullspiel, es gibt kein Trumpf.} xywh {805 190 95 35} type Radio labelfont 1 labelsize 11
               }
             }
             Fl_Group hand {open
@@ -136,7 +144,7 @@ class UserInterface {open
   ouvert->value(false);
 }
 f["game select"]();}
-                tooltip {Handspiel, Schneider angesagt.} xywh {700 225 80 35} labelfont 1 labelsize 11
+                tooltip {Handspiel, Schneider angesagt.} xywh {700 225 80 35} type Toggle labelfont 1 labelsize 11
               }
               Fl_Button schwarz {
                 label Schwarz
@@ -145,7 +153,7 @@ f["game select"]();}
 else
   ouvert->value(false);
 f["game select"]();}
-                tooltip {Handspiel, Schneider und Schwarz angesagt.} xywh {780 225 65 35} labelfont 1 labelsize 11
+                tooltip {Handspiel, Schneider und Schwarz angesagt.} xywh {780 225 65 35} type Toggle labelfont 1 labelsize 11
               }
               Fl_Button ouvert {
                 label Ouvert
@@ -154,7 +162,7 @@ f["game select"]();}
   schwarz->value(true);
 }
 f["game select"]();}
-                tooltip {Offenes Handspiel, Schneider und Schwarz angesagt.} xywh {845 225 55 35} labelfont 1 labelsize 11
+                tooltip {Offenes Handspiel, Schneider und Schwarz angesagt.} xywh {845 225 55 35} type Toggle labelfont 1 labelsize 11
               }
             }
             Fl_Button skat {
@@ -174,7 +182,7 @@ f["game select"]();}
             Fl_Button dealout {
               label {Karten austeilen}
               callback {f["game dealout"]();}
-              xywh {655 365 140 25} labelfont 1 labelsize 11
+              xywh {655 365 140 25} color 2 labelfont 1 labelsize 11
             }
             Fl_Button disclose {
               label {Karten aufdecken}
@@ -184,12 +192,12 @@ f["game select"]();}
             Fl_Button contrare {
               label {Kontra / Re}
               callback {f["game contrare"]();}
-              xywh {810 365 140 25} labelfont 1 labelsize 11
+              xywh {810 365 140 25} type Toggle color 1 labelfont 1 labelsize 11
             }
             Fl_Button giveup {
               label {Spiel abbrechen}
               callback {f["game giveup"]();}
-              xywh {810 400 140 25} labelfont 1 labelsize 11
+              xywh {810 400 140 25} type Toggle labelfont 1 labelsize 11
             }
           }
           Fl_Input chat {
@@ -203,7 +211,7 @@ f["game select"]();}
           xywh {0 25 960 675} labelsize 11 hide
         } {
           Fl_Group {} {
-            label Audio
+            label Audio open
             xywh {630 110 220 140} box DOWN_BOX labeltype ENGRAVED_LABEL labelsize 11 align 33
           } {
             Fl_Button {} {
@@ -310,7 +318,7 @@ table->set_bgcolor(i);}
             }
           }
           Fl_Group {} {
-            label {Sonderregeln (SR)}
+            label {Sonderregeln (SR)} open
             tooltip {Es gelten die Regeln der internationalen Skatordnung. Es sind nur die Sonderregeln wirksam, die bei allen Spielern aktiviert sind. Ramsch wird ohne Schieben und Grand Hand gespielt. Der Spieler mit den wenigsten Augen gewinnt das Ramsch-Spiel mit 23 Punkten, macht er gar keinen Stich (Jungfrau), gewinnt er mit 46 Punkten, außer einem Spieler gelingt es alle Stiche zu bekommen (Durchmarsch), dann gewinnt dieser mit 120 Punkten.} xywh {170 425 275 175} box DOWN_BOX labeltype ENGRAVED_LABEL labelsize 11 align 33
           } {
             Fl_Check_Button foldrule {
@@ -357,6 +365,7 @@ junkrule->value(i != 0);}
         } {
           Fl_Text_Display {} {
             private xywh {0 25 480 675} box DOWN_BOX color 55 labelsize 11 textsize 11
+            code0 {\#include "LogDisplay.h"}
             class {SK::LogDisplay}
           }
           Fl_Browser listing {
