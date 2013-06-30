@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0302 
+version 1.0300 
 header_name {.h} 
 code_name {.cpp}
 comment {/*Copyright (C) 2012, 2013 Carsten Paproth
@@ -50,8 +50,8 @@ class UserInterface {open
         xywh {0 0 960 700} labelsize 11
       } {
         Fl_Group {} {
-          label Skat open selected
-          xywh {0 25 960 675} labelsize 11
+          label Skat open
+          xywh {0 25 960 675} labelsize 11 hide
         } {
           Fl_Box table {
             callback {f["table event"]();}
@@ -207,7 +207,7 @@ f["game select"]();}
           }
         }
         Fl_Group {} {
-          label System open
+          label System
           xywh {0 25 960 675} labelsize 11 hide
         } {
           Fl_Group {} {
@@ -233,10 +233,7 @@ f["game select"]();}
               label {IP address}
               callback {prefs.set("ipaddress", address->value());}
               tooltip {The IP address or hostname of the server you want to connect to. If you want to be the server (one of the peers has to be the server), leave this field empty and click connect. Then tell the other peers your publicly reachable IP address or hostname, and UDP port.} xywh {200 110 195 25} labelsize 11 textsize 11
-              code0 {char* c;
-prefs.get("ipaddress", c, "");
-address->value(c);
-delete[] c;}
+              code0 {char* c; prefs.get("ipaddress", c, ""); address->value(c); delete[] c;}
             }
             Fl_Value_Input port {
               label {UDP port}
@@ -245,20 +242,16 @@ delete[] c;}
 if (port->value() > 65535)
   port->value(65535);
 prefs.set("udpport", port->value());}
-              tooltip {The UDP port of the server.} xywh {200 160 195 25} color -256 labelsize 11 maximum 65535 step 1 textsize 11
-              code0 {double d;
-prefs.get("udpport", d, 34588);
-port->value(d < 0? 0: d > 65535? 65535: d);}
+              tooltip {The UDP port of the server.} xywh {200 160 195 25} color -256 labelsize 11 when 4 maximum 65535 step 1 textsize 11
+              code0 {double d; prefs.get("udpport", d, 34588); port->value(d < 0? 0: d > 65535? 65535: d);}
             }
             Fl_Value_Input bandwidth {
               label {Upload bandwidth}
               callback {if (bandwidth->value() < 8000)
   bandwidth->value(8000);
 prefs.set("bandwidth", bandwidth->value());}
-              tooltip {Maximal bandwidth for the upload in bytes per second. This value shouldn't be greater than the upload speed of your internet connection. The bandwidth is distributed among the connnected peers, the audio stream always needs 3000 bytes per second per peer.} xywh {200 210 195 25} color -256 labelsize 11 maximum 1e+009 step 1000 textsize 11
-              code0 {double d;
-prefs.get("bandwidth", d, 16000);
-bandwidth->value(d < 8000? 8000: d);}
+              tooltip {Maximal bandwidth for the upload in bytes per second. This value shouldn't be greater than the upload speed of your internet connection. The bandwidth is distributed among the connnected peers, the audio stream always needs 3000 bytes per second per peer.} xywh {200 210 195 25} color -256 labelsize 11 when 4 minimum 8000 maximum 1e+09 step 1000 textsize 11
+              code0 {double d; prefs.get("bandwidth", d, 16000); bandwidth->value(d < 8000? 8000: d);}
             }
             Fl_Button {} {
               label Connect
@@ -274,9 +267,7 @@ bandwidth->value(d < 8000? 8000: d);}
               label Auto
               callback {prefs.set("autoconnect", autoconnect->value());}
               tooltip {When activated, the network will be connected automatically during the next program start. This is only reasonable for the server or the connection to a static IP address or hostname.} xywh {120 260 60 25} down_box DOWN_BOX labelsize 11
-              code0 {int i;
-prefs.get("autoconnect", i, 0);
-autoconnect->value(i != 0);}
+              code0 {int i; prefs.get("autoconnect", i, 0); autoconnect->value(i != 0);}
             }
           }
           Fl_Group {} {
@@ -288,33 +279,28 @@ autoconnect->value(i != 0);}
               callback {prefs.set("username", name->value());
 f["name change"]();}
               tooltip {Your name during the game.} xywh {580 360 165 25} labelsize 11 textsize 11
-              code0 {char* c;
-prefs.get("username", c, "nobody");
-name->value(c);
-delete[] c;}
+              code0 {char* c; prefs.get("username", c, "nobody"); name->value(c); delete[] c;}
             }
             Fl_Input secret {
               label Secret
               callback {prefs.set("secret", secret->value());}
               tooltip {The secret and the time are used to initialize your random number generator at program start.} xywh {580 405 165 25} labelsize 11 textsize 11
-              code0 {char* c;
-prefs.get("secret", c, "");
-secret->value(c);
-delete[] c;}
+              code0 {char* c; prefs.get("secret", c, ""); secret->value(c); delete[] c;}
             }
             Fl_Button bgcolor {
               label Color
-              callback {Fl_Color color(bgcolor->color());
-//fltk::color_chooser("Choose Color", color);
+              callback {uchar r, g, b;
+Fl::get_color(bgcolor->color(), r, g, b);
+fl_color_chooser("Choose Color", r, g, b);
+
+Fl_Color color(fl_rgb_color(r, g, b));
 bgcolor->color(color);
 bgcolor->redraw();
 table->set_bgcolor(color);
 prefs.set("bgcolor", (int)color);}
               tooltip {Choose the color of the table background.} xywh {580 450 165 25} labelsize 11 align 4
-              code0 {int i;
-prefs.get("bgcolor", i, (int)FL_GRAY);
-bgcolor->color(i);
-table->set_bgcolor(i);}
+              code0 {\#include <FL/Fl_Color_Chooser.H>}
+              code1 {int i; prefs.get("bgcolor", i, (int)FL_GRAY); bgcolor->color(i); table->set_bgcolor(i);}
             }
           }
           Fl_Group {} {
@@ -326,54 +312,45 @@ table->set_bgcolor(i);}
               callback {prefs.set("rulefold", foldrule->value());
 f["rule change"]();}
               tooltip {Wenn alle Spieler passen, wird mit der Hand Ramsch gespielt.} xywh {195 465 210 25} down_box DOWN_BOX labelsize 11
-              code0 {int i;
-prefs.get("rulefold", i, 0);
-foldrule->value(i != 0);}
+              code0 {int i; prefs.get("rulefold", i, 0); foldrule->value(i != 0);}
             }
             Fl_Check_Button contrarerule {
               label {Kontra und Re (K)}
               callback {prefs.set("rulecontrare", contrarerule->value());
 f["rule change"]();}
               tooltip {Gegenspieler, die nicht bei 18 gepasst haben, dürfen bis zur 4. ausgespielten Karte Kontra sagen. Der Alleinspieler darf daraufhin bis zur 7. ausgespielten Karte Re sagen. Kontra und Re verdoppeln jeweils die Punktzahl des Spiels.} xywh {195 495 135 25} down_box DOWN_BOX labelsize 11
-              code0 {int i;
-prefs.get("rulecontrare", i, 0);
-contrarerule->value(i != 0);}
+              code0 {int i; prefs.get("rulecontrare", i, 0); contrarerule->value(i != 0);}
             }
             Fl_Check_Button bockrule {
               label {Bockrunde (B)}
               callback {prefs.set("rulebock", bockrule->value());
 f["rule change"]();}
               tooltip {In einer Bockrunde werden die Punkte jedes Spiels verdoppelt. Eine Bockrunde wird gespielt nach verlorenem Kontra-Spiel, Kontra-Re-Spiel, Spiel mit 60 zu 60 Augen oder gewonnenem Spiel mit wenigstens 100 Punkten Grundwert.} xywh {195 525 115 25} down_box DOWN_BOX labelsize 11
-              code0 {int i;
-prefs.get("rulebock", i, 0);
-bockrule->value(i != 0);}
+              code0 {int i; prefs.get("rulebock", i, 0); bockrule->value(i != 0);}
             }
             Fl_Check_Button junkrule {
               label {Ramschrunde (R)}
               callback {prefs.set("rulejunk", junkrule->value());
 f["rule change"]();}
               tooltip {Eine Ramschrunde wird unter den gleichen Bedingungen wie eine Bockrunde ausgelöst. Auch hier werden die Punkte der Spiele verdoppelt, allerdings ist jedes Spiel Ramsch. Wenn Bock- und Ramschrunde gespielt werden soll, dann folgt die Ramsch- auf die Bockrunde.} xywh {195 555 135 25} down_box DOWN_BOX labelsize 11
-              code0 {int i;
-prefs.get("rulejunk", i, 0);
-junkrule->value(i != 0);}
+              code0 {int i; prefs.get("rulejunk", i, 0); junkrule->value(i != 0);}
             }
           }
         }
         Fl_Group {} {
           label Log open
-          xywh {0 25 960 675} labelsize 11 hide
+          xywh {0 25 960 675} labelsize 11
         } {
           Fl_Text_Display {} {
             private xywh {0 25 480 675} box DOWN_BOX color 55 labelsize 11 textsize 11
             code0 {\#include "LogDisplay.h"}
             class {SK::LogDisplay}
           }
-          Fl_Browser listing {
-            xywh {480 25 480 675} labelsize 11 textsize 11
-            code0 {const int widths[] = {150, 50, 80, 80, 80, -1, 0};
-const char* labels[] = {"Spiel", "Punkte", "Du", "Links", "Rechts", "SR", 0};
-listing->column_widths(widths);
-//listing->column_labels(labels);}
+          Fl_Browser listing {selected
+            xywh {480 25 480 675} labelsize 11 textsize 9
+            code0 {static const int widths[] = {150, 50, 80, 80, 80, 40, 0}; listing->column_widths(widths);}
+            code1 {listing->add("@B49@cSpiel\\t@B49@cPunkte\\t@B49@cDu\\t@B223@cLinks\\t@B49@cRechts\\t@B49@cSR");}
+            code2 {//const char* labels[] = {"Spiel", "Punkte", "Du", "Links", "Rechts", "SR", 0};}
           }
         }
       }
