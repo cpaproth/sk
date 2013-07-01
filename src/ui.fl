@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0300 
+version 1.0302 
 header_name {.h} 
 code_name {.cpp}
 comment {/*Copyright (C) 2012, 2013 Carsten Paproth
@@ -50,8 +50,8 @@ class UserInterface {open
         xywh {0 0 960 700} labelsize 11
       } {
         Fl_Group {} {
-          label Skat open
-          xywh {0 25 960 675} labelsize 11 hide
+          label Skat open selected
+          xywh {0 25 960 675} labelsize 11
         } {
           Fl_Box table {
             callback {f["table event"]();}
@@ -250,7 +250,7 @@ prefs.set("udpport", port->value());}
               callback {if (bandwidth->value() < 8000)
   bandwidth->value(8000);
 prefs.set("bandwidth", bandwidth->value());}
-              tooltip {Maximal bandwidth for the upload in bytes per second. This value shouldn't be greater than the upload speed of your internet connection. The bandwidth is distributed among the connnected peers, the audio stream always needs 3000 bytes per second per peer.} xywh {200 210 195 25} color -256 labelsize 11 when 4 minimum 8000 maximum 1e+09 step 1000 textsize 11
+              tooltip {Maximal bandwidth for the upload in bytes per second. This value shouldn't be greater than the upload speed of your internet connection. The bandwidth is distributed among the connnected peers, the audio stream always needs 3000 bytes per second per peer.} xywh {200 210 195 25} color -256 labelsize 11 when 4 minimum 8000 maximum 1e+009 step 1000 textsize 11
               code0 {double d; prefs.get("bandwidth", d, 16000); bandwidth->value(d < 8000? 8000: d);}
             }
             Fl_Button {} {
@@ -339,18 +339,17 @@ f["rule change"]();}
         }
         Fl_Group {} {
           label Log open
-          xywh {0 25 960 675} labelsize 11
+          xywh {0 25 960 675} labelsize 11 hide
         } {
           Fl_Text_Display {} {
             private xywh {0 25 480 675} box DOWN_BOX color 55 labelsize 11 textsize 11
             code0 {\#include "LogDisplay.h"}
             class {SK::LogDisplay}
           }
-          Fl_Browser listing {selected
-            xywh {480 25 480 675} labelsize 11 textsize 9
-            code0 {static const int widths[] = {150, 50, 80, 80, 80, 40, 0}; listing->column_widths(widths);}
-            code1 {listing->add("@B49@cSpiel\\t@B49@cPunkte\\t@B49@cDu\\t@B223@cLinks\\t@B49@cRechts\\t@B49@cSR");}
-            code2 {//const char* labels[] = {"Spiel", "Punkte", "Du", "Links", "Rechts", "SR", 0};}
+          Fl_Browser listing {
+            xywh {480 25 480 675} selection_color 215 labelsize 11 textsize 9
+            code0 {static const int widths[] = {130, 50, 80, 80, 80, 60, 0}; listing->column_widths(widths);}
+            code1 {listing->add("@B49@cSpiel\\t@B49@cPunkte\\t@B49@cDu\\t@B49@cLinks\\t@B49@cRechts\\t@B49@cSR");}
           }
         }
       }

@@ -452,16 +452,16 @@ void Game::game_over(void) {
 	}
 	bock |= (score < 0 && contrare == 2) || contrare == 4;
 	
-	string h = ss("\t\t@c;") << ui.name->value() << '\t' << leftname << '\t' << rightname << '\t' << (rule(1)? "E": "") << (rule(2)? "K": "") << (rule(4)? "B": "") << (rule(8)? "R": "");
+	string h = ss("\t\t@b@c") << ui.name->value() << "\t@b@c" << leftname << "\t@b@c" << rightname << "\t@b@c" << (rule(1)? "E": "") << (rule(2)? "K": "") << (rule(4)? "B": "") << (rule(8)? "R": "");
 	if (h != header) {
 		header = h;
 		row = 0;
-		ui.listing->add("");
+		ui.listing->add("@-");
 		ui.listing->add(header.c_str());
 	}
 
 	if (row++ % 3 == 0)
-		ui.listing->add("");
+		ui.listing->add("@-");
 	
 	string s = contrare == 4? "Re": contrare == 2? "Ko": ""; 
 	score *= contrare > 0? contrare: 1;
@@ -477,19 +477,19 @@ void Game::game_over(void) {
 		rounds.resize(rounds.size() + 3, 1);
 
 	if (!playing) {
-		ui.listing->add(ss("Eingepasst\t@c;-\t-\t-\t-\t") << s | c_str);
+		ui.listing->add(ss("Eingepasst\t@c-\t@c-\t@c-\t@c-\t@c") << s | c_str);
 	} else if (gextra == 31) {
 		string m = tricks.size() == 30 || (lefttricks.size() != 30 && righttricks.size() != 30 && sum <= lsum && sum <= rsum)? ss(scores += score): ss("-");
 		string l = lefttricks.size() == 30 || (tricks.size() != 30 && righttricks.size() != 30 && lsum <= sum && lsum <= rsum)? ss(leftscores += score): ss("-");
 		string r = righttricks.size() == 30 || (lefttricks.size() != 30 && tricks.size() != 30 && rsum <= sum && rsum <= lsum)? ss(rightscores += score): ss("-");
-		ui.listing->add(ss("Ramsch\t@c;") << score << '\t' << m << '\t' << l << '\t' << r << '\t' << s | c_str);
+		ui.listing->add(ss("Ramsch\t@c") << score << "\t@c" << m << "\t@c" << l << "\t@c" << r << "\t@c" << s | c_str);
 	} else {
 		string m = player == myself? ss(scores += score): ss("-");
 		string l = player == left? ss(leftscores += score): ss("-");
 		string r = player == right? ss(rightscores += score): ss("-");
-		ui.listing->add(ss(game_name(false)) << "\t@c;" << score << '\t' << m << '\t' << l << '\t' << r << '\t' << s | c_str);
+		ui.listing->add(ss(game_name(false)) << "\t@c" << score << "\t@c" << m << "\t@c" << l << "\t@c" << r << "\t@c" << s | c_str);
 	}
-	ui.listing->select(ui.listing->children() - 1);	
+	ui.listing->select(ui.listing->size());
 	
 	playing = false;
 	ui.contrare->deactivate();

@@ -57,10 +57,10 @@ void GlImage::draw(void) {
 	if (!str.empty()) {
 		glColor4f(0.f, 0.f, 0.f, 0.3f);
 		glEnable(GL_BLEND);
-		glRectf(0.f , 10.f - gl_descent(), (float)w(), 10.f + gl_height());
+		glRectf(0.f , 10.f, (float)w(), 10.f + gl_height());
 		glDisable(GL_BLEND);
 		
 		glColor3f(1.f, 1.f, 1.f);
-		gl_draw(str.c_str(), std::max(0.f, (w() - (float)gl_width(str.c_str())) / 2.f), 10.f);
+		gl_draw(str.c_str(), std::max(0.f, (w() - (float)gl_width(str.c_str())) / 2.f), 10.f + gl_descent());
 	}
 }

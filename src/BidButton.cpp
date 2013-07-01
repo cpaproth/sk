@@ -58,8 +58,6 @@ void BidButton::reset(unsigned min, bool b) {
 
 
 int BidButton::handle(int event) {
-	//using namespace fltk;
-	
 	if (bidding && event == FL_MOUSEWHEEL) {
 		for (int i = Fl::event_dy(); i < 0 && bid != minbid; i++)
 			bid--;

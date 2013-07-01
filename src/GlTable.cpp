@@ -193,7 +193,6 @@ void GlTable::draw(void) {
 
 	unsigned char r, g, b;
 	Fl::get_color(bgcolor, r, g, b);
-	//fltk::split_color(bgcolor, r, g, b);
 	glClearColor(r / 255.f, g / 255.f, b / 255.f, 1.f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -244,8 +243,6 @@ void GlTable::draw(void) {
 
 
 int GlTable::handle(int event) {
-	//using namespace fltk;
-
 	switch(event) {
 	case FL_ENTER:
 		return 1;
