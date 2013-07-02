@@ -1,12 +1,12 @@
 ![screenshot](https://github.com/cpaproth/sk/raw/master/images/screenshot.jpg)
 
-# *sk*
+# Skat-Konferenz (*sk*)
 
 Skat-Konferenz is the popular German card game Skat played online combined with videoconferencing. Copyright (C) 2012 Carsten Paproth (carpa at freenet dot de).
 This program is free software and comes with ABSOLUTELY NO WARRANTY. Licensed under the terms of [GPLv3](http://www.gnu.org/licenses/).
 
 Skat-Konferenz is written in C++ using portable libraries exclusively, so it should be compatible with UNIX/Linux (X11), MS Windows, and Mac OS X. Till now,
-it has been tested on Xubuntu 11.10 (32-bit and 64-bit), Xubuntu 12.04 (64-bit), MS Windows XP and Windows 7 ([download](https://github.com/cpaproth/sk/raw/master/downloads/sk_windows_binary_32-bit.zip)).
+it has been tested on Ubuntu 11.10 - 13.04 (32-bit and 64-bit), MS Windows XP and Windows 7 ([download](https://github.com/cpaproth/sk/raw/downloads/sk_windows.zip)).
 
 This software is in [beta state](https://github.com/cpaproth/sk/tags) and needs some testing. All features of the upcoming release version 1.0 are already implemented:
 * videoconferencing between 3 people with audio and video compression (v0.1)
@@ -19,13 +19,14 @@ thus a lost audio UDP packet will cause only a slight loss of audio quality (v1.
 Desirable features of version 2.0 are:
 * echo cancellation to improve audio quality
 * speech recognition, this would be really cool during the bidding procedure or for saying Kontra
+* a more sophisticated video compression scheme
 * integration of other but similar games, for example Doppelkopf
 
 
 ## Dependencies
 
 Following portable open source libraries are used by *sk*:
-* fast light toolkit [FLTK-2.0](http://www.fltk.org) for the graphical user interface and the OpenGL interface
+* fast light toolkit [FLTK1.3](http://www.fltk.org) for the graphical user interface and the OpenGL interface
 * open source computer vision library [OpenCV](http://www.opencv.org) for the webcam capture interface and image compression (libjpeg and libpng)
 * [PortAudio](http://www.portaudio.com) for the audio hardware interface
 * the fast Fourier transform implementation of the GNU scientific library [GSL](http://www.gnu.org/software/gsl/) for a simple audio compression algorithm
@@ -37,12 +38,6 @@ Playing card images are copied from [GNOME Aisleriot](https://live.gnome.org/Ais
 ## Building
 
 To build *sk*, you need to install the dependencies with the corresponding development files first, use your package manager (if available) to install them.
-Unfortunately, FLTK-2.0 is an inactive branch of FLTK, it is likely that you have to install it manually:
-* [download](https://github.com/cpaproth/sk/raw/master/downloads/fltk-2.0.x-alpha-r9204.tar.bz2) and unpack it
-* on Linux, you also have to install: libx11-dev, libxft-dev, libxi-dev, libgl...-dev, and libglu...-dev,
-then run "./configure; make; make install" in the unpacked folder
-* on Windows, there are some IDE project files which you can use for building it
-
 *sk* comes with a simple CMakeLists.txt file, thus you can use CMake to generate a makefile. Currently, this procedure works only on Linux,
 for other operating systems, you have to create appropriate build files by hand. After installing all the dependencies and maybe CMake, you can build *sk*:
 
