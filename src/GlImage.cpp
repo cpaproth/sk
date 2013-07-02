@@ -42,24 +42,25 @@ void GlImage::set(const std::string& s) {
 void GlImage::draw(void) {
 	if (!valid()) {
 		ortho();
-		glPixelZoom(1.f, -1.f);
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		gl_font(FL_HELVETICA, 12);
 	}
 
+	glPixelZoom(1.f, -1.f);
 	glRasterPos2i(0, h());
 	if (img && img->size().area() > 0 && img->elemSize() == 3)
 		glDrawPixels(img->cols, img->rows, GL_BGR_EXT, GL_UNSIGNED_BYTE, img->data);
 	else
 		glClear(GL_COLOR_BUFFER_BIT);
-		
+
 	if (!str.empty()) {
+		glPixelZoom(1.f, 1.f);
+		gl_font(FL_HELVETICA, 12);
 		glColor4f(0.f, 0.f, 0.f, 0.3f);
 		glEnable(GL_BLEND);
 		glRectf(0.f , 10.f, (float)w(), 10.f + gl_height());
 		glDisable(GL_BLEND);
-		
+
 		glColor3f(1.f, 1.f, 1.f);
 		gl_draw(str.c_str(), std::max(0.f, (w() - (float)gl_width(str.c_str())) / 2.f), 10.f + gl_descent());
 	}

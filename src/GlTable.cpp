@@ -134,7 +134,7 @@ void GlTable::get_position(unsigned i, size_t s, float& x, float& y, float& a) {
 	x = w() / 2.f + (0.5f + i - s / 2.f) * (90.f - 4.f * s);
 	y = -4.f * 45.f / w() / w() * x * (x - w());
 	a = -(0.5f + i - s / 2.f) * 0.06f;
-	
+
 	x += pushed && i == selected? -50.f * sin(a): 0.f;
 	y += pushed && i == selected? 50.f * cos(a): 0.f;
 }
@@ -175,10 +175,9 @@ bool GlTable::inside_card(int mx, int my, float x, float y, float a, float sy) {
 
 void GlTable::draw(void) {
 	if (!valid()) {
-		ortho();
 		glDeleteTextures(1, &texture);
 		glGenTextures(1, &texture);
-		glBindTexture(GL_TEXTURE_2D, texture);		
+		glBindTexture(GL_TEXTURE_2D, texture);
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -190,6 +189,8 @@ void GlTable::draw(void) {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
+
+	ortho();
 
 	unsigned char r, g, b;
 	Fl::get_color(bgcolor, r, g, b);
@@ -209,14 +210,14 @@ void GlTable::draw(void) {
 		draw_card(skat[0], 250.f, 300.f, 0.1f, pushed && selected == 100? 200.f: 160.f);
 	if (skat.size() > 1 && skat[1] < 32)
 		draw_card(skat[1], 390.f, 300.f, -0.1f, pushed && selected == 101? 200.f: 160.f);
-	
+
 	if (selected == UINT_MAX || selected < 200 || !pushed) {
 		for (unsigned i = 0; i < trick.size(); i++) {
 			if ((i + start) % 3 == 0)
 				draw_card(trick[i], 330.f, 290.f, 0.05f, 160.f);
 			else if ((i + start) % 3 == 1)
 				draw_card(trick[i], 270.f, 320.f, 0.2f, 160.f);
-			else 
+			else
 				draw_card(trick[i], 370.f, 330.f, -0.25f, 160.f);
 		}
 
@@ -237,7 +238,7 @@ void GlTable::draw(void) {
 			draw_card(cards[i], x, h() - 80.f - y, -a, 160.f);
 		}
 	}
-	
+
 	glEnd();
 }
 

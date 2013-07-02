@@ -1,6 +1,6 @@
 ![screenshot](https://github.com/cpaproth/sk/raw/master/images/screenshot.jpg)
 
-# Skat-Konferenz (*sk*)
+# Skat-Konferenz (_sk_)
 
 Skat-Konferenz is the popular German card game Skat played online combined with videoconferencing. Copyright (C) 2012 Carsten Paproth (carpa at freenet dot de).
 This program is free software and comes with ABSOLUTELY NO WARRANTY. Licensed under the terms of [GPLv3](http://www.gnu.org/licenses/).
@@ -39,12 +39,18 @@ Playing card images are copied from [GNOME Aisleriot](https://live.gnome.org/Ais
 
 To build *sk*, you need to install the dependencies with the corresponding development files first, use your package manager (if available) to install them.
 *sk* comes with a simple CMakeLists.txt file, thus you can use CMake to generate a makefile. Currently, this procedure works only on Linux,
-for other operating systems, you have to create appropriate build files by hand. After installing all the dependencies and maybe CMake, you can build *sk*:
+for other operating systems, you have to create appropriate build files by hand. Install all the dependencies and maybe CMake by using, for example:
 
-    mkdir build-directory
-    cd build-directory
-    cmake -D CMAKE_BUILD_TYPE=Release path-to-sk/src/
+    sudo apt-get install libfltk1.3-dev libopencv-dev portaudio19-dev libgsl0-dev libboost-all-dev cmake
+
+[Download](https://github.com/cpaproth/sk/archive/master.zip) and unpack the sources of *sk*, then you can build and run *sk*:
+
+    cd sk-master
+    mkdir build
+    cd build
+    cmake -D CMAKE_BUILD_TYPE=Release ../src/
     make
+    ./sk
 
 
 ## Usage

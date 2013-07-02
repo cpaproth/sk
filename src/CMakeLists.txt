@@ -13,4 +13,4 @@ add_executable(sk main ui GlImage GlTable Network Audio Video Game BidButton
 	LogDisplay MathLib Convenience)
 
 target_link_libraries(sk ${GSL_LIBRARIES} ${PORTAUDIO_LIBRARIES} ${FLTK_LIBRARIES}
-	${OpenCV_LIBS} ${Boost_LIBRARIES})
+	${OpenCV_LIBS} ${Boost_LIBRARIES} ${CMAKE_DL_LIBS})
