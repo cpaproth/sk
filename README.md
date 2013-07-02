@@ -1,8 +1,8 @@
 ![screenshot](https://github.com/cpaproth/sk/raw/master/images/screenshot.jpg)
 
-# Skat-Konferenz ( *sk* )
+# Skat-Konferenz *(sk)*
 
-Skat-Konferenz is the popular German card game Skat played online combined with videoconferencing. Copyright (C) 2012 Carsten Paproth (carpa at freenet dot de).
+Skat-Konferenz is the popular German card game Skat played online combined with videoconferencing. Copyright (C) 2012, 2013 Carsten Paproth (carpa at freenet dot de).
 This program is free software and comes with ABSOLUTELY NO WARRANTY. Licensed under the terms of [GPLv3](http://www.gnu.org/licenses/).
 
 Skat-Konferenz is written in C++ using portable libraries exclusively, so it should be compatible with UNIX/Linux (X11), MS Windows, and Mac OS X. Till now,
