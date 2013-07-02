@@ -31,13 +31,8 @@ using namespace boost;
 
 
 Video::Video(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
-	leftname[0] = 0;
-	rightname[0] = 0;
 	left = 0;
 	right = 1;
-
-	ui.leftimage->tooltip(leftname);
-	ui.rightimage->tooltip(rightname);
 
 	capture = shared_ptr<VideoCapture>(new VideoCapture(0));
 
@@ -58,8 +53,6 @@ Video::~Video(void) {
 		ui.midimage->set(0);
 		ui.leftimage->set(0);
 		ui.rightimage->set(0);
-		ui.leftimage->tooltip(0);
-		ui.rightimage->tooltip(0);
 
 		cout << "stop video capture" << endl;
 
@@ -83,10 +76,7 @@ void Video::send_chat(void) {
 bool Video::handle_command(unsigned i, const string& command, const string& data) {
 	UILock lock;
 	if (command == "name") {
-		if (i == left)
-			leftname[("@b;" + data).copy(leftname, namesize - 1)] = 0;
-		else if (i == right)
-			rightname[("@b;" + data).copy(rightname, namesize - 1)] = 0;
+		(i == left? ui.leftimage: ui.rightimage)->copy_tooltip(data.c_str());
 		(i == left? ui.leftimage: ui.rightimage)->set(data);
 	} else if (command == "seat") {
 		left = data == "left"? 1: 0;
