@@ -50,7 +50,7 @@ class UserInterface {open
         xywh {0 0 960 700} labelsize 11
       } {
         Fl_Group {} {
-          label Skat open
+          label Skat open selected
           xywh {0 25 960 675} labelsize 11
         } {
           Fl_Box table {
@@ -59,7 +59,7 @@ class UserInterface {open
             code0 {\#include "GlTable.h"}
             class {SK::GlTable}
           }
-          Fl_Box leftimage {selected
+          Fl_Box leftimage {
             xywh {0 25 320 240} box FLAT_BOX color 56 labelsize 11
             code0 {\#include "GlImage.h"}
             class {SK::GlImage}
@@ -207,7 +207,7 @@ f["game select"]();}
           }
         }
         Fl_Group {} {
-          label System
+          label System open
           xywh {0 25 960 675} labelsize 11 hide
         } {
           Fl_Group {} {
@@ -230,13 +230,13 @@ f["game select"]();}
             xywh {65 70 355 290} box DOWN_BOX labeltype ENGRAVED_LABEL labelsize 11 align 33
           } {
             Fl_Input address {
-              label {IP address}
+              label {IP Address}
               callback {prefs.set("ipaddress", address->value());}
-              tooltip {The IP address or hostname of the server you want to connect to. If you want to be the server (one of the peers has to be the server), leave this field empty and click connect. Then tell the other peers your publicly reachable IP address or hostname, and UDP port.} xywh {200 110 195 25} labelsize 11 textsize 11
+              tooltip {The IP address or hostname of the server you want to connect to. If you want to be the server (one of the peers has to be the server), leave this field empty and click Connect. Then tell the other peers your publicly reachable IP address or hostname, and UDP port.} xywh {200 110 195 25} labelsize 11 textsize 11
               code0 {char* c; prefs.get("ipaddress", c, ""); address->value(c); delete[] c;}
             }
             Fl_Value_Input port {
-              label {UDP port}
+              label {UDP Port}
               callback {if (port->value() < 0)
   port->value(0);
 if (port->value() > 65535)
@@ -246,7 +246,7 @@ prefs.set("udpport", port->value());}
               code0 {double d; prefs.get("udpport", d, 34588); port->value(d < 0? 0: d > 65535? 65535: d);}
             }
             Fl_Value_Input bandwidth {
-              label {Upload bandwidth}
+              label {Upload Bandwidth}
               callback {if (bandwidth->value() < 8000)
   bandwidth->value(8000);
 prefs.set("bandwidth", bandwidth->value());}
@@ -266,7 +266,7 @@ prefs.set("bandwidth", bandwidth->value());}
             Fl_Check_Button autoconnect {
               label Auto
               callback {prefs.set("autoconnect", autoconnect->value());}
-              tooltip {When activated, the network will be connected automatically during the next program start. This is only reasonable for the server or the connection to a static IP address or hostname.} xywh {120 260 60 25} down_box DOWN_BOX labelsize 11
+              tooltip {When activated, the network will be connected automatically during the next program start. This is only reasonable for the server or a connection to a static IP address or hostname.} xywh {125 260 60 25} down_box DOWN_BOX labelsize 11
               code0 {int i; prefs.get("autoconnect", i, 0); autoconnect->value(i != 0);}
             }
           }

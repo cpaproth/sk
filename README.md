@@ -43,7 +43,7 @@ for other operating systems, you have to create appropriate build files by hand.
 
     sudo apt-get install libfltk1.3-dev libopencv-dev portaudio19-dev libgsl0-dev libboost-all-dev cmake
 
-[Download](https://github.com/cpaproth/sk/archive/master.zip) and unpack the sources of *sk*, then you can build and run *sk*:
+[Download](https://github.com/cpaproth/sk/archive/master.zip) and unpack the *sk* source code. Finally, you can build and run *sk*:
 
     cd sk-master
     mkdir build
@@ -56,8 +56,7 @@ for other operating systems, you have to create appropriate build files by hand.
 ## Usage
 
 First of all, you need a webcam, a microphone, headphones and two other players.
-Skat is a card game played by three people. One player has to be the server. If you want to be the one, start *sk*, go to the system tab, leave the IP address field empty,
-and click connect. Then tell the other two players your publicly reachable IP address or hostname, and UDP port per e-mail, telephone, or whatever.
+Skat is a card game played by three people. One player has to be the server. If you want to be the one, start *sk*, go to the system tab, leave the *IP Address* field empty, and click *Connect*. Then tell the other two players your publicly reachable IP address or hostname, and UDP port per e-mail, telephone, or whatever.
 Now, the other two can start *sk* and connect to this disclosed address and UDP port. If a connection can be established, the videoconferencing starts.
 If two peers are connected to the server, the server initiates UDP hole punching between these two peers and if successful, the game starts.
 The game consists of secure dealing out, bidding, choosing the Skat cards, announcing the game, playing the hand, and especially small talk: Hinten ist die Ente fett!

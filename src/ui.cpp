@@ -692,17 +692,17 @@ nto the log window.");
           o->labeltype(FL_ENGRAVED_LABEL);
           o->labelsize(11);
           o->align(Fl_Align(33));
-          { address = new Fl_Input(200, 110, 195, 25, "IP address");
+          { address = new Fl_Input(200, 110, 195, 25, "IP Address");
             address->tooltip("The IP address or hostname of the server you want to connect to. If you want \
 to be the server (one of the peers has to be the server), leave this field emp\
-ty and click connect. Then tell the other peers your publicly reachable IP add\
+ty and click Connect. Then tell the other peers your publicly reachable IP add\
 ress or hostname, and UDP port.");
             address->labelsize(11);
             address->textsize(11);
             address->callback((Fl_Callback*)cb_address);
             char* c; prefs.get("ipaddress", c, ""); address->value(c); delete[] c;
           } // Fl_Input* address
-          { port = new Fl_Value_Input(200, 160, 195, 25, "UDP port");
+          { port = new Fl_Value_Input(200, 160, 195, 25, "UDP Port");
             port->tooltip("The UDP port of the server.");
             port->color((Fl_Color)-256);
             port->labelsize(11);
@@ -713,7 +713,7 @@ ress or hostname, and UDP port.");
             port->when(FL_WHEN_RELEASE);
             double d; prefs.get("udpport", d, 34588); port->value(d < 0? 0: d > 65535? 65535: d);
           } // Fl_Value_Input* port
-          { bandwidth = new Fl_Value_Input(200, 210, 195, 25, "Upload bandwidth");
+          { bandwidth = new Fl_Value_Input(200, 210, 195, 25, "Upload Bandwidth");
             bandwidth->tooltip("Maximal bandwidth for the upload in bytes per second. This value shouldn\'t b\
 e greater than the upload speed of your internet connection. The bandwidth is \
 distributed among the connnected peers, the audio stream always needs 3000 byt\
@@ -740,10 +740,10 @@ are connected with each other, the game starts.");
             o->labelsize(11);
             o->callback((Fl_Callback*)cb_Stats);
           } // Fl_Button* o
-          { autoconnect = new Fl_Check_Button(120, 260, 60, 25, "Auto");
+          { autoconnect = new Fl_Check_Button(125, 260, 60, 25, "Auto");
             autoconnect->tooltip("When activated, the network will be connected automatically during the next p\
-rogram start. This is only reasonable for the server or the connection to a st\
-atic IP address or hostname.");
+rogram start. This is only reasonable for the server or a connection to a stat\
+ic IP address or hostname.");
             autoconnect->down_box(FL_DOWN_BOX);
             autoconnect->labelsize(11);
             autoconnect->callback((Fl_Callback*)cb_autoconnect);
