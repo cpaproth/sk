@@ -1,4 +1,4 @@
-/*Copyright (C) 2012, 2013 Carsten Paproth
+/*Copyright (C) 2012-2014 Carsten Paproth
 
 This file is part of Skat-Konferenz.
 
@@ -20,6 +20,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 
 #include <boost/thread/thread.hpp>
+#include "MathLib.h"
 
 
 namespace cv {
@@ -52,6 +53,10 @@ class Video {
 	unsigned char& pixel(cv::Mat&, unsigned, unsigned, unsigned, bool);
 	void deblock(cv::Mat&, unsigned, bool);
 	void deblock(cv::Mat&);
+	
+	void encode(const cv::Mat&, std::vector<unsigned char>&);
+	void decode(const std::vector<unsigned char>&, cv::Mat&);
+	
 
 	void worker(void);
 

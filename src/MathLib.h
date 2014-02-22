@@ -1,4 +1,4 @@
-/*Copyright (C) 2012, 2013 Carsten Paproth
+/*Copyright (C) 2012-2014 Carsten Paproth
 
 This file is part of Skat-Konferenz.
 
@@ -46,6 +46,7 @@ struct vec2d {
 
 	vec2d(void) : x(0.), y(0.) {}
 	vec2d(double x, double y) : x(x), y(y) {}
+	vec2d(double* m) : x(m[0]), y(m[1]) {}
 	vec2d operator+(const vec2d& v) const {
 		return vec2d(x + v.x, y + v.y);
 	}
@@ -54,6 +55,9 @@ struct vec2d {
 	}
 	double operator*(const vec2d& v) const {
 		return x * v.x + y * v.y;
+	}
+	vec2d operator/(const vec2d& v) const {
+		return vec2d(x * v.x - y * v.y, y * v.x + x * v.y);
 	}
 	double operator!() const {
 		return sqrt(x * x + y * y);
@@ -69,6 +73,9 @@ struct vec2d {
 	}
 	operator double*(void) {
 		return &x;
+	}
+	operator complex<double>(void) {
+		return complex<double>(x, y);
 	}
 };
 
@@ -86,6 +93,13 @@ struct vec {
 		m[0] = x;
 		m[s] = y;
 		m[2 * s] = z;
+	}
+	vec cartesian(void) {
+		return vec(x * sin(z) * cos(y), x * sin(z) * sin(y), x * cos(z));
+	}
+	vec spherical(void) {
+		double r = sqrt(x * x + y * y + z * z);
+		return vec(r, atan2(y, x), acos(z / r));
 	}
 	vec operator+(const vec& v) const {
 		return vec(x + v.x, y + v.y, z + v.z);
@@ -117,6 +131,46 @@ struct vec {
 };
 
 
+struct vec4d {
+	double	x;
+	double	y;
+	double	z;
+	double	w;
+
+	vec4d(void) : x(0.), y(0.), z(0.), w(0.) {}
+	vec4d(double x, double y, double z, double w) : x(x), y(y), z(z), w(w) {}
+	vec4d(double* m) : x(m[0]), y(m[1]), z(m[2]), w(m[3]) {}
+	vec4d operator+(const vec4d& v) const {
+		return vec4d(x + v.x, y + v.y, z + v.z, w + v.w);
+	}
+	vec4d operator-(const vec4d& v) const {
+		return vec4d(x - v.x, y - v.y, z - v.z, w - v.w);
+	}
+	double operator*(const vec4d& v) const {
+		return x * v.x + y * v.y + z * v.z + w * v.w;
+	}
+	vec4d operator/(const vec4d v) const {
+		return vec4d(w * v.x + x * v.w + y * v.z - z * v.y, w * v.y - x * v.z + y * v.w + z * v.x,
+			w * v.z + x * v.y - y * v.x + z * v.w, w * v.w - x * v.x - y * v.y - z * v.z);
+	}
+	double operator!() const {
+		return sqrt(x * x + y * y + z * z + w * w);
+	}
+	vec4d operator*(const double& v) const {
+		return vec4d(x * v, y * v, z * v, w * v);
+	}
+	vec4d operator/(const double& v) const {
+		return vec4d(x / v, y / v, z / v, w / v);
+	}
+	double& operator[](unsigned index) {
+		return (&x)[index];
+	}
+	operator double*(void) {
+		return &x;
+	}
+};
+
+
 struct mat {
 	vec	row1;
 	vec	row2;
@@ -133,7 +187,8 @@ struct mat {
 		row2 = row3 / row1;
 		row2 = row2 / !row2;
 	}
-	mat(double x, double y, double z, double w) {
+	mat(const vec4d& v) {
+		const double &x = v.x, &y = v.y, &z = v.z, &w = v.w;
 		row1 = vec(x * x - y * y - z * z + w * w, 2. * (x * y - z * w), 2. * (x * z + y * w));
 		row2 = vec(2. * (x * y + z * w), -x * x + y * y - z * z + w * w, 2. * (y * z - x * w));
 		row3 = vec(2. * (x * z - y * w), 2. * (y * z + x * w), -x * x - y * y + z * z + w * w);
@@ -143,8 +198,8 @@ struct mat {
 		double x = angle == 0.? 1.: aa.x / angle;
 		double y = angle == 0.? 1.: aa.y / angle;
 		double z = angle == 0.? 1.: aa.z / angle;
-		double c = cos(angle / 180. * M_PI);
-		double s = sin(angle / 180. * M_PI);
+		double c = cos(angle);
+		double s = sin(angle);
 		row1 = vec(c + x * x * (1. - c), x * y * (1. - c) - z * s, x * z * (1. - c) + y * s);
 		row2 = vec(y * x * (1. - c) + z * s, c + y * y * (1. - c), y * z * (1. - c) - x * s);
 		row3 = vec(z * x * (1. - c) - y * s, z * y * (1. - c) + x * s, c + z * z * (1. - c));
@@ -156,6 +211,23 @@ struct mat {
 	}
 	mat transpose(void) const {
 		return mat(vec(row1.x, row2.x, row3.x), vec(row1.y, row2.y, row3.y), vec(row1.z, row2.z, row3.z));
+	}
+	double determinant(void) const {
+		return row1.x * row2.y * row3.z + row1.y * row2. z * row3.x + row1.z * row2.x * row3.y
+			- row1.z * row2.y * row3.x - row1.y * row2.x * row3.z - row1.x * row2.z * row3.y;
+	}
+	mat inverse(void) const {
+		return mat(row2 / row3, row3 / row1, row1 / row2).transpose() / determinant();
+	}
+	vec4d quaternion(void) {
+		double xy = (row1.y + row2.x) / 4., xz = (row1.z + row3.x) / 4., xw = (row3.y - row2.z) / 4.;
+		double yz = (row2.z + row3.y) / 4., yw = (row1.z - row3.x) / 4., zw = (row2.x - row1.y) / 4.;
+		double wmz = (row1.x + row2.y) / 2., wmy = (row1.x + row3.z) / 2., wmx = (row2.y + row3.z) / 2.;
+		double xmy = (row1.x - row2.y) / 2., xmz = (row1.x - row3.z) / 2., ymz = (row2.y - row3.z) / 2.;
+		double x = sqrt(fabs(xmy * xmz + xz * xz + xy * xy - yz * yz)), y = sqrt(fabs(ymz * wmy - yw * yw - yz * yz + zw * zw));
+		double z = sqrt(fabs(wmz * xmz + xz * xz - xw * xw + zw * zw)), w = sqrt(fabs(wmx * wmy - xy * xy + xw * xw + yw * yw));
+		double& m = x > y && x > z && x > w? x: y > z && y > w? y: z > w? z: w;
+		return (m == x? vec4d(x, xy, xz, xw): m == y? vec4d(xy, y, yz, yw): m == z? vec4d(xz, yz, z, zw): vec4d(xw, yw, zw, w)) / sqrt(m > 0.? m: 1.);
 	}
 	mat operator+(const mat& m) const {
 		return mat(row1 + m.row1, row2 + m.row2, row3 + m.row3);
@@ -197,21 +269,31 @@ static const vec NORMXVEC(1., 0., 0.);
 static const vec NORMYVEC(0., 1., 0.);
 static const vec NORMZVEC(0., 0., 1.);
 
+static const vec4d ZEROVEC4D(0., 0., 0., 0.);
+static const vec4d NORMXVEC4D(1., 0., 0., 0.);
+static const vec4d NORMYVEC4D(0., 1., 0., 0.);
+static const vec4d NORMZVEC4D(0., 0., 1., 0.);
+static const vec4d NORMWVEC4D(0., 0., 0., 1.);
+
 static const mat ZEROMAT(ZEROVEC, ZEROVEC, ZEROVEC);
 static const mat UNITMAT(NORMXVEC, NORMYVEC, NORMZVEC);
 
 ostream& operator<<(ostream&, const vec2d&);
 ostream& operator<<(ostream&, const vec&);
+ostream& operator<<(ostream&, const vec4d&);
 ostream& operator<<(ostream&, const mat&);
 
 istream& operator>>(istream&, vec2d&);
 istream& operator>>(istream&, vec&);
+istream& operator>>(istream&, vec4d&);
 istream& operator>>(istream&, mat&);
 
 
+int roundtoeven(double);
 double lingauss(double);
 double lingaussd(double);
 double interpolate(const double&, const double&, const double&, const double&, const double&);
+vec interpolate(const double&, const vec&, const vec&);
 
 template<class T> double bilinear(const valarray<T>& mem, unsigned w, unsigned h, unsigned x, unsigned y, double wx, double wy) {
 	double m0 = mem[y * w + x];
@@ -265,7 +347,7 @@ class FuncFit : GSLBase {
 	map<size_t, unsigned>	m_map;
 public:
 	FuncFit(unsigned, vector<double>&, unsigned);
-	template<class T, class F> void operator()(double* v, T* object, F f) {
+	template<class T, class F> double operator()(double* v, T* object, F f) {
 		double min, max, norm;
 
 		max = 1.;
@@ -300,6 +382,8 @@ public:
 			if (min < 0.00001)
 				break;
   		}
+
+		return gsl_blas_dnrm2(m_residue) / sqrt((double)m_count);
 	}
 };
 

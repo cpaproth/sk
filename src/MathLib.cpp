@@ -1,4 +1,4 @@
-/*Copyright (C) 2012, 2013 Carsten Paproth
+/*Copyright (C) 2012-2014 Carsten Paproth
 
 This file is part of Skat-Konferenz.
 
@@ -32,6 +32,9 @@ ostream& operator<<(ostream& s, const vec2d& v) {
 ostream& operator<<(ostream& s, const vec& v) {
 	return s << setprecision(15) << v.x << ' ' << v.y << ' ' << v.z;
 }
+ostream& operator<<(ostream& s, const vec4d& v) {
+	return s << setprecision(15) << v.x << ' ' << v.y << ' ' << v.z << ' ' << v.w;
+}
 ostream& operator<<(ostream& s, const mat& m) {
 	return s << m.row1 << ',' << m.row2 << ',' << m.row3;
 }
@@ -42,9 +45,22 @@ istream& operator>>(istream& s, vec2d& v) {
 istream& operator>>(istream& s, vec& v) {
 	return s >> v.x >> v.y >> v.z;
 }
+istream& operator>>(istream& s, vec4d& v) {
+	return s >> v.x >> v.y >> v.z >> v.w;
+}
 istream& operator>>(istream& s, mat& m) {
 	char c;
 	return s >> m.row1 >> c >> m.row2 >> c >> m.row3;
+}
+
+
+int roundtoeven(double v) {
+	int i = (int)fabs(v);
+	if (fabs(v) - i < 0.5)
+		return v < 0.? -i: i;
+	if (fabs(v) - i > 0.5)
+		return v < 0.? -i - 1: i + 1;
+	return v < 0.? -(i + (i & 1)): i + (i & 1);
 }
 
 
@@ -66,6 +82,20 @@ double interpolate(const double& x, const double& x1, const double& y1, const do
 	if (x2 - x1 == 0.)
 		return y1;
 	return (y2 - y1) / (x2 - x1) * (x - x1) + y1;
+}
+
+
+vec interpolate(const double& x, const vec& v1, const vec& v2) {
+	double l1 = !v1;
+	double l2 = !v2;
+	vec n = v1 / v2;
+	vec b1 = v1 / l1;
+	vec b2 = n / b1;
+	double cosa = b1 * v2 / l2;
+	double a = x * acos(cosa > 1.? 1.: cosa < -1.? -1.: cosa);
+
+	b2 = !b2 != 0.? b2 / !b2: ZEROVEC;
+	return (b1 * cos(a) + b2 * sin(a)) * ((1. - x) * l1 + x * l2);
 }
 
 
