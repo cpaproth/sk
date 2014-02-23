@@ -133,7 +133,7 @@ void Video::deblock(Mat& img) {
 
 
 void Video::encode(const Mat& img, vector<unsigned char>& enc) {
-	unsigned quality = 3, ratio = 16;
+	unsigned ratio = 16;
 	enc.clear();
 	if (img.cols != (int)imagewidth || img.rows != (int)imageheight || img.elemSize() != 3)
 		return;
@@ -180,13 +180,14 @@ void Video::encode(const Mat& img, vector<unsigned char>& enc) {
 		}
 	}
 
+
 	vector<int> data;
 	for (unsigned i = 0; i < W.size(); i++)
-		data.push_back(roundtoeven(W[i] / ratio / ratio / quality));
+		data.push_back(roundtoeven(W[i] / ratio / ratio / 5.f));
 	for (unsigned i = 0; i < Z.size(); i++)
-		data.push_back(roundtoeven(Z[i] / ratio / ratio / quality));
+		data.push_back(roundtoeven(Z[i] / ratio / ratio / 5.f));
 	for (unsigned i = 0; i < Y.size(); i++)
-		data.push_back(roundtoeven(Y[i] / quality));
+		data.push_back(roundtoeven(Y[i] / 2.5f));
 	for (unsigned i = 3 * imagewidth * imageheight / ratio / ratio - 1; i > 0; i--)
 		data[i] -= data[i - 1];
 
@@ -244,7 +245,7 @@ void Video::encode(const Mat& img, vector<unsigned char>& enc) {
 
 
 void Video::decode(const vector<unsigned char>& enc, Mat& img) {
-	unsigned quality = 3, ratio = 16;
+	unsigned ratio = 16;
 	if (img.cols != (int)imagewidth || img.rows != (int)imageheight || img.elemSize() != 3)
 		return;
 	if (enc.size() < 4)
@@ -314,11 +315,11 @@ void Video::decode(const vector<unsigned char>& enc, Mat& img) {
 	for (unsigned i = 1; i < 3 * imagewidth * imageheight / ratio / ratio; i++)
 		data[i] += data[i - 1];
 	for (unsigned i = 0; i < imagewidth * imageheight / ratio / ratio; i++)
-		U.push_back((float)quality * data[i]);
+		U.push_back(5.f *  data[i]);
 	for (unsigned i = imagewidth * imageheight / ratio / ratio; i < 2 * imagewidth * imageheight / ratio / ratio; i++)
-		V.push_back((float)quality * data[i]);
+		V.push_back(5.f * data[i]);
 	for (unsigned i = 2 * imagewidth * imageheight / ratio / ratio; i < data.size(); i++)
-		Y.push_back((float)quality * data[i]);
+		Y.push_back(2.5f * data[i]);
 
 
 	W.resize(Y.size());
@@ -389,7 +390,7 @@ void Video::worker(void) {
 		params.push_back(CV_IMWRITE_JPEG_QUALITY);
 		params.push_back(25);
 
-				capture->open("webcam.avi");
+//capture->open("webcam.avi");
 		while (working) {
 			this_thread::sleep(posix_time::milliseconds(10));
 			*capture >> cap;
@@ -413,10 +414,11 @@ void Video::worker(void) {
 			
 			
 			UILock lock;
-			
+			cout << "wav " << encbuf.size() << endl;
 			decode(encbuf, *limg);
 			ui.leftimage->redraw();
 			imencode(".jpg", *img, encbuf, params);
+			cout << "jpg " << encbuf.size() << endl;
 			*rimg = imdecode(Mat(encbuf), 1);
 			deblock(*rimg);
 			ui.rightimage->redraw();
