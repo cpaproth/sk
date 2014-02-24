@@ -199,7 +199,7 @@ void Video::encode(const Mat& img, vector<unsigned char>& enc) {
 				z++;
 			for (; z >= 2; z >>= 1)
 				data[size++] = (z & 1) * 127;
-		} else {
+		} else if (data[i] > -128 && data[i] < 127) {
 			data[size++] = data[i];
 		}
 	}
