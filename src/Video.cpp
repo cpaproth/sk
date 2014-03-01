@@ -149,7 +149,8 @@ void Video::encode(const Mat& img, vector<unsigned char>& enc) {
 	}
 
 	W.resize(Y.size());
-	for (unsigned w = imagewidth / 2, h = imageheight / 2, q = ratio / 2; w >= imagewidth / ratio; w /= 2, h /= 2, q /= 2) {
+	float q = 0.4f * 3.5f * 3.5f * 3.5f;
+	for (unsigned w = imagewidth / 2, h = imageheight / 2; w >= imagewidth / ratio; w /= 2, h /= 2, q /= 3.5f) {
 		for (unsigned y = 0; y < h; y++) {
 			for (unsigned x = 0; x < w; x++) {
 				unsigned pw = y * w + x, py = 4 * y * w + 2 * x, s = w * h;
@@ -183,9 +184,9 @@ void Video::encode(const Mat& img, vector<unsigned char>& enc) {
 
 	vector<int> data;
 	for (unsigned i = 0; i < W.size(); i++)
-		data.push_back(roundtoeven(W[i] / ratio / ratio / 5.f));
+		data.push_back(roundtoeven(W[i] / ratio / ratio / 4.f));
 	for (unsigned i = 0; i < Z.size(); i++)
-		data.push_back(roundtoeven(Z[i] / ratio / ratio / 5.f));
+		data.push_back(roundtoeven(Z[i] / ratio / ratio / 4.f));
 	for (unsigned i = 0; i < Y.size(); i++)
 		data.push_back(roundtoeven(Y[i] / 2.5f));
 	for (unsigned i = 3 * imagewidth * imageheight / ratio / ratio - 1; i > 0; i--)
@@ -201,7 +202,8 @@ void Video::encode(const Mat& img, vector<unsigned char>& enc) {
 				data[size++] = (z & 1) * 127;
 		} else if (data[i] > -128 && data[i] < 127) {
 			data[size++] = data[i];
-		}
+		} else
+			cout << "out of range " << i << " " << data[i] << endl;
 	}
 	data.resize(size);
 
@@ -315,15 +317,16 @@ void Video::decode(const vector<unsigned char>& enc, Mat& img) {
 	for (unsigned i = 1; i < 3 * imagewidth * imageheight / ratio / ratio; i++)
 		data[i] += data[i - 1];
 	for (unsigned i = 0; i < imagewidth * imageheight / ratio / ratio; i++)
-		U.push_back(5.f *  data[i]);
+		U.push_back(4.f *  data[i]);
 	for (unsigned i = imagewidth * imageheight / ratio / ratio; i < 2 * imagewidth * imageheight / ratio / ratio; i++)
-		V.push_back(5.f * data[i]);
+		V.push_back(4.f * data[i]);
 	for (unsigned i = 2 * imagewidth * imageheight / ratio / ratio; i < data.size(); i++)
 		Y.push_back(2.5f * data[i]);
 
 
 	W.resize(Y.size());
-	for (unsigned w = imagewidth / ratio, h = imageheight / ratio, q = 1; w <= imagewidth / 2; w *= 2, h *= 2, q *= 2) {
+	float q = 0.4f;
+	for (unsigned w = imagewidth / ratio, h = imageheight / ratio; w <= imagewidth / 2; w *= 2, h *= 2, q *= 3.5f) {
 		for (unsigned y = 0; y < h; y++) {
 			for (unsigned x = 0; x < w; x++) {
 				unsigned py = y * w + x, pw = 4 * y * w + 2 * x, s = w * h;
@@ -360,7 +363,9 @@ void Video::decode(const vector<unsigned char>& enc, Mat& img) {
 			unsigned w = imagewidth / ratio, h = imageheight / ratio, py = y * imagewidth + x, p = my * w + mx;
 			float u = (1.f - wx) * (1.f - wy) * U[p] + wx * (1.f - wy) * U[mx + 1 < w? p + 1: p] + (1.f - wx) * wy * U[my + 1 < h? p + w: p] + wx * wy * U[mx + 1 < w && my + 1 < h? p + w + 1: p];
 			float v = (1.f - wx) * (1.f - wy) * V[p] + wx * (1.f - wy) * V[mx + 1 < w? p + 1: p] + (1.f - wx) * wy * V[my + 1 < h? p + w: p] + wx * wy * V[mx + 1 < w && my + 1 < h? p + w + 1: p];
-			float r = Y[py] - u, g = Y[py] + 0.6f * u + 0.4f * v, b = Y[py] - v;
+			float l = 0.5f * Y[py] + 0.125f * Y[x > 0? py - 1: py] + 0.125f * Y[x + 1 < imagewidth? py + 1: py] + 0.125f * Y[y > 0? py - imagewidth: py] + 0.125f * Y[y + 1 < imageheight? py + imagewidth: py];
+			//float r = Y[py] - u, g = Y[py] + 0.6f * u + 0.4f * v, b = Y[py] - v;
+			float r = l - u, g = l + 0.6f * u + 0.4f * v, b = l - v;
 			
 			between(r, 0.f, 255.f);
 			between(g, 0.f, 255.f);
@@ -407,20 +412,20 @@ void Video::worker(void) {
 				resize(cap, *img, img->size());
 				ui.midimage->redraw();
 			}
-
 			//imencode(".jpg", *img, encbuf, params);
 			encode(*img, encbuf);
 			network.broadcast(encbuf, decbuf, maxlatency);
 			
 			
 			UILock lock;
-			cout << "wav " << encbuf.size() << endl;
 			decode(encbuf, *limg);
 			ui.leftimage->redraw();
+			size_t tmp = encbuf.size();
 			imencode(".jpg", *img, encbuf, params);
-			cout << "jpg " << encbuf.size() << endl;
 			*rimg = imdecode(Mat(encbuf), 1);
 			deblock(*rimg);
+			//if (tmp > encbuf.size() || tmp < encbuf.size() / 2)
+				cout << "jpg " << encbuf.size() << " wav " << tmp << endl;
 			ui.rightimage->redraw();
 			
 			if (decbuf.size() > left && decbuf[left].size() > 0) {
