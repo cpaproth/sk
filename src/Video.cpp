@@ -89,57 +89,13 @@ bool Video::handle_command(unsigned i, const string& command, const string& data
 }
 
 
-unsigned char& Video::pixel(Mat& img, unsigned row, unsigned col, unsigned channel, bool vertical) {
-	return vertical? img.at<Vec3b>(row, col)[channel]: img.at<Vec3b>(col, row)[channel];
-}
-
-
-void Video::deblock(Mat& img, unsigned c, bool v) {
-	static const int smooththreshold = 80;
-	static const int roughthreshold = 60;
-	static const int smoothweights[] = {-8, -6, -4, -2, 3, 4, 6, 8};
-	static const int roughweights[] = {0, 0, -8, -4, 5, 8, 0, 0};
-
-	for (int i = 0; i < (v? img.rows: img.cols); i++) {
-		for (int j = 4; j + 8 < (v? img.cols: img.rows); j += 8) {
-			int leftdelta = (int)pixel(img, i, j + 3, c, v) - (int)pixel(img, i, j + 2, c, v);
-			int rightdelta = (int)pixel(img, i, j + 4, c, v) - (int)pixel(img, i, j + 5, c, v);
-			int delta = (int)pixel(img, i, j + 3, c, v) - (int)pixel(img, i, j + 4, c, v);
-
-			if (abs(leftdelta) + abs(rightdelta) < 5 && abs(delta) < smooththreshold) {
-				for (int k = 0; k < 8; k++) {
-					int value = (int)pixel(img, i, j + k, c, v) + delta / smoothweights[k];
-					between(value, 0, 255);
-					pixel(img, i, j + k, c, v) = value;
-				}
-                        } else if (abs(delta) < roughthreshold) {
-				for (int k = 2; k < 6; k++) {
-					int value = (int)pixel(img, i, j + k, c, v) + delta / roughweights[k];
-					between(value, 0, 255);
-					pixel(img, i, j + k, c, v) = value;
-				}
-			}
-		}
-	}
-}
-
-
-void Video::deblock(Mat& img) {
-	for (unsigned i = 0; i < (unsigned)img.channels(); i++) {
-		deblock(img, i, true);
-		deblock(img, i, false);
-	}
-}
-
-
 void Video::encode(const Mat& img, vector<unsigned char>& enc) {
-	unsigned ratio = 16, minsize = 300;
-	enc.clear();
 	if (img.cols != (int)imagewidth || img.rows != (int)imageheight || img.elemSize() != 3)
 		return;
 
-	vector<float> Y, U, V, W, Z;
+	enc.clear();
 
+	vector<float> Y, U, V, W, Z;
 	for (unsigned y = 0; y < imageheight; y++) {
 		for (unsigned x = 0; x < imagewidth; x++) {
 			Y.push_back(0.3f * (float)img.at<Vec3b>(y, x)[2] + 0.5f * (float)img.at<Vec3b>(y, x)[1] + 0.2f * (float)img.at<Vec3b>(y, x)[0]);
@@ -149,11 +105,7 @@ void Video::encode(const Mat& img, vector<unsigned char>& enc) {
 	}
 
 	W.resize(Y.size());
-	float qs[] = {4.f, 1.f, 0.4f};
-	float q = 16.f;
-	//float q = 0.4f * 3.5f * 3.5f * 3.5f;
-	//for (unsigned w = imagewidth / 2, h = imageheight / 2; w * h >= minsize; w /= 2, h /= 2, q /= 3.f) {
-	for (unsigned w = imagewidth / 2, h = imageheight / 2, l = 0; w * h >= minsize; w /= 2, h /= 2, q = qs[l++]) {
+	for (unsigned w = imagewidth / 2, h = imageheight / 2; w * h >= minsize; w /= 2, h /= 2) {
 		for (unsigned y = 0; y < h; y++) {
 			for (unsigned x = 0; x < w; x++) {
 				unsigned pw = y * w + x, py = 4 * y * w + 2 * x, s = w * h;
@@ -191,7 +143,6 @@ void Video::encode(const Mat& img, vector<unsigned char>& enc) {
 	for (unsigned i = 0; i < Z.size(); i++)
 		data.push_back(roundtoeven(Z[i] / 512.f));
 	for (unsigned i = 0; i < Y.size(); i++)
-		//data.push_back(roundtoeven(Y[i] / 2.5f));
 		data.push_back(roundtoeven(Y[i] / (i < minsize? 2.1f: i < 4 * minsize? 2.f: i < 16 * minsize? 3.f: i < 64 * minsize? 10.f: 30.f)));
 	for (unsigned i = 9 * minsize - 1; i > 0; i--)
 		data[i] -= data[i - 1];
@@ -207,7 +158,7 @@ void Video::encode(const Mat& img, vector<unsigned char>& enc) {
 		} else if (data[i] > -128 && data[i] < 127) {
 			data[size++] = data[i];
 		} else
-			cout << "out of range " << i << " " << data[i] << endl;
+			return;
 	}
 	data.resize(size);
 
@@ -251,10 +202,7 @@ void Video::encode(const Mat& img, vector<unsigned char>& enc) {
 
 
 void Video::decode(const vector<unsigned char>& enc, Mat& img) {
-	unsigned ratio = 16, minsize = 300;
-	if (img.cols != (int)imagewidth || img.rows != (int)imageheight || img.elemSize() != 3)
-		return;
-	if (enc.size() < 4)
+	if (enc.size() < 4 || img.cols != (int)imagewidth || img.rows != (int)imageheight || img.elemSize() != 3)
 		return;
 
 	vector<unsigned> mem1, mem2(256, 0);
@@ -321,22 +269,15 @@ void Video::decode(const vector<unsigned char>& enc, Mat& img) {
 	for (unsigned i = 1; i < 9 * minsize; i++)
 		data[i] += data[i - 1];
 	for (unsigned i = 0; i < 4 * minsize; i++)
-		U.push_back(8.f *  data[i]);
+		U.push_back(8.f * data[i]);
 	for (unsigned i = 4 * minsize; i < 8 * minsize; i++)
 		V.push_back(8.f * data[i]);
 	for (unsigned i = 8 * minsize; i < data.size(); i++)
-		//Y.push_back(2.5f * data[i]);
 		Y.push_back((i < 9 * minsize? 2.1f: i < 12 * minsize? 2.f: i < 24 * minsize? 3.f: i < 72 * minsize? 10.f: 30.f) * data[i]);
-
-	//~ for (unsigned i = 0; i < minsize; i++)
-		//~ Y[i] = 128.f;
 
 
 	W.resize(Y.size());
-	float qs[] = {1.f, 4.f, 16.f};
-	float q = 0.4f;
-	//for (unsigned w = imagewidth / 16, h = imageheight / 16; w <= imagewidth / 2; w *= 2, h *= 2, q *= 3.f) {
-	for (unsigned w = imagewidth / 16, h = imageheight / 16, l = 0; w <= imagewidth / 2; w *= 2, h *= 2, q = qs[l++]) {
+	for (unsigned w = imagewidth / 16, h = imageheight / 16; w <= imagewidth / 2; w *= 2, h *= 2) {
 		for (unsigned y = 0; y < h; y++) {
 			for (unsigned x = 0; x < w; x++) {
 				unsigned py = y * w + x, pw = 4 * y * w + 2 * x, s = w * h;
@@ -374,7 +315,6 @@ void Video::decode(const vector<unsigned char>& enc, Mat& img) {
 			float uf = (1.f - wx) * (1.f - wy) * U[p] + wx * (1.f - wy) * U[mx + 1 < w? p + 1: p] + (1.f - wx) * wy * U[my + 1 < h? p + w: p] + wx * wy * U[mx + 1 < w && my + 1 < h? p + w + 1: p];
 			float vf = (1.f - wx) * (1.f - wy) * V[p] + wx * (1.f - wy) * V[mx + 1 < w? p + 1: p] + (1.f - wx) * wy * V[my + 1 < h? p + w: p] + wx * wy * V[mx + 1 < w && my + 1 < h? p + w + 1: p];
 			float yf = 0.6f * Y[py] + 0.1f * Y[x > 0? py - 1: py] + 0.1f * Y[x + 1 < imagewidth? py + 1: py] + 0.1f * Y[y > 0? py - imagewidth: py] + 0.1f * Y[y + 1 < imageheight? py + imagewidth: py];
-			//float r = Y[py] - uf, g = Y[py] + 0.6f * uf + 0.4f * vf, b = Y[py] - vf;
 			float r = yf - uf, g = yf + 0.6f * uf + 0.4f * vf, b = yf - vf;
 			
 			between(r, 0.f, 255.f);
@@ -393,7 +333,6 @@ void Video::worker(void) {
 		Mat				cap(imageheight, imagewidth, CV_8UC3);
 		vector<unsigned char>		encbuf;
 		vector<vector<unsigned char> >	decbuf;
-		vector<int>			params;
 
 		img = shared_ptr<Mat>(new Mat(imageheight, imagewidth, CV_8UC3, Scalar()));
 		limg = shared_ptr<Mat>(new Mat(imageheight, imagewidth, CV_8UC3, Scalar()));
@@ -402,11 +341,6 @@ void Video::worker(void) {
 		ui.leftimage->set(limg.get());
 		ui.rightimage->set(rimg.get());
 
-		params.push_back(CV_IMWRITE_JPEG_QUALITY);
-		params.push_back(25);
-
-double wavsize = 0., jpgsize = 0.;
-//capture->open("webcam.avi");
 		while (working) {
 			this_thread::sleep(posix_time::milliseconds(10));
 			*capture >> cap;
@@ -423,34 +357,15 @@ double wavsize = 0., jpgsize = 0.;
 				resize(cap, *img, img->size());
 				ui.midimage->redraw();
 			}
-			//imencode(".jpg", *img, encbuf, params);
 			encode(*img, encbuf);
 			network.broadcast(encbuf, decbuf, maxlatency);
 			
-			
 			UILock lock;
-			decode(encbuf, *limg);
-			ui.leftimage->redraw();
-			size_t tmp = encbuf.size();
-			wavsize += encbuf.size();
-			imencode(".jpg", *img, encbuf, params);
-			*rimg = imdecode(Mat(encbuf), 1);
-			deblock(*rimg);
-			//if (tmp > encbuf.size())// || tmp < encbuf.size() / 2)
-			//	cout << "jpg " << encbuf.size() << " wav " << tmp << endl;
-			jpgsize += encbuf.size();
-			ui.midimage->set(ss(wavsize / jpgsize));
-			ui.rightimage->redraw();
-			
 			if (decbuf.size() > left && decbuf[left].size() > 0) {
-				//*limg = imdecode(Mat(decbuf[left]), 1);
-				//deblock(*limg);
 				decode(decbuf[left], *limg);
 				ui.leftimage->redraw();
 			}
 			if (decbuf.size() > right && decbuf[right].size() > 0) {
-				//*rimg = imdecode(Mat(decbuf[right]), 1);
-				//deblock(*rimg);
 				decode(decbuf[right], *rimg);
 				ui.rightimage->redraw();
 			}

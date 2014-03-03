@@ -1,4 +1,4 @@
-/*Copyright (C) 2012, 2013 Carsten Paproth
+/*Copyright (C) 2012-2014 Carsten Paproth
 
 This file is part of Skat-Konferenz.
 
@@ -124,7 +124,6 @@ void Network::broadcast(const ucharbuf& send, vector<ucharbuf>& recv, unsigned l
 	lock_guard<timed_mutex> lock(netmutex, adopt_lock);
 
 	shared_ptr<ucharbuf> buf(new ucharbuf(send));
-	erase_header(*buf);
 
 	for (unsigned i = 0; i < peers.size(); i++) {
 		if (send.size() == fifosize) {
@@ -176,27 +175,6 @@ void Network::stats(void) {
 }
 
 
-void Network::insert_header(unsigned i) {
-	ucharbuf& b = peers[i].buffer;
-	if (b.size() > 1 && b[0] == 255 && b[1] == 216 && peers[i].header.size() == 0) {
-		for (unsigned j = 0; j + 1 < b.size() && !(b[j] == 255 && b[j + 1] == 218); j++)
-			peers[i].header.push_back(b[j]);
-		peers[i].messages.push_back(ss(msgid++) << " knownheader " << peers[i].header.size());
-	} else if (b.size() > 1 && b[0] == 255 && b[1] == 218) {
-		b.insert(b.begin(), peers[i].header.begin(), peers[i].header.end());
-	}
-}
-
-
-void Network::erase_header(ucharbuf& b) {
-	if (b.size() > fifosize && b[0] == 255 && b[1] == 216 && find_if(peers.begin(), peers.end(), bind(&Peer::known, _1) == false) == peers.end()) {
-		unsigned i;
-		for (i = 0; i + 1 < b.size() && !(b[i] == 255 && b[i + 1] == 218); i++);
-		b.erase(b.begin(), b.begin() + i);
-	}
-}
-
-
 void Network::handle_command(unsigned i, const string& command, const string& data) {
 	if (!hdlmutex.try_lock())
 		return;
@@ -243,15 +221,11 @@ void Network::process_message(unsigned i, const string& message) {
 	if (command == "hello") {
 		if (data.find("from server") != string::npos) {
 			peers.front().messages.push_back(ss((msgid = 1)++) << " hello " << peers.front().endpoint << " from client");
-			peers.front().header.clear();
-			peers.front().known = false;
 			peers.resize(1, Peer(udpendpoint()));
 		} else if (data.find("from peer") != string::npos) {
 			peers.front().connections = peers[i].connections = 1;
 			peers.front().messages.push_back(ss(msgid++) << " peerconnected " << count_if(peers.begin(), peers.end(), bind(&Peer::connections, _1)));
 		}
-	} else if (command == "knownheader") {
-		peers[i].known = true;
 	} else if (command == "removepeer" || command == "holepunching") {
 		udpendpoint ep;
 		ss(data) >> ep;
@@ -363,7 +337,6 @@ void Network::receiver(const errorcode& e, size_t n) {
 		}
 	} else if (n > fifosize) {
 		peer->buffer.assign(recvbuf.begin(), recvbuf.begin() + n);
-		insert_header(peer - peers.begin());
 	}
 
 	socket.async_receive_from(buffer(recvbuf), endpoint, bind(&Network::receiver, this, _1, _2));

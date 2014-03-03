@@ -37,6 +37,7 @@ class Network;
 class Video {
 	static const unsigned imagewidth = 320;
 	static const unsigned imageheight = 240;
+	static const unsigned minsize = 300;
 	static const unsigned maxlatency = 200;
 
 	boost::shared_ptr<cv::VideoCapture>	capture;
@@ -50,13 +51,8 @@ class Video {
 	UserInterface&				ui;
 	Network&				network;
 
-	unsigned char& pixel(cv::Mat&, unsigned, unsigned, unsigned, bool);
-	void deblock(cv::Mat&, unsigned, bool);
-	void deblock(cv::Mat&);
-	
 	void encode(const cv::Mat&, std::vector<unsigned char>&);
 	void decode(const std::vector<unsigned char>&, cv::Mat&);
-	
 
 	void worker(void);
 

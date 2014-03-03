@@ -1,4 +1,4 @@
-/*Copyright (C) 2012, 2013 Carsten Paproth
+/*Copyright (C) 2012-2014 Carsten Paproth
 
 This file is part of Skat-Konferenz.
 
@@ -55,15 +55,13 @@ class Network {
 		list<ucharbuf>	fifo;
 		ucharbuf	buffer;
 		deque<string>	messages;
-		ucharbuf	header;
-		bool		known;
 		size_t		lasttime;
 		unsigned	fifoempty;
 		unsigned	fifofull;
 		unsigned	lastmsgid;
 		unsigned	bucket;
 		unsigned	connections;
-		Peer(const udpendpoint& ep) : endpoint(ep), known(false), fifoempty(0), fifofull(0), lastmsgid(-1), bucket(0), connections(0) {}
+		Peer(const udpendpoint& ep) : endpoint(ep), fifoempty(0), fifofull(0), lastmsgid(-1), bucket(0), connections(0) {}
 	};
 	
 	bool				server;
@@ -84,8 +82,6 @@ class Network {
 	set<udpendpoint>		ignorepeers;
 
 
-	void insert_header(unsigned);
-	void erase_header(ucharbuf&);
 	void handle_command(unsigned, const string&, const string&);
 	void process_message(unsigned, const string&);
 
