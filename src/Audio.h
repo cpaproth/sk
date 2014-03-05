@@ -1,4 +1,4 @@
-/*Copyright (C) 2012, 2013 Carsten Paproth
+/*Copyright (C) 2012-2014 Carsten Paproth
 
 This file is part of Skat-Konferenz.
 
@@ -33,7 +33,8 @@ class Network;
 
 class Audio {
 	static const unsigned samplerate = 8000;
-	static const size_t framesize = 800;
+	//static const size_t framesize = 800;
+	static const size_t framesize = 256;
 	static const size_t fade = 50;
 	static const unsigned minfreq = 10;
 	static const unsigned maxfreq = 310;

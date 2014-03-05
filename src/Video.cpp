@@ -361,11 +361,11 @@ void Video::worker(void) {
 			network.broadcast(encbuf, decbuf, maxlatency);
 			
 			UILock lock;
-			if (decbuf.size() > left && decbuf[left].size() > 0) {
+			if (decbuf.size() > left) {
 				decode(decbuf[left], *limg);
 				ui.leftimage->redraw();
 			}
-			if (decbuf.size() > right && decbuf[right].size() > 0) {
+			if (decbuf.size() > right) {
 				decode(decbuf[right], *rimg);
 				ui.rightimage->redraw();
 			}

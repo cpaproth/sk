@@ -1,4 +1,4 @@
-/*Copyright (C) 2012, 2013 Carsten Paproth
+/*Copyright (C) 2012-2014 Carsten Paproth
 
 This file is part of Skat-Konferenz.
 
@@ -156,6 +156,82 @@ void Audio::decode(short* out) {
 }
 
 
+void fft(bool d, vector<complex<float> >& data, unsigned g = 1, unsigned o = 0) {
+	static complex<float> tmp[256];
+	size_t N = data.size() / g / 2;
+	if (N > 0) {
+		fft(d, data, 2 * g, o);
+		fft(d, data, 2 * g, o + g);
+		for (unsigned i = 0; i < N; i++) {
+			data[g * i + o] = data[2 * g * i + o];
+			tmp[i] = data[2 * g * i + o + g] * exp(complex<float>(0.f, (d? -1.f: 1.f) * (float)M_PI * i / N));
+		}
+		for (unsigned i = 0; i < N; i++) {
+			data[g * (i + N) + o] = data[g * i + o] - tmp[i];
+			data[g * i + o] += tmp[i];
+		}
+	}
+}
+
+
+void mdct(const vector<float>& in, vector<float>& out) {
+	out.resize(in.size() / 2);
+	vector<complex<float> > data(out.size());
+	for (unsigned i = 0; i < data.size(); i++)
+		data[i] = sin((float)M_PI / in.size() * (i + 0.5f)) * complex<float>(in[i], -in[in.size() - 1 - i]) * exp(complex<float>(0.f, -(float)M_PI / in.size() * i));
+	fft(true, data);
+	for (unsigned i = 0; i < data.size(); i++)
+		data[i] *= exp(complex<float>(0.f, -(float)M_PI / out.size() * (0.5f + out.size() / 2.f) * (2.f * i + 0.5f)));
+	for (unsigned i = 0; i < out.size(); i++)
+		out[i] = i & 1? -data[data.size() - 1 - (i - 1) / 2].real(): data[i / 2].real();
+}
+
+
+void imdct(const vector<float>& in, vector<float>& out) {
+	out.resize(in.size() * 2);
+	vector<complex<float> > data(in.size());
+	for (unsigned i = 0; i < data.size(); i++)
+		data[i] = in[i] * exp(complex<float>(0.f, -(float)M_PI / in.size() * (0.5f + in.size() / 2.f) * (i + 0.5f)));
+	fft(true, data);
+	for (unsigned i = 0; i < data.size(); i++)
+		data[i] *= exp(complex<float>(0.f, -(float)M_PI / in.size() * i));
+	for (unsigned i = 0; i < out.size(); i++)
+		out[i] = sin((float)M_PI / out.size() * (i + 0.5f)) * (i & 1? (i < data.size()? -data[(data.size() - 1 - i) / 2].real(): data[(3 * data.size() - 1 - i) / 2].real()): data[i / 2].real());
+}
+
+
+vector<float> encbuf(256);
+void encode0(const short* in) {
+	static float tmp[256];
+	vector<float> input(512), output;
+	for (unsigned i = 0; i < 256; i++) {
+		input[i] = tmp[i];
+		tmp[i] = input[i + 256] = in[i] / 32768.f;
+	}
+	mdct(input, output);
+
+	vector<float> amps;
+	for (unsigned i = 0; i < output.size(); i++)
+		amps.push_back(fabs(output[i]));
+	nth_element(amps.begin(), amps.begin() + 128, amps.end());
+
+	for (unsigned i = 0; i < 256; i++) {
+		encbuf[i] = output[i];//fabs(output[i]) > amps[128]? output[i]: 0.f;
+		//encbuf[i] = (short)output[i];		
+	}
+}
+void decode0(short* out) {
+	static float tmp[256];
+	vector<float> input(256), output;
+	for (unsigned i = 0; i < 256; i++)
+		input[i] = encbuf[i];
+	imdct(input, output);
+	for (unsigned i = 0; i < 256; i++) {
+		out[i] = (short)((output[i] + tmp[i]) * 32768.f / 256 * 2);
+		tmp[i] = output[i + 256];
+	}
+}
+
 int Audio::callback(const void* in, void* out, unsigned long size, const PaStreamCallbackTimeInfo*, PaStreamCallbackFlags, void* data) {
 	try {
 		if (size != framesize)
@@ -163,14 +239,16 @@ int Audio::callback(const void* in, void* out, unsigned long size, const PaStrea
 
 		Audio& a = *(Audio*)data;
 
-		a.encode((short*)in);
+		encode0((short*)in);
+		//a.encode((short*)in);
 		if (!a.playmic) {
 			a.network.broadcast(a.encbuf, a.decbuf, maxlatency);
 		} else {
 			a.decbuf.clear();
 			a.decbuf.push_back(a.encbuf);
 		}
-		a.decode((short*)out);
+		//a.decode((short*)out);
+		decode0((short*)out);
 
 	} catch (exception& e) {
 		cout << "audio failure: " << e.what() << endl;
