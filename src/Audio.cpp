@@ -75,9 +75,10 @@ void Audio::restart(void) {
 		cout << "audio stream started" << endl;
 }
 
-
+bool testflag = false;
 void Audio::toggle_playmic(void) {
 	playmic = !playmic;
+	testflag = !testflag;
 }
 
 
@@ -232,18 +233,63 @@ void encode0(const short* in) {
 	vector<float> amps;
 	for (unsigned i = 0; i < output.size(); i++)
 		amps.push_back(fabs(output[i]));
-	//nth_element(amps.begin(), amps.begin() + 128, amps.end());
 	sort(amps.begin(), amps.end());
-	float avg = 0.f;
-	//for (unsigned i = 0; i < 224; i++)
-	//	avg += amps[i];
-	avg /= 224;
+	
 
 	for (unsigned i = 0; i < 256; i++) {
-		//encbuf[i] = output[i];
-		//encbuf[i] = fabs(output[i]) > amps[128]? output[i]: 0.f;
-		//encbuf[i] = (short)output[i];		
-		encbuf[i] = fabs(output[i]) > amps[224]? output[i]: output[i] < 0.f? -avg: avg;
+		float o = fabs(output[i]), s = output[i] < 0.f? -1.f: 1.f;
+		int a = (int)(log(o / 256.f * sqrt(2.f)) / log(2.f) - 0.5f);
+		if (o < amps[128])
+			encbuf[i] = (testflag?0:0) * s * amps[64];
+		else if (o < amps[224])
+			encbuf[i] = s * amps[176];
+		else
+			encbuf[i] = s * pow(2.f, a < -15? -15: a) * 256.f / sqrt(2.f);
+	}
+
+	//~ for (unsigned i = 0; i < 256 && testflag; i++) {
+		//~ float o = fabs(output[i]), s = output[i] < 0.f? -1.f: 1.f;
+		//~ int a = (int)(log(o / 256.f * sqrt(2.f)) / log(2.f) - 0.5f);
+		//~ if (o < amps[160])
+			//~ encbuf[i] = s * amps[80];
+		//~ else if (o < amps[232])
+			//~ encbuf[i] = s * amps[196];
+		//~ else if (o < amps[248])
+			//~ encbuf[i] = s * amps[240];
+		//~ else
+			//~ encbuf[i] = s * pow(2.f, a < -15? -15: a) * 256.f / sqrt(2.f);
+	//~ }
+
+
+	//~ vector<pair<float, unsigned> > as, ds;
+	//~ for (unsigned i = 0; i < output.size(); i++)
+		//~ as.push_back(make_pair(fabs(output[i]), i));
+	//~ sort(as.begin(), as.end());
+	//~ for (unsigned i = 0; i < 224; i++) {
+		//~ unsigned p = as[i].second;
+		//~ ds.push_back(make_pair(max(p > 0? fabs(output[p - 1]): 0.f, p < 255? fabs(output[p + 1]): 0.f) / fabs(output[p]), p));
+	//~ }
+	//~ sort(ds.begin(), ds.end());
+//~ 
+	//~ if (testflag) {
+		//~ for (unsigned i = 0; i < 256; i++)
+			//~ encbuf[i] = 0.f;
+		//~ float avg = 0.f;
+		//~ for (unsigned i = 0; i < 96; i++)
+			//~ avg += fabs(output[ds[i].second]) / 96.f;
+//~ 
+		//~ for (unsigned i = 0; i < 96; i++)
+			//~ encbuf[ds[i].second] = (output[ds[i].second] < 0.f? -1.f: 1.f) * avg;
+//~ 
+		//~ for (unsigned i = 224; i < 256; i++) {
+			//~ float o = fabs(output[as[i].second]), s = output[as[i].second] < 0.f? -1.f: 1.f;
+			//~ int a = (int)(log(o / 256.f * sqrt(2.f)) / log(2.f) - 0.5f);
+			//~ encbuf[as[i].second] =  s * pow(2.f, a) * 256.f / sqrt(2.f);
+		//~ }
+	//~ }
+	
+	for (unsigned i = 0; i < 256 && testflag; i++) {
+		encbuf[i] = output[i];
 	}
 }
 void decode0(short* out) {
@@ -253,7 +299,9 @@ void decode0(short* out) {
 		input[i] = encbuf[i];
 	imdct(input, output);
 	for (unsigned i = 0; i < 256; i++) {
-		out[i] = (short)((output[i] + tmp[i]) * 32768.f / 256 * 2);
+		//out[i] = (short)((output[i] + tmp[i]) * 32768.f / 256 * 2);
+		output[i] += tmp[i];
+		out[i] = output[i] < -128.f? -32768: output[i] > 127.f? 32767: (short)(output[i] * 256.f);
 		tmp[i] = output[i + 256];
 	}
 }

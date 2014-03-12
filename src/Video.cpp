@@ -278,19 +278,20 @@ void Video::decode(const vector<unsigned char>& enc, Mat& img) {
 
 	W.resize(Y.size());
 	for (unsigned w = imagewidth / 16, h = imageheight / 16; w <= imagewidth / 2; w *= 2, h *= 2) {
+		float threshold = w == imagewidth / 2? 1000.f: 20.f;
 		for (unsigned y = 0; y < h; y++) {
 			for (unsigned x = 0; x < w; x++) {
 				unsigned py = y * w + x, pw = 4 * y * w + 2 * x, s = w * h;
 				float x00 = Y[py], x10 = Y[py + s], x01 = Y[py + 2 * s], x11 = Y[py + 3 * s];
 				if (x10 == 0.f && x01 == 0.f && x11 == 0.f) {
-					float cx = x > 0 && fabs(Y[py - 1] - x00) < 30.f? Y[py - 1]: x00;
-					float cy = y > 0 && fabs(Y[py - w] - x00) < 30.f? Y[py - w]: x00;
-					float cw = x + 1 < w && fabs(Y[py + 1] - x00) < 30.f? Y[py + 1]: x00;
-					float ch = y + 1 < h && fabs(Y[py + w] - x00) < 30.f? Y[py + w]: x00;
-					W[pw] = 0.6f * x00 + 0.2f * cx + 0.2f * cy;
-					W[pw + 1] = 0.6f * x00 + 0.2f * cw + 0.2f * cy;
-					W[pw + 2 * w] = 0.6f * x00 + 0.2f * cx + 0.2f * ch;
-					W[pw + 2 * w + 1] = 0.6f * x00 + 0.2f * cw + 0.2f * ch;
+					float cx = x > 0 && fabs(Y[py - 1] - x00) < threshold? Y[py - 1]: x00;
+					float cy = y > 0 && fabs(Y[py - w] - x00) < threshold? Y[py - w]: x00;
+					float cw = x + 1 < w && fabs(Y[py + 1] - x00) < threshold? Y[py + 1]: x00;
+					float ch = y + 1 < h && fabs(Y[py + w] - x00) < threshold? Y[py + w]: x00;
+					W[pw] = 0.7f * x00 + 0.1f * cx + 0.1f * cy + 0.1f * (x > 0 && y > 0 && fabs(Y[py - w - 1] - x00) < threshold? Y[py - w - 1]: x00);
+					W[pw + 1] = 0.7f * x00 + 0.1f * cw + 0.1f * cy + 0.1f * (x + 1 < w && y > 0 && fabs(Y[py - w + 1] - x00) < threshold? Y[py - w + 1]: x00);
+					W[pw + 2 * w] = 0.7f * x00 + 0.1f * cx + 0.1f * ch + 0.1f * (x > 0 && y + 1 < h && fabs(Y[py + w - 1] - x00) < threshold? Y[py + w - 1]: x00);
+					W[pw + 2 * w + 1] = 0.7f * x00 + 0.1f * cw + 0.1f * ch + 0.1f * (x + 1 < w && y + 1 < h && fabs(Y[py + w + 1] - x00) < threshold? Y[py + w + 1]: x00);
 				} else {
 					W[pw] = x00 + x10 + x01 + x11;
 					W[pw + 1] = x00 + x10 - x01 - x11;
@@ -312,10 +313,9 @@ void Video::decode(const vector<unsigned char>& enc, Mat& img) {
 			float wx = x < 4? 0.f: (0.5f + (x - 4) % 8) / 8;
 			float wy = y < 4? 0.f: (0.5f + (y - 4) % 8) / 8;
 			unsigned w = imagewidth / 8, h = imageheight / 8, py = y * imagewidth + x, p = my * w + mx;
-			float uf = (1.f - wx) * (1.f - wy) * U[p] + wx * (1.f - wy) * U[mx + 1 < w? p + 1: p] + (1.f - wx) * wy * U[my + 1 < h? p + w: p] + wx * wy * U[mx + 1 < w && my + 1 < h? p + w + 1: p];
-			float vf = (1.f - wx) * (1.f - wy) * V[p] + wx * (1.f - wy) * V[mx + 1 < w? p + 1: p] + (1.f - wx) * wy * V[my + 1 < h? p + w: p] + wx * wy * V[mx + 1 < w && my + 1 < h? p + w + 1: p];
-			float yf = 0.6f * Y[py] + 0.1f * Y[x > 0? py - 1: py] + 0.1f * Y[x + 1 < imagewidth? py + 1: py] + 0.1f * Y[y > 0? py - imagewidth: py] + 0.1f * Y[y + 1 < imageheight? py + imagewidth: py];
-			float r = yf - uf, g = yf + 0.6f * uf + 0.4f * vf, b = yf - vf;
+			float u = (1.f - wx) * (1.f - wy) * U[p] + wx * (1.f - wy) * U[mx + 1 < w? p + 1: p] + (1.f - wx) * wy * U[my + 1 < h? p + w: p] + wx * wy * U[mx + 1 < w && my + 1 < h? p + w + 1: p];
+			float v = (1.f - wx) * (1.f - wy) * V[p] + wx * (1.f - wy) * V[mx + 1 < w? p + 1: p] + (1.f - wx) * wy * V[my + 1 < h? p + w: p] + wx * wy * V[mx + 1 < w && my + 1 < h? p + w + 1: p];
+			float r = Y[py] - u, g = Y[py] + 0.6f * u + 0.4f * v, b = Y[py] - v;
 			
 			between(r, 0.f, 255.f);
 			between(g, 0.f, 255.f);
@@ -341,6 +341,8 @@ void Video::worker(void) {
 		ui.leftimage->set(limg.get());
 		ui.rightimage->set(rimg.get());
 
+//capture->open("webcam.avi");
+double wavsize = 0., jpgsize = 0.;
 		while (working) {
 			this_thread::sleep(posix_time::milliseconds(10));
 			*capture >> cap;
@@ -361,6 +363,24 @@ void Video::worker(void) {
 			network.broadcast(encbuf, decbuf, maxlatency);
 			
 			UILock lock;
+
+
+			decode(encbuf, *limg);
+			ui.leftimage->set(ss(encbuf.size()));
+			wavsize += encbuf.size();
+			ui.leftimage->redraw();
+			
+			vector<int> params;
+			params.push_back(CV_IMWRITE_JPEG_QUALITY);
+			params.push_back(25);
+			imencode(".jpg", *img, encbuf, params);
+			*rimg = imdecode(encbuf, 1);
+			ui.rightimage->set(ss(encbuf.size()));
+			jpgsize += encbuf.size();
+			ui.rightimage->redraw();
+			ui.midimage->set(ss(wavsize / jpgsize));
+			
+
 			if (decbuf.size() > left) {
 				decode(decbuf[left], *limg);
 				ui.leftimage->redraw();
