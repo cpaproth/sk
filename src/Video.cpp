@@ -63,8 +63,9 @@ Video::~Video(void) {
 	} catch (...) {}
 }
 
-
+static bool testflag=false;
 void Video::send_chat(void) {
+	testflag = !testflag;
 	network.command(left, "chat", ui.chat->value());
 	network.command(right, "chat", ui.chat->value());
 	ui.chat->value("");
@@ -138,12 +139,21 @@ void Video::encode(const Mat& img, vector<unsigned char>& enc) {
 
 
 	vector<int> data;
-	for (unsigned i = 0; i < W.size(); i++)
-		data.push_back(roundtoeven(W[i] / 512.f));
-	for (unsigned i = 0; i < Z.size(); i++)
-		data.push_back(roundtoeven(Z[i] / 512.f));
-	for (unsigned i = 0; i < Y.size(); i++)
-		data.push_back(roundtoeven(Y[i] / (i < minsize? 2.1f: i < 4 * minsize? 2.f: i < 16 * minsize? 3.f: i < 64 * minsize? 10.f: 30.f)));
+	if (testflag) {
+		for (unsigned i = 0; i < W.size(); i++)
+			data.push_back(roundtoeven(W[i] / 512.f));
+		for (unsigned i = 0; i < Z.size(); i++)
+			data.push_back(roundtoeven(Z[i] / 512.f));
+		for (unsigned i = 0; i < Y.size(); i++)
+			data.push_back(roundtoeven(Y[i] / (i < minsize? 2.1f: i < 4 * minsize? 2.f: i < 16 * minsize? 3.f: i < 64 * minsize? 10.f: 30.f)));
+	} else {
+		for (unsigned i = 0; i < W.size(); i++)
+			data.push_back((int)(W[i] / 256.f));
+		for (unsigned i = 0; i < Z.size(); i++)
+			data.push_back((int)(Z[i] / 256.f));
+		for (unsigned i = 0; i < Y.size(); i++)
+			data.push_back((int)(Y[i] / (i < minsize? 2.1f: i < 4 * minsize? 2.f: i < 16 * minsize? 2.f: i < 64 * minsize? 6.f: 16.f)));
+	}
 	for (unsigned i = 9 * minsize - 1; i > 0; i--)
 		data[i] -= data[i - 1];
 
@@ -268,17 +278,26 @@ void Video::decode(const vector<unsigned char>& enc, Mat& img) {
 	vector<float> Y, U, V, W;
 	for (unsigned i = 1; i < 9 * minsize; i++)
 		data[i] += data[i - 1];
-	for (unsigned i = 0; i < 4 * minsize; i++)
-		U.push_back(8.f * data[i]);
-	for (unsigned i = 4 * minsize; i < 8 * minsize; i++)
-		V.push_back(8.f * data[i]);
-	for (unsigned i = 8 * minsize; i < data.size(); i++)
-		Y.push_back((i < 9 * minsize? 2.1f: i < 12 * minsize? 2.f: i < 24 * minsize? 3.f: i < 72 * minsize? 10.f: 30.f) * data[i]);
+	if (testflag) {
+		for (unsigned i = 0; i < 4 * minsize; i++)
+			U.push_back(8.f * data[i]);
+		for (unsigned i = 4 * minsize; i < 8 * minsize; i++)
+			V.push_back(8.f * data[i]);
+		for (unsigned i = 8 * minsize; i < data.size(); i++)
+			Y.push_back((i < 9 * minsize? 2.1f: i < 12 * minsize? 2.f: i < 24 * minsize? 3.f: i < 72 * minsize? 10.f: 30.f) * data[i]);
+	} else {
+		for (unsigned i = 0; i < 4 * minsize; i++)
+			U.push_back(4.f * (data[i] + (data[i] < 0? -0.5f: data[i] > 0? 0.5f: 0.f)));
+		for (unsigned i = 4 * minsize; i < 8 * minsize; i++)
+			V.push_back(4.f * (data[i] + (data[i] < 0? -0.5f: data[i] > 0? 0.5f: 0.f)));
+		for (unsigned i = 8 * minsize; i < data.size(); i++)
+			Y.push_back((i < 9 * minsize? 2.1f: i < 12 * minsize? 2.f: i < 24 * minsize? 2.f: i < 72 * minsize? 6.f: 16.f) * (data[i] + (data[i] < 0? -0.5f: data[i] > 0? 0.5f: 0.f)));
+	}
 
 
 	W.resize(Y.size());
 	for (unsigned w = imagewidth / 16, h = imageheight / 16; w <= imagewidth / 2; w *= 2, h *= 2) {
-		float threshold = w == imagewidth / 2? 1000.f: 20.f;
+		float threshold = w == imagewidth / 2? 100.f: 20.f;
 		for (unsigned y = 0; y < h; y++) {
 			for (unsigned x = 0; x < w; x++) {
 				unsigned py = y * w + x, pw = 4 * y * w + 2 * x, s = w * h;
@@ -374,11 +393,11 @@ double wavsize = 0., jpgsize = 0.;
 			params.push_back(CV_IMWRITE_JPEG_QUALITY);
 			params.push_back(25);
 			imencode(".jpg", *img, encbuf, params);
-			*rimg = imdecode(encbuf, 1);
+			*rimg = imdecode(Mat(encbuf), 1);
 			ui.rightimage->set(ss(encbuf.size()));
 			jpgsize += encbuf.size();
 			ui.rightimage->redraw();
-			ui.midimage->set(ss(wavsize / jpgsize));
+			ui.midimage->set(ss(wavsize / jpgsize) << " " << testflag);
 			
 
 			if (decbuf.size() > left) {

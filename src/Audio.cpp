@@ -220,6 +220,10 @@ void imdct(const vector<float>& in, vector<float>& out) {
 }
 
 
+#include <boost/dynamic_bitset.hpp>
+vector<unsigned char> enc(80);
+boost::dynamic_bitset<unsigned char> encbits(enc.size() * 8);
+
 vector<float> encbuf(256);
 void encode0(const short* in) {
 	static float tmp[256];
@@ -246,6 +250,8 @@ void encode0(const short* in) {
 		else
 			encbuf[i] = s * pow(2.f, a < -15? -15: a) * 256.f / sqrt(2.f);
 	}
+
+	vector<pair<float, unsigned> > as;
 
 	//~ for (unsigned i = 0; i < 256 && testflag; i++) {
 		//~ float o = fabs(output[i]), s = output[i] < 0.f? -1.f: 1.f;
