@@ -224,6 +224,9 @@ void imdct(const vector<float>& in, vector<float>& out) {
 vector<unsigned char> enc(80);
 boost::dynamic_bitset<unsigned char> encbits(enc.size() * 8);
 
+#include <boost/random.hpp>
+boost::random::mt19937 rng;
+boost::random::bernoulli_distribution<> dist;
 vector<float> encbuf(256);
 void encode0(const short* in) {
 	static float tmp[256];
@@ -244,7 +247,8 @@ void encode0(const short* in) {
 		float o = fabs(output[i]), s = output[i] < 0.f? -1.f: 1.f;
 		int a = (int)(log(o / 256.f * sqrt(2.f)) / log(2.f) - 0.5f);
 		if (o < amps[128])
-			encbuf[i] = (testflag?0:0) * s * amps[64];
+			encbuf[i] = (testflag? (dist(rng)? -1.f: 1.f): 0) * 1 * amps[64];
+			//encbuf[i] = (testflag? (input[255 - i] < 0.f? 1.f: -1.f): 0) * amps[64];
 		else if (o < amps[224])
 			encbuf[i] = s * amps[176];
 		else
@@ -253,49 +257,10 @@ void encode0(const short* in) {
 
 	vector<pair<float, unsigned> > as;
 
-	//~ for (unsigned i = 0; i < 256 && testflag; i++) {
-		//~ float o = fabs(output[i]), s = output[i] < 0.f? -1.f: 1.f;
-		//~ int a = (int)(log(o / 256.f * sqrt(2.f)) / log(2.f) - 0.5f);
-		//~ if (o < amps[160])
-			//~ encbuf[i] = s * amps[80];
-		//~ else if (o < amps[232])
-			//~ encbuf[i] = s * amps[196];
-		//~ else if (o < amps[248])
-			//~ encbuf[i] = s * amps[240];
-		//~ else
-			//~ encbuf[i] = s * pow(2.f, a < -15? -15: a) * 256.f / sqrt(2.f);
-	//~ }
 
-
-	//~ vector<pair<float, unsigned> > as, ds;
-	//~ for (unsigned i = 0; i < output.size(); i++)
-		//~ as.push_back(make_pair(fabs(output[i]), i));
-	//~ sort(as.begin(), as.end());
-	//~ for (unsigned i = 0; i < 224; i++) {
-		//~ unsigned p = as[i].second;
-		//~ ds.push_back(make_pair(max(p > 0? fabs(output[p - 1]): 0.f, p < 255? fabs(output[p + 1]): 0.f) / fabs(output[p]), p));
-	//~ }
-	//~ sort(ds.begin(), ds.end());
-//~ 
-	//~ if (testflag) {
-		//~ for (unsigned i = 0; i < 256; i++)
-			//~ encbuf[i] = 0.f;
-		//~ float avg = 0.f;
-		//~ for (unsigned i = 0; i < 96; i++)
-			//~ avg += fabs(output[ds[i].second]) / 96.f;
-//~ 
-		//~ for (unsigned i = 0; i < 96; i++)
-			//~ encbuf[ds[i].second] = (output[ds[i].second] < 0.f? -1.f: 1.f) * avg;
-//~ 
-		//~ for (unsigned i = 224; i < 256; i++) {
-			//~ float o = fabs(output[as[i].second]), s = output[as[i].second] < 0.f? -1.f: 1.f;
-			//~ int a = (int)(log(o / 256.f * sqrt(2.f)) / log(2.f) - 0.5f);
-			//~ encbuf[as[i].second] =  s * pow(2.f, a) * 256.f / sqrt(2.f);
-		//~ }
-	//~ }
 	
 	for (unsigned i = 0; i < 256 && testflag; i++) {
-		encbuf[i] = output[i];
+		//encbuf[i] = output[i];
 	}
 }
 void decode0(short* out) {

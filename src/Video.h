@@ -20,7 +20,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 
 #include <boost/thread/thread.hpp>
-#include "MathLib.h"
+#include <vector>
 
 
 namespace cv {

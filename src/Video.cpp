@@ -63,9 +63,8 @@ Video::~Video(void) {
 	} catch (...) {}
 }
 
-static bool testflag=false;
+
 void Video::send_chat(void) {
-	testflag = !testflag;
 	network.command(left, "chat", ui.chat->value());
 	network.command(right, "chat", ui.chat->value());
 	ui.chat->value("");
@@ -139,21 +138,12 @@ void Video::encode(const Mat& img, vector<unsigned char>& enc) {
 
 
 	vector<int> data;
-	if (testflag) {
-		for (unsigned i = 0; i < W.size(); i++)
-			data.push_back(roundtoeven(W[i] / 512.f));
-		for (unsigned i = 0; i < Z.size(); i++)
-			data.push_back(roundtoeven(Z[i] / 512.f));
-		for (unsigned i = 0; i < Y.size(); i++)
-			data.push_back(roundtoeven(Y[i] / (i < minsize? 2.1f: i < 4 * minsize? 2.f: i < 16 * minsize? 3.f: i < 64 * minsize? 10.f: 30.f)));
-	} else {
-		for (unsigned i = 0; i < W.size(); i++)
-			data.push_back((int)(W[i] / 256.f));
-		for (unsigned i = 0; i < Z.size(); i++)
-			data.push_back((int)(Z[i] / 256.f));
-		for (unsigned i = 0; i < Y.size(); i++)
-			data.push_back((int)(Y[i] / (i < minsize? 2.1f: i < 4 * minsize? 2.f: i < 16 * minsize? 2.f: i < 64 * minsize? 6.f: 16.f)));
-	}
+	for (unsigned i = 0; i < W.size(); i++)
+		data.push_back((int)(W[i] / 256.f));
+	for (unsigned i = 0; i < Z.size(); i++)
+		data.push_back((int)(Z[i] / 256.f));
+	for (unsigned i = 0; i < Y.size(); i++)
+		data.push_back((int)(Y[i] / (i < 16 * minsize? 2.f: i < 64 * minsize? 6.f: 16.f)));
 	for (unsigned i = 9 * minsize - 1; i > 0; i--)
 		data[i] -= data[i - 1];
 
@@ -164,8 +154,8 @@ void Video::encode(const Mat& img, vector<unsigned char>& enc) {
 			for (; i + 1 < data.size() && data[i + 1] == 0; i++)
 				z++;
 			for (; z >= 2; z >>= 1)
-				data[size++] = (z & 1) * 127;
-		} else if (data[i] > -128 && data[i] < 127) {
+				data[size++] = (z & 1) * 139;
+		} else if (data[i] > -140 && data[i] < 139) {
 			data[size++] = data[i];
 		} else
 			return;
@@ -173,8 +163,8 @@ void Video::encode(const Mat& img, vector<unsigned char>& enc) {
 	data.resize(size);
 
 
-	vector<unsigned> mem1(256, 0), mem2(256, 0);
-	unsigned *freqs = &mem1[128], *starts = &mem2[128];
+	vector<unsigned> mem1(280, 0), mem2(280, 0);
+	unsigned *freqs = &mem1[mem1.size() / 2], *starts = &mem2[mem2.size() / 2];
 	for (unsigned i = 0; i < size; i++)
 		freqs[data[i]]++;
 	for (int i = 0; starts[i] < size; i = i < 0? -i: -i - 1)
@@ -215,9 +205,9 @@ void Video::decode(const vector<unsigned char>& enc, Mat& img) {
 	if (enc.size() < 4 || img.cols != (int)imagewidth || img.rows != (int)imageheight || img.elemSize() != 3)
 		return;
 
-	vector<unsigned> mem1, mem2(256, 0);
+	vector<unsigned> mem1, mem2(280, 0);
 	unsigned size = 0, p = 0;
-	for (; p < enc.size() && mem1.size() < 256; size += mem1.back(), p++) {
+	for (; p < enc.size() && mem1.size() < mem2.size(); size += mem1.back(), p++) {
 		if ((enc[p] & 192) == 0) {
 			for (unsigned i = enc[p] + 1; i > 0; i--)
 				mem1.push_back(0);
@@ -228,9 +218,9 @@ void Video::decode(const vector<unsigned char>& enc, Mat& img) {
 			mem1.back() += enc[p] + 129;
 		}
 	}
-	if (mem1.size() < 256)
+	if (mem1.size() < mem2.size())
 		return;
-	unsigned *freqs = &mem1[128], *starts = &mem2[128];
+	unsigned *freqs = &mem1[mem1.size() / 2], *starts = &mem2[mem2.size() / 2];
 	for (int i = 0; starts[i] < size; i = i < 0? -i: -i - 1)
 		starts[i < 0? -i: -i - 1] = starts[i] + freqs[i];
 
@@ -261,9 +251,9 @@ void Video::decode(const vector<unsigned char>& enc, Mat& img) {
 
 
 	for (unsigned i = 0; i < dec.size(); i++) {
-		if (dec[i] == 0 || dec[i] == 127) {
+		if (dec[i] == 0 || dec[i] == 139) {
 			int z = dec[i] & 1, b = 1;
-			for (; i + 1 < dec.size() && (dec[i + 1] == 0 || dec[i + 1] == 127); i++, b++)
+			for (; i + 1 < dec.size() && (dec[i + 1] == 0 || dec[i + 1] == 139); i++, b++)
 				z |= (dec[i + 1] & 1) << b;
 			for (z += (1 << b) - 2; z >= 0; z--)
 				data.push_back(0);
@@ -278,39 +268,30 @@ void Video::decode(const vector<unsigned char>& enc, Mat& img) {
 	vector<float> Y, U, V, W;
 	for (unsigned i = 1; i < 9 * minsize; i++)
 		data[i] += data[i - 1];
-	if (testflag) {
-		for (unsigned i = 0; i < 4 * minsize; i++)
-			U.push_back(8.f * data[i]);
-		for (unsigned i = 4 * minsize; i < 8 * minsize; i++)
-			V.push_back(8.f * data[i]);
-		for (unsigned i = 8 * minsize; i < data.size(); i++)
-			Y.push_back((i < 9 * minsize? 2.1f: i < 12 * minsize? 2.f: i < 24 * minsize? 3.f: i < 72 * minsize? 10.f: 30.f) * data[i]);
-	} else {
-		for (unsigned i = 0; i < 4 * minsize; i++)
-			U.push_back(4.f * (data[i] + (data[i] < 0? -0.5f: data[i] > 0? 0.5f: 0.f)));
-		for (unsigned i = 4 * minsize; i < 8 * minsize; i++)
-			V.push_back(4.f * (data[i] + (data[i] < 0? -0.5f: data[i] > 0? 0.5f: 0.f)));
-		for (unsigned i = 8 * minsize; i < data.size(); i++)
-			Y.push_back((i < 9 * minsize? 2.1f: i < 12 * minsize? 2.f: i < 24 * minsize? 2.f: i < 72 * minsize? 6.f: 16.f) * (data[i] + (data[i] < 0? -0.5f: data[i] > 0? 0.5f: 0.f)));
-	}
+	for (unsigned i = 0; i < 4 * minsize; i++)
+		U.push_back(4.f * (data[i] + (data[i] < 0? -0.5f: data[i] > 0? 0.5f: 0.f)));
+	for (unsigned i = 4 * minsize; i < 8 * minsize; i++)
+		V.push_back(4.f * (data[i] + (data[i] < 0? -0.5f: data[i] > 0? 0.5f: 0.f)));
+	for (unsigned i = 8 * minsize; i < data.size(); i++)
+		Y.push_back((i < 24 * minsize? 2.f: i < 72 * minsize? 6.f: 16.f) * (data[i] + (data[i] < 0? -0.5f: data[i] > 0? 0.5f: 0.f)));
 
 
 	W.resize(Y.size());
 	for (unsigned w = imagewidth / 16, h = imageheight / 16; w <= imagewidth / 2; w *= 2, h *= 2) {
-		float threshold = w == imagewidth / 2? 100.f: 20.f;
+		float th = w == imagewidth / 2? 100.f: 30.f;
 		for (unsigned y = 0; y < h; y++) {
 			for (unsigned x = 0; x < w; x++) {
 				unsigned py = y * w + x, pw = 4 * y * w + 2 * x, s = w * h;
 				float x00 = Y[py], x10 = Y[py + s], x01 = Y[py + 2 * s], x11 = Y[py + 3 * s];
 				if (x10 == 0.f && x01 == 0.f && x11 == 0.f) {
-					float cx = x > 0 && fabs(Y[py - 1] - x00) < threshold? Y[py - 1]: x00;
-					float cy = y > 0 && fabs(Y[py - w] - x00) < threshold? Y[py - w]: x00;
-					float cw = x + 1 < w && fabs(Y[py + 1] - x00) < threshold? Y[py + 1]: x00;
-					float ch = y + 1 < h && fabs(Y[py + w] - x00) < threshold? Y[py + w]: x00;
-					W[pw] = 0.7f * x00 + 0.1f * cx + 0.1f * cy + 0.1f * (x > 0 && y > 0 && fabs(Y[py - w - 1] - x00) < threshold? Y[py - w - 1]: x00);
-					W[pw + 1] = 0.7f * x00 + 0.1f * cw + 0.1f * cy + 0.1f * (x + 1 < w && y > 0 && fabs(Y[py - w + 1] - x00) < threshold? Y[py - w + 1]: x00);
-					W[pw + 2 * w] = 0.7f * x00 + 0.1f * cx + 0.1f * ch + 0.1f * (x > 0 && y + 1 < h && fabs(Y[py + w - 1] - x00) < threshold? Y[py + w - 1]: x00);
-					W[pw + 2 * w + 1] = 0.7f * x00 + 0.1f * cw + 0.1f * ch + 0.1f * (x + 1 < w && y + 1 < h && fabs(Y[py + w + 1] - x00) < threshold? Y[py + w + 1]: x00);
+					float cx = x > 0 && fabs(Y[py - 1] - x00) < th? Y[py - 1]: x00;
+					float cy = y > 0 && fabs(Y[py - w] - x00) < th? Y[py - w]: x00;
+					float cw = x + 1 < w && fabs(Y[py + 1] - x00) < th? Y[py + 1]: x00;
+					float ch = y + 1 < h && fabs(Y[py + w] - x00) < th? Y[py + w]: x00;
+					W[pw] = 0.7f * x00 + 0.1f * cx + 0.1f * cy + 0.1f * (x > 0 && y > 0 && fabs(Y[py - w - 1] - x00) < th? Y[py - w - 1]: x00);
+					W[pw + 1] = 0.7f * x00 + 0.1f * cw + 0.1f * cy + 0.1f * (x + 1 < w && y > 0 && fabs(Y[py - w + 1] - x00) < th? Y[py - w + 1]: x00);
+					W[pw + 2 * w] = 0.7f * x00 + 0.1f * cx + 0.1f * ch + 0.1f * (x > 0 && y + 1 < h && fabs(Y[py + w - 1] - x00) < th? Y[py + w - 1]: x00);
+					W[pw + 2 * w + 1] = 0.7f * x00 + 0.1f * cw + 0.1f * ch + 0.1f * (x + 1 < w && y + 1 < h && fabs(Y[py + w + 1] - x00) < th? Y[py + w + 1]: x00);
 				} else {
 					W[pw] = x00 + x10 + x01 + x11;
 					W[pw + 1] = x00 + x10 - x01 - x11;
@@ -397,7 +378,7 @@ double wavsize = 0., jpgsize = 0.;
 			ui.rightimage->set(ss(encbuf.size()));
 			jpgsize += encbuf.size();
 			ui.rightimage->redraw();
-			ui.midimage->set(ss(wavsize / jpgsize) << " " << testflag);
+			ui.midimage->set(ss(wavsize / jpgsize));
 			
 
 			if (decbuf.size() > left) {
