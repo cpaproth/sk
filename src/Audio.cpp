@@ -255,8 +255,40 @@ void encode0(const short* in) {
 			encbuf[i] = s * pow(2.f, a < -15? -15: a) * 256.f / sqrt(2.f);
 	}
 
-	vector<pair<float, unsigned> > as;
+	static vector<pair<float, unsigned> > as(256);
+	for (unsigned i = 0; i < output.size(); i++)
+		as[i] = make_pair(log(fabs(output[i]) / 256.f * sqrt(2.f)) / log(2.f) - 0.5f, i);
+	sort(as.begin(), as.end());
 
+	static vector<unsigned char> vs(256);
+	for (unsigned i = 0; i < 256; i++)
+		vs[as[i].second] = (i < 128? 0: i < 226? 5: 6) & (output[as[i].second] < 0? 7: 3);
+
+
+	for (unsigned i = 64, b = 0; i < 256; i++) {
+		unsigned char a = as[i].first <= -16.f? 15: (unsigned char)(-(int)as[i].first);
+		encbits.set(b++, (a & 1) == 1);
+		encbits.set(b++, (a & 2) == 2);
+		encbits.set(b++, (a & 4) == 4);
+		encbits.set(b++, (a & 8) == 8);
+		i = i == 64? 175: i == 176? 225: i;
+	}
+	for (unsigned i = 0, b = 128; i < 256; i++) {
+		if (vs[i] == 0) {
+			encbits.set(b++, false);
+		} else {
+			encbits.set(b++, true);
+			encbits.set(b++, (vs[i] & 4) == 4);
+			encbits.set(b++, (vs[i] & 1) == 1);
+		}
+	}
+
+
+	boost::to_block_range(encbits, enc.begin());
+
+	if (testflag)
+		cout << string(enc.begin(), enc.end()) << endl;
+	//cout << as[64].first << " " << as[176].first << " " << as[224].first << " " << as[225].first << " " << as[226].first << " " << as[255].first << endl;
 
 	
 	for (unsigned i = 0; i < 256 && testflag; i++) {

@@ -278,26 +278,36 @@ void Video::decode(const vector<unsigned char>& enc, Mat& img) {
 
 	W.resize(Y.size());
 	for (unsigned w = imagewidth / 16, h = imageheight / 16; w <= imagewidth / 2; w *= 2, h *= 2) {
-		float th = w == imagewidth / 2? 100.f: 30.f;
 		for (unsigned y = 0; y < h; y++) {
 			for (unsigned x = 0; x < w; x++) {
 				unsigned py = y * w + x, pw = 4 * y * w + 2 * x, s = w * h;
 				float x00 = Y[py], x10 = Y[py + s], x01 = Y[py + 2 * s], x11 = Y[py + 3 * s];
-				if (x10 == 0.f && x01 == 0.f && x11 == 0.f) {
-					float cx = x > 0 && fabs(Y[py - 1] - x00) < th? Y[py - 1]: x00;
-					float cy = y > 0 && fabs(Y[py - w] - x00) < th? Y[py - w]: x00;
-					float cw = x + 1 < w && fabs(Y[py + 1] - x00) < th? Y[py + 1]: x00;
-					float ch = y + 1 < h && fabs(Y[py + w] - x00) < th? Y[py + w]: x00;
-					W[pw] = 0.7f * x00 + 0.1f * cx + 0.1f * cy + 0.1f * (x > 0 && y > 0 && fabs(Y[py - w - 1] - x00) < th? Y[py - w - 1]: x00);
-					W[pw + 1] = 0.7f * x00 + 0.1f * cw + 0.1f * cy + 0.1f * (x + 1 < w && y > 0 && fabs(Y[py - w + 1] - x00) < th? Y[py - w + 1]: x00);
-					W[pw + 2 * w] = 0.7f * x00 + 0.1f * cx + 0.1f * ch + 0.1f * (x > 0 && y + 1 < h && fabs(Y[py + w - 1] - x00) < th? Y[py + w - 1]: x00);
-					W[pw + 2 * w + 1] = 0.7f * x00 + 0.1f * cw + 0.1f * ch + 0.1f * (x + 1 < w && y + 1 < h && fabs(Y[py + w + 1] - x00) < th? Y[py + w + 1]: x00);
-				} else {
-					W[pw] = x00 + x10 + x01 + x11;
-					W[pw + 1] = x00 + x10 - x01 - x11;
-					W[pw + 2 * w] = x00 - x10 + x01 - x11;
-					W[pw + 2 * w + 1] = x00 - x10 - x01 + x11;
-				}
+				W[pw] = x00 + x10 + x01 + x11;
+				W[pw + 1] = x00 + x10 - x01 - x11;
+				W[pw + 2 * w] = x00 - x10 + x01 - x11;
+				W[pw + 2 * w + 1] = x00 - x10 - x01 + x11;
+			}
+		}
+		float th = w == imagewidth / 2? 50.f: 25.f, w0 = 0.5625f, w1 = sqrt(w0) - w0, w2 = 1.f - 2.f * sqrt(w0) + w0;
+		for (unsigned y = 0; y < h; y++) {
+			for (unsigned x = 0; x < w; x++) {
+				unsigned wi = 2 * w, pw = 2 * y * wi + 2 * x;
+				float x0 = W[pw];
+				if (x0 != W[pw + 1] || x0 != W[pw + wi] || x0 != W[pw + wi + 1])
+					continue;
+				W[pw] = W[pw + 1] = W[pw + wi] = W[pw + wi + 1] = w0 * x0;
+				W[pw] += w1 * (x > 0 && fabs(W[pw - 1] - x0) < th? W[pw - 1]: x0);
+				W[pw] += w1 * (y > 0 && fabs(W[pw - wi] - x0) < th? W[pw - wi]: x0);
+				W[pw] += w2 * (x > 0 && y > 0 && fabs(W[pw - wi - 1] - x0) < th? W[pw - wi - 1]: x0);
+				W[pw + 1] += w1 * (x + 1 < w && fabs(W[pw + 2] - x0) < th? W[pw + 2]: x0);
+				W[pw + 1] += w1 * (y > 0 && fabs(W[pw - wi + 1] - x0) < th? W[pw - wi + 1]: x0);
+				W[pw + 1] += w2 * (x + 1 < w && y > 0 && fabs(W[pw - wi + 2] - x0) < th? W[pw - wi + 2]: x0);
+				W[pw + wi] += w1 * (x > 0 && fabs(W[pw + wi - 1] - x0) < th? W[pw + wi - 1]: x0);
+				W[pw + wi] += w1 * (y + 1 < h && fabs(W[pw + 2 * wi] - x0) < th? W[pw + 2 * wi]: x0);
+				W[pw + wi] += w2 * (x > 0 && y + 1 < h && fabs(W[pw + 2 * wi - 1] - x0) < th? W[pw + 2 * wi - 1]: x0);
+				W[pw + wi + 1] += w1 * (x + 1 < w && fabs(W[pw + wi + 2] - x0) < th? W[pw + wi + 2]: x0);
+				W[pw + wi + 1] += w1 * (y + 1 < h && fabs(W[pw + 2 * wi + 1] - x0) < th? W[pw + 2 * wi + 1]: x0);
+				W[pw + wi + 1] += w2 * (x + 1 < w && y + 1 < h && fabs(W[pw + 2 * wi + 2] - x0) < th? W[pw + 2 * wi + 2]: x0);
 			}
 		}
 		if (w == imagewidth / 2)
@@ -357,6 +367,7 @@ double wavsize = 0., jpgsize = 0.;
 			} else {
 				UILock lock;
 				resize(cap, *img, img->size());
+				//*img = imread("d:/tmp/screenshot4.bmp");
 				ui.midimage->redraw();
 			}
 			encode(*img, encbuf);
