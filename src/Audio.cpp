@@ -222,11 +222,7 @@ void imdct(const vector<float>& in, vector<float>& out) {
 
 #include <boost/dynamic_bitset.hpp>
 vector<unsigned char> enc(80);
-boost::dynamic_bitset<unsigned char> encbits(enc.size() * 8);
 
-#include <boost/random.hpp>
-boost::random::mt19937 rng;
-boost::random::bernoulli_distribution<> dist;
 vector<float> encbuf(256);
 void encode0(const short* in) {
 	static float tmp[256];
@@ -237,65 +233,68 @@ void encode0(const short* in) {
 	}
 	mdct(input, output);
 
+
 	vector<float> amps;
 	for (unsigned i = 0; i < output.size(); i++)
 		amps.push_back(fabs(output[i]));
 	sort(amps.begin(), amps.end());
-	
-
 	for (unsigned i = 0; i < 256; i++) {
 		float o = fabs(output[i]), s = output[i] < 0.f? -1.f: 1.f;
 		int a = (int)(log(o / 256.f * sqrt(2.f)) / log(2.f) - 0.5f);
 		if (o < amps[128])
-			encbuf[i] = (testflag? (dist(rng)? -1.f: 1.f): 0) * 1 * amps[64];
-			//encbuf[i] = (testflag? (input[255 - i] < 0.f? 1.f: -1.f): 0) * amps[64];
-		else if (o < amps[224])
+			encbuf[i] = 0;
+		else if (o < amps[226])
 			encbuf[i] = s * amps[176];
 		else
 			encbuf[i] = s * pow(2.f, a < -15? -15: a) * 256.f / sqrt(2.f);
 	}
 
-	static vector<pair<float, unsigned> > as(256);
+
+	static vector<pair<float, unsigned> > a(256);
+	static vector<pair<unsigned char, int> > v(256);
+	static boost::dynamic_bitset<unsigned char> bits(enc.size() * 8);
+
 	for (unsigned i = 0; i < output.size(); i++)
-		as[i] = make_pair(log(fabs(output[i]) / 256.f * sqrt(2.f)) / log(2.f) - 0.5f, i);
-	sort(as.begin(), as.end());
+		a[i] = make_pair(log(fabs(output[i]) / 256.f * sqrt(2.f)) / log(2.f) - 0.5f, i);
+	sort(a.begin(), a.end());
 
-	static vector<unsigned char> vs(256);
 	for (unsigned i = 0; i < 256; i++)
-		vs[as[i].second] = (i < 128? 0: i < 226? 5: 6) & (output[as[i].second] < 0? 7: 3);
+		v[a[i].second] = make_pair((i < 128? 0: i < 226? 5: 6) & (output[a[i].second] < 0? 7: 3), min(15, -(int)a[i].first));
 
-
-	for (unsigned i = 64, b = 0; i < 256; i++) {
-		unsigned char a = as[i].first <= -16.f? 15: (unsigned char)(-(int)as[i].first);
-		encbits.set(b++, (a & 1) == 1);
-		encbits.set(b++, (a & 2) == 2);
-		encbits.set(b++, (a & 4) == 4);
-		encbits.set(b++, (a & 8) == 8);
-		i = i == 64? 175: i == 176? 225: i;
-	}
-	for (unsigned i = 0, b = 128; i < 256; i++) {
-		if (vs[i] == 0) {
-			encbits.set(b++, false);
+	int amin = min(15, -(int)a[64].first + (int)a[226].first), amid = min(15, -(int)a[176].first + (int)a[226].first);
+	bits.set(0, (amin & 1) != 0).set(1, (amin & 2) != 0).set(2, (amin & 4) != 0).set(3, (amin & 8) != 0);
+	bits.set(4, (amid & 1) != 0).set(5, (amid & 2) != 0).set(6, (amid & 4) != 0).set(7, (amid & 8) != 0);
+	for (unsigned i = 0, b = 128, o = 8; i < 256; i++) {
+		if (v[i].first == 0) {
+			bits.set(b++, false);
 		} else {
-			encbits.set(b++, true);
-			encbits.set(b++, (vs[i] & 4) == 4);
-			encbits.set(b++, (vs[i] & 1) == 1);
+			bits.set(b, true).set(b + 1, (v[i].first & 4) != 0).set(b + 2, (v[i].first & 1) != 0);
+			b += 3;
+		}
+		if ((v[i].first & 2) != 0) {
+			bits.set(o, (v[i].second & 1) != 0).set(o + 1, (v[i].second & 2) != 0).set(o + 2, (v[i].second & 4) != 0).set(o + 3, (v[i].second & 8) != 0);
+			o += 4;
 		}
 	}
 
+	boost::to_block_range(bits, enc.begin());
 
-	boost::to_block_range(encbits, enc.begin());
 
-	if (testflag)
-		cout << string(enc.begin(), enc.end()) << endl;
-	//cout << as[64].first << " " << as[176].first << " " << as[224].first << " " << as[225].first << " " << as[226].first << " " << as[255].first << endl;
-
-	
 	for (unsigned i = 0; i < 256 && testflag; i++) {
 		//encbuf[i] = output[i];
 	}
 }
 void decode0(short* out) {
+	static boost::dynamic_bitset<unsigned char> bits(enc.size() * 8);
+	static vector<int> a(32);
+
+	boost::from_block_range(enc.begin(), enc.end(), bits);
+
+	a[0] = (bits.test(0)? 1: 0) | (bits.test(1)? 2: 0) | (bits.test(2)? 4: 0) | (bits.test(3)? 8: 0);
+	a[1] = (bits.test(4)? 1: 0) | (bits.test(5)? 2: 0) | (bits.test(6)? 4: 0) | (bits.test(7)? 8: 0);
+
+
+
 	static float tmp[256];
 	vector<float> input(256), output;
 	for (unsigned i = 0; i < 256; i++)
