@@ -111,9 +111,9 @@ void Video::encode(const Mat& img, vector<unsigned char>& enc) {
 				unsigned pw = y * w + x, py = 4 * y * w + 2 * x, s = w * h;
 				float x00 = Y[py] / 4.f, x10 = Y[py + 1] / 4.f, x01 = Y[py + 2 * w] / 4.f, x11 = Y[py + 2 * w + 1] / 4.f;
 				W[pw] = x00 + x10 + x01 + x11;
-				W[pw + s] = (x00 + x10 - x01 - x11);
-				W[pw + 2 * s] = (x00 - x10 + x01 - x11);
-				W[pw + 3 * s] = (x00 - x10 - x01 + x11);
+				W[pw + s] = x00 + x10 - x01 - x11;
+				W[pw + 2 * s] = x00 - x10 + x01 - x11;
+				W[pw + 3 * s] = x00 - x10 - x01 + x11;
 			}
 		}
 		if (w == imagewidth / 2)
@@ -143,7 +143,7 @@ void Video::encode(const Mat& img, vector<unsigned char>& enc) {
 	for (unsigned i = 0; i < Z.size(); i++)
 		data.push_back((int)(Z[i] / 256.f));
 	for (unsigned i = 0; i < Y.size(); i++)
-		data.push_back((int)(Y[i] / (i < 16 * minsize? 2.f: i < 64 * minsize? 6.f: 16.f)));
+		data.push_back((int)(Y[i] / (i < minsize? 2.f: i < 4 * minsize? 1.f: i < 16 * minsize? 2.f: i < 64 * minsize? 5.f: 20.f)));
 	for (unsigned i = 9 * minsize - 1; i > 0; i--)
 		data[i] -= data[i - 1];
 
@@ -273,7 +273,7 @@ void Video::decode(const vector<unsigned char>& enc, Mat& img) {
 	for (unsigned i = 4 * minsize; i < 8 * minsize; i++)
 		V.push_back(4.f * (data[i] + (data[i] < 0? -0.5f: data[i] > 0? 0.5f: 0.f)));
 	for (unsigned i = 8 * minsize; i < data.size(); i++)
-		Y.push_back((i < 24 * minsize? 2.f: i < 72 * minsize? 6.f: 16.f) * (data[i] + (data[i] < 0? -0.5f: data[i] > 0? 0.5f: 0.f)));
+		Y.push_back((i < 9 * minsize? 2.f: i < 12 * minsize? 1.f: i < 24 * minsize? 2.f: i < 72 * minsize? 5.f: 20.f) * (data[i] + (data[i] < 0? -0.5f: data[i] > 0? 0.5f: 0.f)));
 
 
 	W.resize(Y.size());
@@ -288,32 +288,28 @@ void Video::decode(const vector<unsigned char>& enc, Mat& img) {
 				W[pw + 2 * w + 1] = x00 - x10 - x01 + x11;
 			}
 		}
-		float th = w == imagewidth / 2? 50.f: 25.f, w0 = 0.5625f, w1 = sqrt(w0) - w0, w2 = 1.f - 2.f * sqrt(w0) + w0;
+		copy(W.begin(), W.begin() + 4 * w * h, Y.begin());
+		float th = w == imagewidth / 2? 500.f: 25.f, w0 = w == imagewidth / 2? 0.5625f: 0.8f, w1 = sqrt(w0) - w0, w2 = 1.f - 2.f * sqrt(w0) + w0;
 		for (unsigned y = 0; y < h; y++) {
 			for (unsigned x = 0; x < w; x++) {
 				unsigned wi = 2 * w, pw = 2 * y * wi + 2 * x;
-				float x0 = W[pw];
-				if (x0 != W[pw + 1] || x0 != W[pw + wi] || x0 != W[pw + wi + 1])
+				if (W[pw] != W[pw + 1] || W[pw] != W[pw + wi] || W[pw] != W[pw + wi + 1])
 					continue;
-				W[pw] = W[pw + 1] = W[pw + wi] = W[pw + wi + 1] = w0 * x0;
-				W[pw] += w1 * (x > 0 && fabs(W[pw - 1] - x0) < th? W[pw - 1]: x0);
-				W[pw] += w1 * (y > 0 && fabs(W[pw - wi] - x0) < th? W[pw - wi]: x0);
-				W[pw] += w2 * (x > 0 && y > 0 && fabs(W[pw - wi - 1] - x0) < th? W[pw - wi - 1]: x0);
-				W[pw + 1] += w1 * (x + 1 < w && fabs(W[pw + 2] - x0) < th? W[pw + 2]: x0);
-				W[pw + 1] += w1 * (y > 0 && fabs(W[pw - wi + 1] - x0) < th? W[pw - wi + 1]: x0);
-				W[pw + 1] += w2 * (x + 1 < w && y > 0 && fabs(W[pw - wi + 2] - x0) < th? W[pw - wi + 2]: x0);
-				W[pw + wi] += w1 * (x > 0 && fabs(W[pw + wi - 1] - x0) < th? W[pw + wi - 1]: x0);
-				W[pw + wi] += w1 * (y + 1 < h && fabs(W[pw + 2 * wi] - x0) < th? W[pw + 2 * wi]: x0);
-				W[pw + wi] += w2 * (x > 0 && y + 1 < h && fabs(W[pw + 2 * wi - 1] - x0) < th? W[pw + 2 * wi - 1]: x0);
-				W[pw + wi + 1] += w1 * (x + 1 < w && fabs(W[pw + wi + 2] - x0) < th? W[pw + wi + 2]: x0);
-				W[pw + wi + 1] += w1 * (y + 1 < h && fabs(W[pw + 2 * wi + 1] - x0) < th? W[pw + 2 * wi + 1]: x0);
-				W[pw + wi + 1] += w2 * (x + 1 < w && y + 1 < h && fabs(W[pw + 2 * wi + 2] - x0) < th? W[pw + 2 * wi + 2]: x0);
+				Y[pw] = Y[pw + 1] = Y[pw + wi] = Y[pw + wi + 1] = w0 * W[pw];
+				Y[pw] += w1 * W[x > 0 && fabs(W[pw - 1] - W[pw]) < th? pw - 1: pw];
+				Y[pw] += w1 * W[y > 0 && fabs(W[pw - wi] - W[pw]) < th? pw - wi: pw];
+				Y[pw] += w2 * W[x > 0 && y > 0 && fabs(W[pw - wi - 1] - W[pw]) < th? pw - wi - 1: pw];
+				Y[pw + 1] += w1 * W[x + 1 < w && fabs(W[pw + 2] - W[pw]) < th? pw + 2: pw];
+				Y[pw + 1] += w1 * W[y > 0 && fabs(W[pw - wi + 1] - W[pw]) < th? pw - wi + 1: pw];
+				Y[pw + 1] += w2 * W[x + 1 < w && y > 0 && fabs(W[pw - wi + 2] - W[pw]) < th? pw - wi + 2: pw];
+				Y[pw + wi] += w1 * W[x > 0 && fabs(W[pw + wi - 1] - W[pw]) < th? pw + wi - 1: pw];
+				Y[pw + wi] += w1 * W[y + 1 < h && fabs(W[pw + 2 * wi] - W[pw]) < th? pw + 2 * wi: pw];
+				Y[pw + wi] += w2 * W[x > 0 && y + 1 < h && fabs(W[pw + 2 * wi - 1] - W[pw]) < th? pw + 2 * wi - 1: pw];
+				Y[pw + wi + 1] += w1 * W[x + 1 < w && fabs(W[pw + wi + 2] - W[pw]) < th? pw + wi + 2: pw];
+				Y[pw + wi + 1] += w1 * W[y + 1 < h && fabs(W[pw + 2 * wi + 1] - W[pw]) < th? pw + 2 * wi + 1: pw];
+				Y[pw + wi + 1] += w2 * W[x + 1 < w && y + 1 < h && fabs(W[pw + 2 * wi + 2] - W[pw]) < th? pw + 2 * wi + 2: pw];
 			}
 		}
-		if (w == imagewidth / 2)
-			Y.swap(W);
-		else
-			copy(W.begin(), W.begin() + 4 * w * h, Y.begin());
 	}
 
 	for (unsigned y = 0; y < imageheight; y++) {

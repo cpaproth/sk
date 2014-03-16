@@ -238,15 +238,30 @@ void encode0(const short* in) {
 	for (unsigned i = 0; i < output.size(); i++)
 		amps.push_back(fabs(output[i]));
 	sort(amps.begin(), amps.end());
-	for (unsigned i = 0; i < 256; i++) {
+	for (unsigned i = 0; i < 256 && testflag; i++) {
 		float o = fabs(output[i]), s = output[i] < 0.f? -1.f: 1.f;
 		int a = (int)(log(o / 256.f * sqrt(2.f)) / log(2.f) - 0.5f);
 		if (o < amps[128])
-			encbuf[i] = 0;
+			encbuf[i] = 0.f;
 		else if (o < amps[226])
 			encbuf[i] = s * amps[176];
 		else
-			encbuf[i] = s * pow(2.f, a < -15? -15: a) * 256.f / sqrt(2.f);
+			encbuf[i] = s * pow(2.f, a) * 256.f / sqrt(2.f);
+	}
+
+
+	int a176 = (int)(log(amps[176] / 256.f * sqrt(2.f)) / log(2.f) * 8.f - 0.5f);
+	static unsigned r = 11113;
+	for (unsigned i = 0; i < 256 && !testflag; i++) {
+		float o = fabs(output[i]), s = output[i] < 0.f? -1.f: 1.f;
+		int a = (int)(log(o / 256.f * sqrt(2.f)) / log(2.f) - 0.5f) - a176 / 8;
+		a = a > 15? 15: a < 0? 0: a;
+		if (o < amps[128])
+			encbuf[i] = (((r = r * 75 % 65537) & 8) != 0? -1.f: 1.f) * pow(2.f, a176 / 8.f - 3.f) * 256.f / sqrt(2.f);
+		else if (o < amps[226])
+			encbuf[i] = s * pow(2.f, a176 / 8.f) * 256.f / sqrt(2.f);
+		else
+			encbuf[i] = s * pow(2.f, a + a176 / 8) * 256.f / sqrt(2.f);
 	}
 
 
@@ -255,20 +270,20 @@ void encode0(const short* in) {
 	static boost::dynamic_bitset<unsigned char> bits(enc.size() * 8);
 
 	for (unsigned i = 0; i < output.size(); i++)
-		a[i] = make_pair(log(fabs(output[i]) / 256.f * sqrt(2.f)) / log(2.f) - 0.5f, i);
+		a[i] = make_pair(output[i] == 0.f? -31.f: log(fabs(output[i]) / 256.f * sqrt(2.f)) / log(2.f) - 0.5f, i);
 	sort(a.begin(), a.end());
 
 	for (unsigned i = 0; i < 256; i++)
 		v[a[i].second] = make_pair((i < 128? 0: i < 226? 5: 6) & (output[a[i].second] < 0? 7: 3), min(15, -(int)a[i].first));
 
-	int amin = min(15, -(int)a[64].first + (int)a[226].first), amid = min(15, -(int)a[176].first + (int)a[226].first);
+	int amin = min(15, (int)a[226].first - (int)a[64].first), amid = min(15, (int)a[226].first - (int)a[176].first);
 	bits.set(0, (amin & 1) != 0).set(1, (amin & 2) != 0).set(2, (amin & 4) != 0).set(3, (amin & 8) != 0);
 	bits.set(4, (amid & 1) != 0).set(5, (amid & 2) != 0).set(6, (amid & 4) != 0).set(7, (amid & 8) != 0);
 	for (unsigned i = 0, b = 128, o = 8; i < 256; i++) {
 		if (v[i].first == 0) {
-			bits.set(b++, false);
+			bits.set(b++, true);
 		} else {
-			bits.set(b, true).set(b + 1, (v[i].first & 4) != 0).set(b + 2, (v[i].first & 1) != 0);
+			bits.set(b, false).set(b + 1, (v[i].first & 1) != 0).set(b + 2, (v[i].first & 4) != 0);
 			b += 3;
 		}
 		if ((v[i].first & 2) != 0) {
@@ -290,9 +305,20 @@ void decode0(short* out) {
 
 	boost::from_block_range(enc.begin(), enc.end(), bits);
 
-	a[0] = (bits.test(0)? 1: 0) | (bits.test(1)? 2: 0) | (bits.test(2)? 4: 0) | (bits.test(3)? 8: 0);
-	a[1] = (bits.test(4)? 1: 0) | (bits.test(5)? 2: 0) | (bits.test(6)? 4: 0) | (bits.test(7)? 8: 0);
+	for (unsigned i = 0; i < 128; i += 4)
+		a[i / 4] = (bits.test(i)? 1: 0) | (bits.test(i + 1)? 2: 0) | (bits.test(i + 2)? 4: 0) | (bits.test(i + 3)? 8: 0);
 
+	a[0] += *max_element(a.begin() + 2, a.end());
+	a[1] += *max_element(a.begin() + 2, a.end());
+
+	//~ for (unsigned i = 0, b = 128, o = 2; i < 256 && testflag; i++) {
+		//~ if (bits.test(b++))
+			//~ encbuf[i] = 0;
+		//~ else if (bits.test(b++))
+			//~ encbuf[i] = (bits.test(b++)? -1.f: 1.f) * pow(2.f, -a[1]) * 256.f / sqrt(2.f);
+		//~ else
+			//~ encbuf[i] = (bits.test(b++)? -1.f: 1.f) * pow(2.f, -a[o++]) * 256.f / sqrt(2.f);
+	//~ }
 
 
 	static float tmp[256];
