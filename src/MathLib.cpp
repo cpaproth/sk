@@ -24,7 +24,10 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 
 namespace CPLib {
-
+	
+bool Progress(size_t i, size_t n) {
+	return i < n;
+}
 
 ostream& operator<<(ostream& s, const vec2d& v) {
 	return s << setprecision(15) << v.x << ' ' << v.y;

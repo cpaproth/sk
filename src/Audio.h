@@ -20,7 +20,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 
 #include <portaudio.h>
-#include "MathLib.h"
+#include <vector>
 
 
 namespace SK {
@@ -33,18 +33,12 @@ class Network;
 
 class Audio {
 	static const unsigned samplerate = 8000;
-	//static const size_t framesize = 800;
 	static const size_t framesize = 256;
-	static const size_t fade = 50;
-	static const unsigned minfreq = 10;
-	static const unsigned maxfreq = 310;
-	static const size_t splitfreqs = 3;
+	static const size_t encsize = 80;
 	static const unsigned maxlatency = 20;
 
 
 	PaStream*			stream;
-	CPLib::FFT			fft;
-	valarray<complex<double> >	data;
 	vector<unsigned char>		encbuf;
 	vector<vector<unsigned char> >	decbuf;
 	Network&			network;
