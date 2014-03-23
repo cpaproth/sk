@@ -133,8 +133,7 @@ void Network::broadcast(const ucharbuf& send, vector<ucharbuf>& recv, unsigned l
 			} else {
 				peers[i].fifoempty++;
 			}
-			for (size_t s = 0; s < fifosize; s += splitsize)
-				socket.async_send_to(buffer(&(*buf)[s], splitsize), peers[i].endpoint, bind(&Network::sender, this, buf, _1, _2));
+			socket.async_send_to(buffer(*buf), peers[i].endpoint, bind(&Network::sender, this, buf, _1, _2));
 		} else {
 			recv.push_back(peers[i].buffer);
 			peers[i].buffer.clear();
@@ -155,7 +154,7 @@ void Network::command(unsigned i, const string& command, const string& data) {
 		
 	peers[i].messages.push_back(ss(msgid++) << ' ' << command << ' ' << data);
 	
-	if (peers[i].messages.back().length() >= splitsize) {
+	if (peers[i].messages.back().length() >= fifosize) {
 		peers[i].messages.pop_back();
 		return;
 	}
@@ -280,7 +279,7 @@ void Network::receiver(const errorcode& e, size_t n) {
 
 	lock_guard<timed_mutex> lock(netmutex);
 	vector<Peer>::iterator peer = find_if(peers.begin(), peers.end(), bind(&Peer::endpoint, _1) == endpoint);
-	
+
 	//~ for (vector<Peer>::iterator it = peers.begin(); it != peers.end() && peer == peers.end(); it++) {
 		//~ if (it->endpoint.address() == endpoint.address()) {
 			//~ it->endpoint = endpoint;
@@ -312,23 +311,35 @@ void Network::receiver(const errorcode& e, size_t n) {
 			cout << "ignored peer: " << endpoint << endl;
 			socket.send_to(buffer((string)(ss(msgid++) << " hello all seats of the server are occupied")), endpoint);
 		}
-	} else if (n > 1 && n < splitsize) {
+	} else if (n > 1 && n < fifosize) {
 		process_message(peer - peers.begin(), string(recvbuf.begin(), recvbuf.begin() + n));
-	} else if (n == splitsize) {
+	} else if (n == fifosize) {
 		if (peer->fifo.size() == 0 || cmp_pos(peer->fifo.back().front(), recvbuf[0]) < 0) {
 			peer->fifo.push_back(ucharbuf(recvbuf.begin(), recvbuf.begin() + n));
-		} else if (cmp_pos(peer->fifo.front().front(), recvbuf[0]) <= 0) {
+		} else if (cmp_pos(peer->fifo.front().front(), recvbuf[0]) < 0) {
 			for (list<ucharbuf>::iterator it = peer->fifo.begin(); it != peer->fifo.end();) {
-				if (cmp_pos(it->front(), recvbuf[0]) == 0) {
-					it->resize(it->size() + n);
-					copy(recvbuf.begin(), recvbuf.begin() + n, it->begin() + it->size() - n);
-					break;
-				} else if (cmp_pos((++it)->front(), recvbuf[0]) > 0) {
+				if (cmp_pos((++it)->front(), recvbuf[0]) > 0) {
 					peer->fifo.insert(it, ucharbuf(recvbuf.begin(), recvbuf.begin() + n));
 					break;
 				}
 			}
 		}
+		
+		
+		//~ if (peer->fifo.size() == 0 || cmp_pos(peer->fifo.back().front(), recvbuf[0]) < 0) {
+			//~ peer->fifo.push_back(ucharbuf(recvbuf.begin(), recvbuf.begin() + n));
+		//~ } else if (cmp_pos(peer->fifo.front().front(), recvbuf[0]) <= 0) {
+			//~ for (list<ucharbuf>::iterator it = peer->fifo.begin(); it != peer->fifo.end();) {
+				//~ if (cmp_pos(it->front(), recvbuf[0]) == 0) {
+					//~ it->resize(it->size() + n);
+					//~ copy(recvbuf.begin(), recvbuf.begin() + n, it->begin() + it->size() - n);
+					//~ break;
+				//~ } else if (cmp_pos((++it)->front(), recvbuf[0]) > 0) {
+					//~ peer->fifo.insert(it, ucharbuf(recvbuf.begin(), recvbuf.begin() + n));
+					//~ break;
+				//~ }
+			//~ }
+		//~ }
 
 		if (peer->fifo.size() > fifomax) {
 			peer->fifofull++;

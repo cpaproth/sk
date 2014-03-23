@@ -347,8 +347,6 @@ void Video::worker(void) {
 		ui.leftimage->set(limg.get());
 		ui.rightimage->set(rimg.get());
 
-//capture->open("webcam.avi");
-double wavsize = 0., jpgsize = 0.;
 		while (working) {
 			this_thread::sleep(posix_time::milliseconds(10));
 			*capture >> cap;
@@ -363,31 +361,12 @@ double wavsize = 0., jpgsize = 0.;
 			} else {
 				UILock lock;
 				resize(cap, *img, img->size());
-				//*img = imread("d:/tmp/screenshot4.bmp");
 				ui.midimage->redraw();
 			}
 			encode(*img, encbuf);
 			network.broadcast(encbuf, decbuf, maxlatency);
 			
 			UILock lock;
-
-
-			decode(encbuf, *limg);
-			ui.leftimage->set(ss(encbuf.size()));
-			wavsize += encbuf.size();
-			ui.leftimage->redraw();
-			
-			vector<int> params;
-			params.push_back(CV_IMWRITE_JPEG_QUALITY);
-			params.push_back(25);
-			imencode(".jpg", *img, encbuf, params);
-			*rimg = imdecode(Mat(encbuf), 1);
-			ui.rightimage->set(ss(encbuf.size()));
-			jpgsize += encbuf.size();
-			ui.rightimage->redraw();
-			ui.midimage->set(ss(wavsize / jpgsize));
-			
-
 			if (decbuf.size() > left) {
 				decode(decbuf[left], *limg);
 				ui.leftimage->redraw();

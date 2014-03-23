@@ -36,8 +36,7 @@ using namespace std;
 
 class Network {
 	static const size_t maxpeers = 2;
-	static const size_t fifosize = 309;
-	static const size_t splitsize = 103;
+	static const size_t fifosize = 81;
 	static const size_t fifomax = 5;
 	static const size_t recvsize = 60000;
 	static const unsigned timerrate = 4;

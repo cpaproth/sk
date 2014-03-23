@@ -131,19 +131,18 @@ void Audio::encode(const short* in) {
 	static vector<pair<unsigned char, int> > v(framesize);
 	static boost::dynamic_bitset<unsigned char> bits(encsize * 8);
 
-	frame++;
-
 	vector<float> input(2 * framesize), output;
+
 	for (unsigned i = 0; i < framesize; i++) {
 		input[i] = tmp[i];
 		tmp[i] = input[i + framesize] = in[i] / 32768.f;
 	}
 	mdct(input, output);
 
-
 	for (unsigned i = 0; i < framesize; i++)
 		a[i] = make_pair(output[i] == 0.f? -31.f: log(fabs(output[i]) / framesize * sqrt(2.f)) / log(2.f), i);
 	sort(a.begin(), a.end());
+
 	int m = -(int)(a[176].first * 8.f - 0.5f);
 	for (unsigned i = 0; i < framesize; i++)
 		v[a[i].second] = make_pair((i < 128? 0: i < 226? 5: 6) & (output[a[i].second] < 0? 7: 3), max(0, min(15, (int)(a[i].first - 0.5f) + m / 8)));
@@ -162,36 +161,41 @@ void Audio::encode(const short* in) {
 		}
 	}
 
+	encbuf[0] = (frame++) & 63;
 	boost::to_block_range(bits, encbuf.begin() + 1);
 }
+
+
 void Audio::decode(short* out) {
 	static float tmp[framesize];
 	static boost::dynamic_bitset<unsigned char> bits(encsize * 8);
 	static vector<int> a(30);
 	static unsigned r = 11113;
 
-	if (decbuf.size() == 0 || decbuf[0].size() != encsize + 1)
-		return;
-
-	boost::from_block_range(decbuf[0].begin() + 1, decbuf[0].end(), bits);
-
-	int m = (bits.test(0)? 1: 0) | (bits.test(1)? 2: 0) | (bits.test(2)? 4: 0) | (bits.test(3)? 8: 0) | (bits.test(4)? 16: 0) | (bits.test(5)? 32: 0) | (bits.test(6)? 64: 0) | (bits.test(7)? 128: 0);
-	for (unsigned i = 8; i < 128; i += 4)
-		a[(i - 8) / 4] = (bits.test(i)? 1: 0) | (bits.test(i + 1)? 2: 0) | (bits.test(i + 2)? 4: 0) | (bits.test(i + 3)? 8: 0);
-
 	vector<float> input(framesize), output;
 
-	for (unsigned i = 0, b = 128, o = 0; i < framesize; i++) {
-		if (bits.test(b++))
-			input[i] = (((r = r * 75 % 65537) & 8) != 0? -1.f: 1.f) * pow(2.f, -m / 8.f - 3.f) * framesize / sqrt(2.f);
-		else if (bits.test(b++))
-			input[i] = (bits.test(b++)? -1.f: 1.f) * pow(2.f, -m / 8.f) * framesize / sqrt(2.f);
-		else
-			input[i] = (bits.test(b++)? -1.f: 1.f) * pow(2.f, a[o++] - m / 8) * framesize / sqrt(2.f);
+	for (unsigned i = 0; i < decbuf.size(); i++) {
+		if (decbuf[i].size() == 0)
+			continue;
+
+		boost::from_block_range(decbuf[i].begin() + 1, decbuf[i].end(), bits);
+
+		int m = (bits.test(0)? 1: 0) | (bits.test(1)? 2: 0) | (bits.test(2)? 4: 0) | (bits.test(3)? 8: 0) | (bits.test(4)? 16: 0) | (bits.test(5)? 32: 0) | (bits.test(6)? 64: 0) | (bits.test(7)? 128: 0);
+		for (unsigned j = 8; j < 128; j += 4)
+			a[(j - 8) / 4] = (bits.test(j)? 1: 0) | (bits.test(j + 1)? 2: 0) | (bits.test(j + 2)? 4: 0) | (bits.test(j + 3)? 8: 0);
+
+
+		for (unsigned j = 0, b = 128, o = 0; j < framesize; j++) {
+			if (bits.test(b++))
+				input[j] += (((r = r * 75 % 65537) & 8) != 0? -1.f: 1.f) * pow(2.f, -m / 8.f - 3.f) * framesize / sqrt(2.f);
+			else if (bits.test(b++))
+				input[j] += (bits.test(b++)? -1.f: 1.f) * pow(2.f, -m / 8.f) * framesize / sqrt(2.f);
+			else
+				input[j] += (bits.test(b++)? -1.f: 1.f) * pow(2.f, a[o++] - m / 8) * framesize / sqrt(2.f);
+		}
 	}
 
 	imdct(input, output);
-
 	for (unsigned i = 0; i < framesize; i++) {
 		output[i] += tmp[i];
 		out[i] = output[i] < -128.f? -32768: output[i] > 127.f? 32767: (short)(output[i] * framesize);

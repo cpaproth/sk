@@ -1,4 +1,4 @@
-/*Copyright (C) 2012, 2013 Carsten Paproth
+/*Copyright (C) 2012-2014 Carsten Paproth
 
 This file is part of Skat-Konferenz.
 
@@ -40,7 +40,7 @@ int main(void) {
 	try {
 		UserInterface	ui;
 
-		cout << "Skat-Konferenz Copyright (C) 2012 Carsten Paproth." << endl;
+		cout << "Skat-Konferenz Copyright (C) 2012-2014 Carsten Paproth." << endl;
 		cout << "This program is free software and comes with ABSOLUTELY NO WARRANTY." << endl;
 		cout << "Licensed under the terms of GPLv3, see <http://www.gnu.org/licenses/>." << endl << endl;
 
