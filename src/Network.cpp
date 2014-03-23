@@ -242,8 +242,9 @@ void Network::process_message(unsigned i, const string& message) {
 		ss(data) >> peers[i].connections;
 		if (find_if(peers.begin(), peers.end(), bind(&Peer::connections, _1) != peers.size()) == peers.end())
 			io.post(bind(&Network::handle_command, this, i, "peersconnected", (string)ss(peers.size())));
-	} else
+	} else {
 		io.post(bind(&Network::handle_command, this, i, command, data));
+	}
 }
 
 
@@ -258,18 +259,8 @@ void Network::worker(void) {
 }
 
 
-static int cmp_pos(unsigned char a, unsigned char b) {
-	a &= 63;
-	b &= 63;
-	if (a < b && b - a < 32)
-		return -1;
-	if (a < b)
-		return 1;
-	if (a > b && a - b < 32)
-		return 1;
-	if (a > b)
-		return -1;
-	return 0;
+static bool fifo_cmp(const vector<unsigned char>& l, const vector<unsigned char>& r) {
+	return abs((int)(l[0] & 63) - (int)(r[0] & 63)) < 32? (l[0] & 63) < (r[0] & 63): (r[0] & 63) < (l[0] & 63);
 }
 
 
@@ -314,33 +305,9 @@ void Network::receiver(const errorcode& e, size_t n) {
 	} else if (n > 1 && n < fifosize) {
 		process_message(peer - peers.begin(), string(recvbuf.begin(), recvbuf.begin() + n));
 	} else if (n == fifosize) {
-		if (peer->fifo.size() == 0 || cmp_pos(peer->fifo.back().front(), recvbuf[0]) < 0) {
-			peer->fifo.push_back(ucharbuf(recvbuf.begin(), recvbuf.begin() + n));
-		} else if (cmp_pos(peer->fifo.front().front(), recvbuf[0]) < 0) {
-			for (list<ucharbuf>::iterator it = peer->fifo.begin(); it != peer->fifo.end();) {
-				if (cmp_pos((++it)->front(), recvbuf[0]) > 0) {
-					peer->fifo.insert(it, ucharbuf(recvbuf.begin(), recvbuf.begin() + n));
-					break;
-				}
-			}
-		}
-		
-		
-		//~ if (peer->fifo.size() == 0 || cmp_pos(peer->fifo.back().front(), recvbuf[0]) < 0) {
-			//~ peer->fifo.push_back(ucharbuf(recvbuf.begin(), recvbuf.begin() + n));
-		//~ } else if (cmp_pos(peer->fifo.front().front(), recvbuf[0]) <= 0) {
-			//~ for (list<ucharbuf>::iterator it = peer->fifo.begin(); it != peer->fifo.end();) {
-				//~ if (cmp_pos(it->front(), recvbuf[0]) == 0) {
-					//~ it->resize(it->size() + n);
-					//~ copy(recvbuf.begin(), recvbuf.begin() + n, it->begin() + it->size() - n);
-					//~ break;
-				//~ } else if (cmp_pos((++it)->front(), recvbuf[0]) > 0) {
-					//~ peer->fifo.insert(it, ucharbuf(recvbuf.begin(), recvbuf.begin() + n));
-					//~ break;
-				//~ }
-			//~ }
-		//~ }
-
+		list<ucharbuf>::iterator it = lower_bound(peer->fifo.begin(), peer->fifo.end(), recvbuf, fifo_cmp);
+		if (peer->fifo.size() == 0 || it != peer->fifo.begin())
+			peer->fifo.insert(it, ucharbuf(recvbuf.begin(), recvbuf.begin() + n));
 		if (peer->fifo.size() > fifomax) {
 			peer->fifofull++;
 			while (peer->fifo.size() > 1)
