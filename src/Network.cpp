@@ -126,7 +126,7 @@ void Network::broadcast(const ucharbuf& send, vector<ucharbuf>& recv, unsigned l
 	shared_ptr<ucharbuf> buf(new ucharbuf(send));
 
 	for (unsigned i = 0; i < peers.size(); i++) {
-		if (send.size() == fifosize) {
+		if (send.size() > 0 && (send[0] & 192) == 64) {
 			if (peers[i].fifo.size() > 0) {
 				recv.push_back(peers[i].fifo.front());
 				peers[i].fifo.pop_front();
@@ -134,7 +134,7 @@ void Network::broadcast(const ucharbuf& send, vector<ucharbuf>& recv, unsigned l
 				peers[i].fifoempty++;
 			}
 			socket.async_send_to(buffer(*buf), peers[i].endpoint, bind(&Network::sender, this, buf, _1, _2));
-		} else {
+		} else if (send.size() > 0 && (send[0] & 192) == 128) {
 			recv.push_back(peers[i].buffer);
 			peers[i].buffer.clear();
 			if (peers[i].bucket >= buf->size()) {
@@ -153,11 +153,6 @@ void Network::command(unsigned i, const string& command, const string& data) {
 		return;
 		
 	peers[i].messages.push_back(ss(msgid++) << ' ' << command << ' ' << data);
-	
-	if (peers[i].messages.back().length() >= fifosize) {
-		peers[i].messages.pop_back();
-		return;
-	}
 	
 	if (peers[i].messages.size() == 1) {
 		shared_ptr<ucharbuf> buf(new ucharbuf(peers[i].messages[0].begin(), peers[i].messages[0].end()));
@@ -302,9 +297,9 @@ void Network::receiver(const errorcode& e, size_t n) {
 			cout << "ignored peer: " << endpoint << endl;
 			socket.send_to(buffer((string)(ss(msgid++) << " hello all seats of the server are occupied")), endpoint);
 		}
-	} else if (n > 1 && n < fifosize) {
+	} else if (n > 1 && (recvbuf[0] & 192) == 0) {
 		process_message(peer - peers.begin(), string(recvbuf.begin(), recvbuf.begin() + n));
-	} else if (n == fifosize) {
+	} else if (n > 1 && (recvbuf[0] & 192) == 64) {
 		list<ucharbuf>::iterator it = lower_bound(peer->fifo.begin(), peer->fifo.end(), recvbuf, fifo_cmp);
 		if (peer->fifo.size() == 0 || it != peer->fifo.begin())
 			peer->fifo.insert(it, ucharbuf(recvbuf.begin(), recvbuf.begin() + n));
@@ -313,7 +308,7 @@ void Network::receiver(const errorcode& e, size_t n) {
 			while (peer->fifo.size() > 1)
 				peer->fifo.pop_front();
 		}
-	} else if (n > fifosize) {
+	} else if (n > 1 && (recvbuf[0] & 192) == 128) {
 		peer->buffer.assign(recvbuf.begin(), recvbuf.begin() + n);
 	}
 

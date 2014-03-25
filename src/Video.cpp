@@ -93,7 +93,7 @@ void Video::encode(const Mat& img, vector<unsigned char>& enc) {
 	if (img.cols != (int)imagewidth || img.rows != (int)imageheight || img.elemSize() != 3)
 		return;
 
-	enc.clear();
+	enc.assign(1, 128);
 
 	vector<float> Y, U, V, W, Z;
 	for (unsigned y = 0; y < imageheight; y++) {
@@ -143,7 +143,7 @@ void Video::encode(const Mat& img, vector<unsigned char>& enc) {
 	for (unsigned i = 0; i < Z.size(); i++)
 		data.push_back((int)(Z[i] / 256.f));
 	for (unsigned i = 0; i < Y.size(); i++)
-		data.push_back((int)(Y[i] / (i < minsize? 2.f: i < 4 * minsize? 1.f: i < 16 * minsize? 2.f: i < 64 * minsize? 5.f: 20.f)));
+		data.push_back((int)(Y[i] / (i < minsize? 2.f: i < 4 * minsize? 1.f: i < 16 * minsize? 2.f: i < 64 * minsize? 4.f: 10.f)));
 	for (unsigned i = 9 * minsize - 1; i > 0; i--)
 		data[i] -= data[i - 1];
 
@@ -202,12 +202,12 @@ void Video::encode(const Mat& img, vector<unsigned char>& enc) {
 
 
 void Video::decode(const vector<unsigned char>& enc, Mat& img) {
-	if (enc.size() < 4 || img.cols != (int)imagewidth || img.rows != (int)imageheight || img.elemSize() != 3)
+	if (img.cols != (int)imagewidth || img.rows != (int)imageheight || img.elemSize() != 3)
 		return;
 
 	vector<unsigned> mem1, mem2(280, 0);
-	unsigned size = 0, p = 0;
-	for (; p < enc.size() && mem1.size() < mem2.size(); size += mem1.back(), p++) {
+	unsigned size = 0, p = 1;
+	for (; p + 4 < enc.size() && mem1.size() < mem2.size(); size += mem1.back(), p++) {
 		if ((enc[p] & 192) == 0) {
 			for (unsigned i = enc[p] + 1; i > 0; i--)
 				mem1.push_back(0);
@@ -218,7 +218,7 @@ void Video::decode(const vector<unsigned char>& enc, Mat& img) {
 			mem1.back() += enc[p] + 129;
 		}
 	}
-	if (mem1.size() < mem2.size())
+	if (mem1.size() != mem2.size() || mem1[0] != 0)
 		return;
 	unsigned *freqs = &mem1[mem1.size() / 2], *starts = &mem2[mem2.size() / 2];
 	for (int i = 0; starts[i] < size; i = i < 0? -i: -i - 1)
@@ -273,7 +273,7 @@ void Video::decode(const vector<unsigned char>& enc, Mat& img) {
 	for (unsigned i = 4 * minsize; i < 8 * minsize; i++)
 		V.push_back(4.f * (data[i] + (data[i] < 0? -0.5f: data[i] > 0? 0.5f: 0.f)));
 	for (unsigned i = 8 * minsize; i < data.size(); i++)
-		Y.push_back((i < 9 * minsize? 2.f: i < 12 * minsize? 1.f: i < 24 * minsize? 2.f: i < 72 * minsize? 5.f: 20.f) * (data[i] + (data[i] < 0? -0.5f: data[i] > 0? 0.5f: 0.f)));
+		Y.push_back((i < 9 * minsize? 2.f: i < 12 * minsize? 1.f: i < 24 * minsize? 2.f: i < 72 * minsize? 4.f: 10.f) * (data[i] + (data[i] < 0? -0.5f: data[i] > 0? 0.5f: 0.f)));
 
 
 	W.resize(Y.size());
@@ -365,7 +365,7 @@ void Video::worker(void) {
 			}
 			encode(*img, encbuf);
 			network.broadcast(encbuf, decbuf, maxlatency);
-			
+
 			UILock lock;
 			if (decbuf.size() > left) {
 				decode(decbuf[left], *limg);

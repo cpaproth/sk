@@ -28,7 +28,7 @@ using namespace SK;
 vector<complex<float> > twiddle(512);
 vector<complex<float> > factor(512);
 vector<float> window(512);
-
+#define M_PI 3.141592654
 Audio::Audio(Network& nw) : encbuf(encsize + 1), network(nw) {
 	for (unsigned i = 0; i < twiddle.size(); i++)
 		twiddle[i] = exp(complex<float>(0.f, -(float)M_PI * i / twiddle.size()));
@@ -161,7 +161,7 @@ void Audio::encode(const short* in) {
 		}
 	}
 
-	encbuf[0] = (frame++) & 63;
+	encbuf[0] = 64 | ((frame++) & 63);
 	boost::to_block_range(bits, encbuf.begin() + 1);
 }
 
@@ -175,7 +175,7 @@ void Audio::decode(short* out) {
 	vector<float> input(framesize), output;
 
 	for (unsigned i = 0; i < decbuf.size(); i++) {
-		if (decbuf[i].size() == 0)
+		if (decbuf[i].size() != encsize + 1)
 			continue;
 
 		boost::from_block_range(decbuf[i].begin() + 1, decbuf[i].end(), bits);
@@ -202,6 +202,7 @@ void Audio::decode(short* out) {
 		tmp[i] = output[i + framesize];
 	}
 }
+
 
 int Audio::callback(const void* in, void* out, unsigned long size, const PaStreamCallbackTimeInfo*, PaStreamCallbackFlags, void* data) {
 	try {
