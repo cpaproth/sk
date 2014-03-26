@@ -18,7 +18,9 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #ifndef CPLIB_CONVENIENCE_H
 #define CPLIB_CONVENIENCE_H
 
+
 #include <sstream>
+
 
 namespace CPLib {
 

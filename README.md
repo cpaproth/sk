@@ -1,4 +1,4 @@
-![screenshot](https://github.com/cpaproth/sk/raw/master/images/screenshot.jpg)
+![screenshot](https://github.com/cpaproth/sk/raw/development/images/screenshot.jpg)
 
 # Skat-Konferenz *(sk)*
 

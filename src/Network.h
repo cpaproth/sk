@@ -18,6 +18,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #ifndef SK_NETWORK_H
 #define SK_NETWORK_H
 
+
 #include <boost/asio/ip/udp.hpp>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/thread/thread.hpp>
@@ -100,7 +101,6 @@ public:
 	void broadcast(const ucharbuf&, vector<ucharbuf>&, unsigned);
 	void command(unsigned, const string&, const string&);
 	void stats(void);
-
 };
 
 

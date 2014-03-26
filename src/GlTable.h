@@ -27,8 +27,8 @@ namespace SK {
 
 using namespace std;
 
-class GlTable : public Fl_Gl_Window {
 
+class GlTable : public Fl_Gl_Window {
 	unsigned		texture;
 	unsigned		width;
 	unsigned		height;
@@ -62,7 +62,6 @@ public:
 	void show_disclosed(const vector<uchar>&, const vector<uchar>&);
 	
 	unsigned selection(void);
-
 };
 
 

@@ -18,25 +18,64 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "Audio.h"
 #include "Network.h"
 #include <iostream>
-#include <boost/dynamic_bitset.hpp>
 
 
 using namespace SK;
 
 
-#include <complex>
-vector<complex<float> > twiddle(512);
-vector<complex<float> > factor(512);
-vector<float> window(512);
-#define M_PI 3.141592654
-Audio::Audio(Network& nw) : encbuf(encsize + 1), network(nw) {
-	for (unsigned i = 0; i < twiddle.size(); i++)
-		twiddle[i] = exp(complex<float>(0.f, -(float)M_PI * i / twiddle.size()));
-	for (unsigned i = 0; i < factor.size(); i++)
-		factor[i] = exp(complex<float>(0.f, -(float)M_PI / factor.size() * (1.f + factor.size() / 2.f) * (i + 0.5f)));
-	for (unsigned i = 0; i < window.size(); i++)
-		window[i] = sin((float)M_PI / window.size() * (i + 0.5f));
+Transform::Transform(size_t s) : twiddle(2 * s), factor(2 * s), window(2 * s), data(s), tmp(max<size_t>(4, s / 2)), tdata(2 * s), fdata(s) {
+	const float pi = 3.141592654f;
+	for (unsigned i = 0; i < 2 * s; i++) {
+		twiddle[i] = exp(complex<float>(0.f, -pi * i / twiddle.size()));
+		factor[i] = exp(complex<float>(0.f, -pi / factor.size() * (1.f + factor.size() / 2.f) * (i + 0.5f)));
+		window[i] = sin(pi / window.size() * (i + 0.5f));
+	}
+}
 
+
+void Transform::fft(unsigned g, unsigned o) {
+	size_t N = data.size() / g / 2;
+	if (N == 2) {
+		tmp[0] = data[o] + data[2 * g + o]; tmp[1] = data[o] - data[2 * g + o]; tmp[2] = data[g + o] + data[3 * g + o]; tmp[3] = data[g + o] - data[3 * g + o];
+		data[o] = tmp[0] + tmp[2]; data[g + o] = tmp[1] + complex<float>(0.f, -1.f) * tmp[3]; data[2 * g + o] = tmp[0] - tmp[2]; data[3 * g + o] = tmp[1] + complex<float>(0.f, 1.f) * tmp[3];
+	} else if (N > 0) {
+		fft(2 * g, o);
+		fft(2 * g, o + g);
+		for (unsigned i = 0; i < N; i++) {
+			data[g * i + o] = data[2 * g * i + o];
+			tmp[i] = data[2 * g * i + o + g] * twiddle[4 * g * i];
+		}
+		for (unsigned i = 0; i < N; i++) {
+			data[g * (i + N) + o] = data[g * i + o] - tmp[i];
+			data[g * i + o] += tmp[i];
+		}
+	}
+}
+
+
+void Transform::mdct(void) {
+	for (unsigned i = 0; i < data.size(); i++)
+		data[i] = window[i] * complex<float>(tdata[i], -tdata[tdata.size() - 1 - i]) * twiddle[i];
+	fft();
+	for (unsigned i = 0; i < data.size(); i++)
+		data[i] *= factor[2 * i];
+	for (unsigned i = 0; i < fdata.size(); i++)
+		fdata[i] = (i & 1? -data[data.size() - 1 - (i - 1) / 2]: data[i / 2]).real();
+}
+
+
+void Transform::imdct(void) {
+	for (unsigned i = 0; i < data.size(); i++)
+		data[i] = fdata[i] * factor[i];
+	fft();
+	for (unsigned i = 0; i < data.size(); i++)
+		data[i] *= twiddle[2 * i];
+	for (unsigned i = 0; i < tdata.size(); i++)
+		tdata[i] = window[i] * (i & 1? (i < data.size()? -data[(data.size() - 1 - i) / 2]: data[(3 * data.size() - 1 - i) / 2]): data[i / 2]).real();
+}
+
+
+Audio::Audio(Network& nw) : trafo(framesize), bits(8 * encsize), encbuf(encsize + 1), network(nw) {
 	stream = 0;
 	playmic = false;
 
@@ -77,75 +116,25 @@ void Audio::toggle_playmic(void) {
 }
 
 
-void fft(bool d, vector<complex<float> >& data, unsigned g = 1, unsigned o = 0) {
-	static complex<float> tmp[256];
-	size_t N = data.size() / g / 2;
-	if (N == 2) {
-		tmp[0] = data[o] + data[2 * g + o]; tmp[1] = data[o] - data[2 * g + o]; tmp[2] = data[g + o] + data[3 * g + o]; tmp[3] = data[g + o] - data[3 * g + o];
-		data[o] = tmp[0] + tmp[2]; data[g + o] = tmp[1] + complex<float>(0.f, -1.f) * tmp[3]; data[2 * g + o] = tmp[0] - tmp[2]; data[3 * g + o] = tmp[1] + complex<float>(0.f, 1.f) * tmp[3];
-	} else if (N > 0) {
-		fft(d, data, 2 * g, o);
-		fft(d, data, 2 * g, o + g);
-		for (unsigned i = 0; i < N; i++) {
-			data[g * i + o] = data[2 * g * i + o];
-			tmp[i] = data[2 * g * i + o + g] * twiddle[4 * g * i];
-		}
-		for (unsigned i = 0; i < N; i++) {
-			data[g * (i + N) + o] = data[g * i + o] - tmp[i];
-			data[g * i + o] += tmp[i];
-		}
-	}
-}
-
-
-void mdct(const vector<float>& in, vector<float>& out) {
-	out.resize(in.size() / 2);
-	vector<complex<float> > data(out.size());
-	for (unsigned i = 0; i < data.size(); i++)
-		data[i] = window[i] * complex<float>(in[i], -in[in.size() - 1 - i]) * twiddle[i];
-	fft(true, data);
-	for (unsigned i = 0; i < data.size(); i++)
-		data[i] *= factor[2 * i];
-	for (unsigned i = 0; i < out.size(); i++)
-		out[i] = (i & 1? -data[data.size() - 1 - (i - 1) / 2]: data[i / 2]).real();
-}
-
-
-void imdct(const vector<float>& in, vector<float>& out) {
-	out.resize(in.size() * 2);
-	vector<complex<float> > data(in.size());
-	for (unsigned i = 0; i < data.size(); i++)
-		data[i] = in[i] * factor[i];
-	fft(true, data);
-	for (unsigned i = 0; i < data.size(); i++)
-		data[i] *= twiddle[2 * i];
-	for (unsigned i = 0; i < out.size(); i++)
-		out[i] = window[i] * (i & 1? (i < data.size()? -data[(data.size() - 1 - i) / 2]: data[(3 * data.size() - 1 - i) / 2]): data[i / 2]).real();
-}
-
-
 void Audio::encode(const short* in) {
 	static unsigned frame = 0;
 	static float tmp[framesize];
 	static vector<pair<float, unsigned> > a(framesize);
 	static vector<pair<unsigned char, int> > v(framesize);
-	static boost::dynamic_bitset<unsigned char> bits(encsize * 8);
-
-	vector<float> input(2 * framesize), output;
 
 	for (unsigned i = 0; i < framesize; i++) {
-		input[i] = tmp[i];
-		tmp[i] = input[i + framesize] = in[i] / 32768.f;
+		trafo.t(i) = tmp[i];
+		tmp[i] = trafo.t(i + framesize) = in[i] / 32768.f;
 	}
-	mdct(input, output);
+	trafo.mdct();
 
 	for (unsigned i = 0; i < framesize; i++)
-		a[i] = make_pair(max(-31.f, log(fabs(output[i]) / framesize * sqrt(2.f)) / log(2.f)), i);
+		a[i] = make_pair(max(-31.f, log(fabs(trafo.f(i)) / framesize * sqrt(2.f)) / log(2.f)), i);
 	sort(a.begin(), a.end());
 
 	int m = -(int)(a[176].first * 8.f - 0.5f);
 	for (unsigned i = 0; i < framesize; i++)
-		v[a[i].second] = make_pair((i < 128? 0: i < 226? 5: 6) & (output[a[i].second] < 0? 7: 3), max(0, min(15, (int)(a[i].first - 0.5f) + m / 8)));
+		v[a[i].second] = make_pair((i < 128? 0: i < 226? 5: 6) & (trafo.f(a[i].second) < 0.f? 7: 3), max(0, min(15, (int)(a[i].first - 0.5f) + m / 8)));
 	
 	bits.set(0, (m & 1) != 0).set(1, (m & 2) != 0).set(2, (m & 4) != 0).set(3, (m & 8) != 0).set(4, (m & 16) != 0).set(5, (m & 32) != 0).set(6, (m & 64) != 0).set(7, (m & 128) != 0);
 	for (unsigned i = 0, b = 128, o = 8; i < framesize; i++) {
@@ -168,37 +157,34 @@ void Audio::encode(const short* in) {
 
 void Audio::decode(short* out) {
 	static float tmp[framesize];
-	static boost::dynamic_bitset<unsigned char> bits(encsize * 8);
-	static vector<int> a(30);
 	static unsigned r = 11113;
 
-	vector<float> input(framesize), output;
-
+	fill(&trafo.f(0), &trafo.f(0) + framesize, 0.f);
 	for (unsigned i = 0; i < decbuf.size(); i++) {
-		if (decbuf[i].size() != encsize + 1)
+		if (decbuf[i].size() != encbuf.size())
 			continue;
 
 		boost::from_block_range(decbuf[i].begin() + 1, decbuf[i].end(), bits);
 
-		int m = (bits.test(0)? 1: 0) | (bits.test(1)? 2: 0) | (bits.test(2)? 4: 0) | (bits.test(3)? 8: 0) | (bits.test(4)? 16: 0) | (bits.test(5)? 32: 0) | (bits.test(6)? 64: 0) | (bits.test(7)? 128: 0);
+		int a[30], m = (bits.test(0)? 1: 0) | (bits.test(1)? 2: 0) | (bits.test(2)? 4: 0) | (bits.test(3)? 8: 0) | (bits.test(4)? 16: 0) | (bits.test(5)? 32: 0) | (bits.test(6)? 64: 0) | (bits.test(7)? 128: 0);
 		for (unsigned j = 8; j < 128; j += 4)
 			a[(j - 8) / 4] = (bits.test(j)? 1: 0) | (bits.test(j + 1)? 2: 0) | (bits.test(j + 2)? 4: 0) | (bits.test(j + 3)? 8: 0);
 
 		for (unsigned j = 0, b = 128, o = 0; j < framesize; j++) {
 			if (bits.test(b++))
-				input[j] += (((r = r * 75 % 65537) & 8) != 0? -1.f: 1.f) * pow(2.f, -m / 8.f - 3.f) * framesize / sqrt(2.f);
+				trafo.f(j) += (((r = r * 75 % 65537) & 8) != 0? -1.f: 1.f) * pow(2.f, -m / 8.f - 3.f) * framesize / sqrt(2.f);
 			else if (bits.test(b++))
-				input[j] += (bits.test(b++)? -1.f: 1.f) * pow(2.f, -m / 8.f) * framesize / sqrt(2.f);
+				trafo.f(j) += (bits.test(b++)? -1.f: 1.f) * pow(2.f, -m / 8.f) * framesize / sqrt(2.f);
 			else
-				input[j] += (bits.test(b++)? -1.f: 1.f) * pow(2.f, a[o++] - m / 8) * framesize / sqrt(2.f);
+				trafo.f(j) += (bits.test(b++)? -1.f: 1.f) * pow(2.f, a[o++] - m / 8) * framesize / sqrt(2.f);
 		}
 	}
 
-	imdct(input, output);
+	trafo.imdct();
 	for (unsigned i = 0; i < framesize; i++) {
-		output[i] += tmp[i];
-		out[i] = output[i] < -128.f? -32768: output[i] > 127.f? 32767: (short)(output[i] * framesize);
-		tmp[i] = output[i + framesize];
+		trafo.t(i) += tmp[i];
+		out[i] = trafo.t(i) < -128.f? -32768: trafo.t(i) > 127.f? 32767: (short)(trafo.t(i) * framesize);
+		tmp[i] = trafo.t(i + framesize);
 	}
 }
 

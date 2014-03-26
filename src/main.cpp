@@ -15,13 +15,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
-
 #include "Network.h"
 #include "ui.h"
 #include "Audio.h"
 #include "Video.h"
 #include "Game.h"
-
 #include <FL/fl_ask.H>
 #include <iostream>
 #include "Convenience.h"

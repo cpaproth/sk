@@ -21,6 +21,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "Convenience.h"
 #include <iostream>
 #include <set>
+#include <boost/random/uniform_01.hpp>
 
 
 using namespace SK;
@@ -78,8 +79,9 @@ bool Game::rule(unsigned r) {
 
 
 void Game::shuffle(void) {
+	boost::random::uniform_01<double> dist;
 	for (ptrdiff_t i = deck.size() - 1; i > 0; i--)
-		swap(deck[i], deck[(ptrdiff_t)(rangen.uniform() * (i + 1))]);
+		swap(deck[i], deck[(ptrdiff_t)(dist(rangen) * (i + 1))]);
 }
 
 

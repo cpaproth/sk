@@ -41,7 +41,6 @@ public:
 	
 	void set(cv::Mat*);
 	void set(const std::string&);
-
 };
 
 

@@ -19,7 +19,9 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #define SK_GAME_H
 
 
-#include "MathLib.h"
+#include <vector>
+#include <boost/random/mersenne_twister.hpp>
+
 
 class UserInterface;
 
@@ -29,56 +31,57 @@ using namespace std;
 
 class Network;
 
+
 class Game {
 	static const unsigned myself = UINT_MAX;
 
 	typedef unsigned char uchar;
 
-	CPLib::RanGen	rangen;
-	vector<uchar>	deck;
-	vector<uchar>	hand;
-	vector<uchar>	skat;
-	vector<uchar>	trick;
-	vector<uchar>	tricks;
-	vector<uchar>	lefttricks;
-	vector<uchar>	righttricks;
-	vector<uchar>	playerhand;
-	vector<uchar>	lefthand;
-	vector<uchar>	righthand;
+	boost::random::mt19937	rangen;
+	vector<uchar>		deck;
+	vector<uchar>		hand;
+	vector<uchar>		skat;
+	vector<uchar>		trick;
+	vector<uchar>		tricks;
+	vector<uchar>		lefttricks;
+	vector<uchar>		righttricks;
+	vector<uchar>		playerhand;
+	vector<uchar>		lefthand;
+	vector<uchar>		righthand;
 	
-	vector<uchar>	secretdeck;
-	vector<uchar>	secretcards;
-	vector<uchar>	dealtcards;
-	vector<uchar>	drawncards;
-	unsigned	dealer;
-	unsigned	listener;
-	unsigned	starter;
-	unsigned	player;
-	unsigned	quitter;
-	unsigned	bid;
-	unsigned	gname;
-	unsigned	gextra;
-	int		gtips;
-	bool		playing;
-	bool		givingup;
+	vector<uchar>		secretdeck;
+	vector<uchar>		secretcards;
+	vector<uchar>		dealtcards;
+	vector<uchar>		drawncards;
+	unsigned		dealer;
+	unsigned		listener;
+	unsigned		starter;
+	unsigned		player;
+	unsigned		quitter;
+	unsigned		bid;
+	unsigned		gname;
+	unsigned		gextra;
+	int			gtips;
+	bool			playing;
+	bool			givingup;
 
-	string		header;
-	vector<uchar>	rounds;
-	unsigned	row;
-	unsigned	contrare;
-	unsigned	rules;
-	unsigned	leftrules;
-	unsigned	rightrules;
-	int		scores;
-	int		leftscores;
-	int		rightscores;
+	string			header;
+	vector<uchar>		rounds;
+	unsigned		row;
+	unsigned		contrare;
+	unsigned		rules;
+	unsigned		leftrules;
+	unsigned		rightrules;
+	int			scores;
+	int			leftscores;
+	int			rightscores;
 
-	string		leftname;
-	string		rightname;
-	unsigned	left;
-	unsigned	right;
-	UserInterface&	ui;
-	Network&	network;
+	string			leftname;
+	string			rightname;
+	unsigned		left;
+	unsigned		right;
+	UserInterface&		ui;
+	Network&		network;
 
 
 	bool rule(unsigned);
@@ -126,7 +129,6 @@ class Game {
 public:
 	Game(UserInterface&, Network&);
 	~Game(void);
-
 };
 
 

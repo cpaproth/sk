@@ -21,14 +21,35 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 #include <portaudio.h>
 #include <vector>
+#include <complex>
+#include <boost/dynamic_bitset.hpp>
 
 
 namespace SK {
 
 using namespace std;
 
-
 class Network;
+
+
+class Transform {
+	vector<complex<float> >	twiddle;
+	vector<complex<float> >	factor;
+	vector<float>		window;
+	vector<complex<float> >	data;
+	vector<complex<float> >	tmp;
+	vector<float>		tdata;
+	vector<float>		fdata;
+
+	void fft(unsigned = 1, unsigned = 0);
+public:
+	Transform(size_t);
+
+	void mdct(void);
+	void imdct(void);
+	float& t(size_t i) {return tdata[i];}
+	float& f(size_t i) {return fdata[i];}
+};
 
 
 class Audio {
@@ -38,11 +59,13 @@ class Audio {
 	static const unsigned maxlatency = 20;
 
 
-	PaStream*			stream;
-	vector<unsigned char>		encbuf;
-	vector<vector<unsigned char> >	decbuf;
-	Network&			network;
-	bool				playmic;
+	PaStream*				stream;
+	Transform				trafo;
+	boost::dynamic_bitset<unsigned char>	bits;
+	vector<unsigned char>			encbuf;
+	vector<vector<unsigned char> >		decbuf;
+	Network&				network;
+	bool					playmic;
 
 	void encode(const short*);
 	void decode(short*);
@@ -57,7 +80,6 @@ public:
 	
 	void restart(void);
 	void toggle_playmic(void);
-
 };
 
 

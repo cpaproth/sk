@@ -34,6 +34,7 @@ namespace SK {
 
 class Network;
 
+
 class Video {
 	static const unsigned imagewidth = 320;
 	static const unsigned imageheight = 240;
@@ -65,7 +66,6 @@ public:
 	~Video(void);
 
 	void send_chat(void);
-
 };
 
 

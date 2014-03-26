@@ -22,12 +22,13 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #include <FL/Fl_Text_Display.H>
 #include <boost/thread/mutex.hpp>
 
+
 namespace SK {
 
 using namespace std;
 
+
 class LogDisplay : streambuf, public Fl_Text_Display {
-	
 	Fl_Text_Buffer	textbuf;
 	streambuf*	oldsbuf;
 	string		strbuf;
@@ -38,8 +39,6 @@ class LogDisplay : streambuf, public Fl_Text_Display {
 public:
 	LogDisplay(int, int, int, int, const char* = 0);
 	~LogDisplay(void);
-	
-
 };
 
 
