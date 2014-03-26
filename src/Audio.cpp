@@ -140,7 +140,7 @@ void Audio::encode(const short* in) {
 	mdct(input, output);
 
 	for (unsigned i = 0; i < framesize; i++)
-		a[i] = make_pair(output[i] == 0.f? -31.f: log(fabs(output[i]) / framesize * sqrt(2.f)) / log(2.f), i);
+		a[i] = make_pair(max(-31.f, log(fabs(output[i]) / framesize * sqrt(2.f)) / log(2.f)), i);
 	sort(a.begin(), a.end());
 
 	int m = -(int)(a[176].first * 8.f - 0.5f);
@@ -183,7 +183,6 @@ void Audio::decode(short* out) {
 		int m = (bits.test(0)? 1: 0) | (bits.test(1)? 2: 0) | (bits.test(2)? 4: 0) | (bits.test(3)? 8: 0) | (bits.test(4)? 16: 0) | (bits.test(5)? 32: 0) | (bits.test(6)? 64: 0) | (bits.test(7)? 128: 0);
 		for (unsigned j = 8; j < 128; j += 4)
 			a[(j - 8) / 4] = (bits.test(j)? 1: 0) | (bits.test(j + 1)? 2: 0) | (bits.test(j + 2)? 4: 0) | (bits.test(j + 3)? 8: 0);
-
 
 		for (unsigned j = 0, b = 128, o = 0; j < framesize; j++) {
 			if (bits.test(b++))

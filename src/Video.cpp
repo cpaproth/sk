@@ -226,8 +226,10 @@ void Video::decode(const vector<unsigned char>& enc, Mat& img) {
 
 
 	map<unsigned, int> ranges;
-	for (int i = 0; ranges.size() == 0 || ranges.rbegin()->first < size; i = i < 0? -i: -i - 1)
-		if (freqs[i] != 0) ranges[starts[i] + freqs[i]] = i;
+	for (int i = 0; ranges.size() == 0 || ranges.rbegin()->first < size; i = i < 0? -i: -i - 1) {
+		if (freqs[i] != 0)
+			ranges[starts[i] + freqs[i]] = i;
+	}
 	vector<int> dec, data;
 	unsigned low = 0, range = UINT_MAX;
 	unsigned code = (enc[p] << 24) | (enc[p + 1] << 16) | (enc[p + 2] << 8) | enc[p + 3];

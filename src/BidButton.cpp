@@ -1,4 +1,4 @@
-/*Copyright (C) 2012, 2013 Carsten Paproth
+/*Copyright (C) 2012-2014 Carsten Paproth
 
 This file is part of Skat-Konferenz.
 
@@ -47,9 +47,9 @@ void BidButton::reset(unsigned min, bool b) {
 	minbid = bidorder.lower_bound(min);
 	maxbid = bidorder.find(264);
 	bid = minbid;
-	if (minbid != bidorder.end())
+	if (minbid != bidorder.end()) {
 		copy_label(ss(*bid) << (bidding? " Reizen": " Halten") | c_str);
-	else {
+	} else {
 		label("Reizen");
 		bidding = false;
 	}
