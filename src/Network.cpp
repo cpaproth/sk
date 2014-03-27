@@ -17,7 +17,6 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 #include "Network.h"
 #include <iostream>
-#include <ctime>
 #include "Convenience.h"
 
 
@@ -125,8 +124,10 @@ void Network::broadcast(const ucharbuf& send, vector<ucharbuf>& recv, unsigned l
 
 	shared_ptr<ucharbuf> buf(new ucharbuf(send));
 
-	for (unsigned i = 0; i < peers.size(); i++) {
-		if (send.size() > 0 && (send[0] & 192) == 64) {
+	for (unsigned i = 0; i < peers.size() && send.size() > 0; i++) {
+		if (!peers[i].connected)
+			continue;
+		if ((send[0] & 192) == 64) {
 			if (peers[i].fifo.size() > 0) {
 				recv.push_back(peers[i].fifo.front());
 				peers[i].fifo.pop_front();
@@ -134,7 +135,7 @@ void Network::broadcast(const ucharbuf& send, vector<ucharbuf>& recv, unsigned l
 				peers[i].fifoempty++;
 			}
 			socket.async_send_to(buffer(*buf), peers[i].endpoint, bind(&Network::sender, this, buf, _1, _2));
-		} else if (send.size() > 0 && (send[0] & 192) == 128) {
+		} else if ((send[0] & 192) == 128) {
 			recv.push_back(peers[i].buffer);
 			peers[i].buffer.clear();
 			if (peers[i].bucket >= buf->size()) {
@@ -215,24 +216,22 @@ void Network::process_message(unsigned i, const string& message) {
 	if (command == "hello") {
 		if (data.find("from server") != string::npos) {
 			peers.front().messages.push_back(ss((msgid = 1)++) << " hello " << peers.front().endpoint << " from client");
+			peers.front().connected = true;
 			peers.resize(1, Peer(udpendpoint()));
+		} else if (data.find("from client") != string::npos) {
+			peers[i].connected = true;
 		} else if (data.find("from peer") != string::npos) {
-			peers.front().connections = peers[i].connections = 1;
-			peers.front().messages.push_back(ss(msgid++) << " peerconnected " << count_if(peers.begin(), peers.end(), bind(&Peer::connections, _1)));
+			peers[i].connected = true;
+			peers.front().messages.push_back(ss(msgid++) << " peerconnected " << count_if(peers.begin(), peers.end(), bind(&Peer::connected, _1)));
 		}
-	} else if (command == "removepeer" || command == "holepunching") {
+	} else if (command == "holepunching") {
 		udpendpoint ep;
 		ss(data) >> ep;
-		vector<Peer>::iterator peer = find_if(peers.begin(), peers.end(), bind(&Peer::endpoint, _1) == ep);
-		if (peer != peers.end())
-			peers.erase(peer);
-			
-		if (command == "holepunching" && peers.size() < maxpeers) {
-			peers.push_back(Peer(ep));
-			peers.back().messages.push_back(ss(msgid++) << " hello " << ep << " from peer");
 
-			socket.send_to(buffer(recvbuf, 1), ep);
-		}
+		peers.push_back(Peer(ep));
+		peers.back().messages.push_back(ss(msgid++) << " hello " << ep << " from peer");
+
+		socket.send_to(buffer(recvbuf, 1), ep);
 	} else if (command == "peerconnected") {
 		ss(data) >> peers[i].connections;
 		if (find_if(peers.begin(), peers.end(), bind(&Peer::connections, _1) != peers.size()) == peers.end())
@@ -266,29 +265,37 @@ void Network::receiver(const errorcode& e, size_t n) {
 	lock_guard<timed_mutex> lock(netmutex);
 	vector<Peer>::iterator peer = find_if(peers.begin(), peers.end(), bind(&Peer::endpoint, _1) == endpoint);
 
-	//~ for (vector<Peer>::iterator it = peers.begin(); it != peers.end() && peer == peers.end(); it++) {
-		//~ if (it->endpoint.address() == endpoint.address()) {
-			//~ it->endpoint = endpoint;
-			//~ peer = it;
-			//~ break;
-		//~ }
-	//~ }
+	if (!e && server && n == 1 && peer == peers.end() && peers.size() < maxpeers) {
+		peers.push_back(Peer(endpoint));
+		peer = peers.end() - 1;
+		cout << "new peer " << peer - peers.begin() << ": " << endpoint << endl;
+		peer->messages.push_back(ss(msgid++) << " hello " << endpoint << " from server");
+		for (vector<Peer>::iterator it = peers.begin(); it != peers.end(); it++) {
+			it->connections = 0;
+			if (it != peer) {
+				it->messages.push_back(ss(msgid++) << " holepunching " << peer->endpoint);
+				peer->messages.push_back(ss(msgid++) << " holepunching " << it->endpoint);
+			}
+		}
+	}
 
-	if (!e && server) {
-		if (peer == peers.end() && peers.size() < maxpeers) {
-			peers.push_back(Peer(endpoint));
-			peer = peers.end() - 1;
-			cout << "new peer " << peer - peers.begin() << ": " << endpoint << endl;
-			peer->messages.push_back(ss(msgid++) << " hello " << endpoint << " from server");
-			for (vector<Peer>::iterator it = peers.begin(); it != peers.end(); it++)
-				if (it != peer) {
-					it->messages.push_back(ss(msgid++) << " holepunching " << peer->endpoint);
-					peer->messages.push_back(ss(msgid++) << " holepunching " << it->endpoint);
-				}
+
+	if (!e && peer == peers.end() && n > 1) {
+		unsigned idle = 0;
+		for (vector<Peer>::iterator it = peers.begin(); it != peers.end(); it++) {
+			if (it->endpoint.address() == endpoint.address() && it->idle >= idle) {
+				peer = it;
+				idle = it->idle;
+			}
 		}
 		if (peer != peers.end())
-			peer->lasttime = (size_t)time(0);
+			peer->endpoint = endpoint;
 	}
+
+
+	if (!e && peer != peers.end())
+		peer->idle = 0;
+
 
 	if (e) {
 		cout << "receive error: " << e.message() << endl;
@@ -328,31 +335,34 @@ void Network::deadline(const errorcode& e) {
 
 	lock_guard<timed_mutex> lock(netmutex);
 
-	if (server) {
-		static unsigned count = 0;
-		if (++count % (10 * timerrate) == 0)
-			ignorepeers.clear();
-		
-		vector<Peer>::iterator peer = find_if(peers.begin(), peers.end(), bind(&Peer::lasttime, _1) < time(0) - 5);
-		if (peer != peers.end()) {
-			cout << "peer " << peer - peers.begin() << " timed out" << endl;
-			for (vector<Peer>::iterator it = peers.begin(); it != peers.end(); it++) {
-				it->connections = 0;
-				it->messages.push_back(ss(msgid++) << " removepeer " << peer->endpoint);
+
+	static unsigned count = 0;
+	if (server && ++count % (10 * timerrate) == 0)
+		ignorepeers.clear();
+
+
+	for (vector<Peer>::iterator peer = peers.begin(); peer != peers.end(); peer++) {
+		if (peer->idle++ > 5 * timerrate) {
+			peer->connected = false;
+			if (server || peer != peers.begin()) {
+				cout << "peer " << peer - peers.begin() << " timed out" << endl;
+				if ((peer = peers.erase(peer)) == peers.end())
+					break;
 			}
-			peers.erase(peer);
 		}
+
+		if (!peer->connected)
+			socket.send_to(buffer(recvbuf, 1), peer->endpoint);
+
+		if (peer->messages.size() > 0) {
+			shared_ptr<ucharbuf> buf(new ucharbuf(peer->messages[0].begin(), peer->messages[0].end()));
+			socket.async_send_to(buffer(*buf), peer->endpoint, bind(&Network::sender, this, buf, _1, _2));
+		}
+		
+		peer->bucket += max(bandwidth / peers.size() - minbw, (size_t)500) / timerrate;
+		maximal(peer->bucket, bandwidth);
 	}
 
-	for (unsigned i = 0; i < peers.size(); i++) {
-		if (peers[i].messages.size() > 0) {
-			shared_ptr<ucharbuf> buf(new ucharbuf(peers[i].messages[0].begin(), peers[i].messages[0].end()));
-			socket.async_send_to(buffer(*buf), peers[i].endpoint, bind(&Network::sender, this, buf, _1, _2));
-		}
-		
-		peers[i].bucket += max(bandwidth / peers.size() - minbw, (size_t)500) / timerrate;
-		maximal(peers[i].bucket, bandwidth);
-	}
 	
 	timer.expires_at(timer.expires_at() + posix_time::milliseconds(1000 / timerrate));
 	timer.async_wait(bind(&Network::deadline, this, _1));

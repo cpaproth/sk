@@ -950,8 +950,9 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 			show_contrare(i != player? "Kontra": "Re", true, false);
 
 
-	} else
+	} else {
 		return false;
+	}
 		
 	Fl::awake();
 	return true;

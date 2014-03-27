@@ -54,13 +54,14 @@ class Network {
 		list<ucharbuf>	fifo;
 		ucharbuf	buffer;
 		deque<string>	messages;
-		size_t		lasttime;
+		bool		connected;
+		unsigned	idle;
 		unsigned	fifoempty;
 		unsigned	fifofull;
 		unsigned	lastmsgid;
 		unsigned	bucket;
 		unsigned	connections;
-		Peer(const udpendpoint& ep) : endpoint(ep), fifoempty(0), fifofull(0), lastmsgid(-1), bucket(0), connections(0) {}
+		Peer(const udpendpoint& ep) : endpoint(ep), connected(false), idle(0), fifoempty(0), fifofull(0), lastmsgid(-1), bucket(0), connections(0) {}
 	};
 	
 	bool				server;
