@@ -188,6 +188,11 @@ void Network::process_message(unsigned i, const string& message) {
 	string id, command, data;
 	data = ss(message) >> id >> command >> ws;
 
+	if (command == "busy") {
+		cout << "all seats of the server are occupied" << endl;
+		return;
+	}
+
 	if (command == "reply") {
 		if (peers[i].messages.size() > 0 && peers[i].messages[0].compare(0, id.length() + 1, id + ' ') == 0) {
 			cout << i << " < " << string(ss(peers[i].messages[0]) >> id >> ws) << endl;
@@ -215,9 +220,9 @@ void Network::process_message(unsigned i, const string& message) {
 	
 	if (command == "hello") {
 		if (data.find("from server") != string::npos) {
-			peers.front().messages.push_back(ss((msgid = 1)++) << " hello " << peers.front().endpoint << " from client");
-			peers.front().connected = true;
 			peers.resize(1, Peer(udpendpoint()));
+			peers.front().connected = true;
+			peers.front().messages.push_back(ss((msgid = 1)++) << " hello " << peers.front().endpoint << " from client");
 		} else if (data.find("from client") != string::npos) {
 			peers[i].connected = true;
 		} else if (data.find("from peer") != string::npos) {
@@ -281,15 +286,17 @@ void Network::receiver(const errorcode& e, size_t n) {
 
 
 	if (!e && peer == peers.end() && n > 1) {
-		unsigned idle = 0;
+		unsigned idle = timerrate;
 		for (vector<Peer>::iterator it = peers.begin(); it != peers.end(); it++) {
 			if (it->endpoint.address() == endpoint.address() && it->idle >= idle) {
 				peer = it;
 				idle = it->idle;
 			}
 		}
-		if (peer != peers.end())
+		if (peer != peers.end()) {
+			cout << "peer " << peer - peers.begin() << " changed port to " << endpoint.port() << endl;
 			peer->endpoint = endpoint;
+		}
 	}
 
 
@@ -300,9 +307,9 @@ void Network::receiver(const errorcode& e, size_t n) {
 	if (e) {
 		cout << "receive error: " << e.message() << endl;
 	} else if (peer == peers.end()) {
-		if (server && ignorepeers.size() < 10 && ignorepeers.insert(endpoint).second) {
+		if (server && n == 1 && ignorepeers.size() < 10 && ignorepeers.insert(endpoint).second) {
 			cout << "ignored peer: " << endpoint << endl;
-			socket.send_to(buffer((string)(ss(msgid++) << " hello all seats of the server are occupied")), endpoint);
+			socket.send_to(buffer((string)(ss(msgid++) << " busy")), endpoint);
 		}
 	} else if (n > 1 && (recvbuf[0] & 192) == 0) {
 		process_message(peer - peers.begin(), string(recvbuf.begin(), recvbuf.begin() + n));
@@ -346,7 +353,8 @@ void Network::deadline(const errorcode& e) {
 			peer->connected = false;
 			if (server || peer != peers.begin()) {
 				cout << "peer " << peer - peers.begin() << " timed out" << endl;
-				if ((peer = peers.erase(peer)) == peers.end())
+				peer = peers.erase(peer);
+				if (peer == peers.end())
 					break;
 			}
 		}

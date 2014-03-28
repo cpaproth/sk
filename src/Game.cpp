@@ -759,8 +759,9 @@ void Game::decipher_cards(void) {
 		network.command(left, "secretcards", cards_string(dealtcards));
 		network.command(right, "drawncards", cards_string(drawncards));
 
-	} else if (drawncards.size() == 0)
+	} else if (drawncards.size() == 0) {
 		secretdeck = deck;
+	}
 }
 
 
