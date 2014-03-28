@@ -20,7 +20,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 
 #include <FL/Fl_Text_Display.H>
-#include <boost/thread/mutex.hpp>
+#include <boost/thread/thread.hpp>
 
 
 namespace SK {
