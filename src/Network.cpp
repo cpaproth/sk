@@ -219,23 +219,19 @@ void Network::process_message(unsigned i, const string& message) {
 	cout << i << " > " << command << ' ' << data << endl;
 	
 	if (command == "hello") {
+		peers[i].connected = true;
 		if (data.find("from server") != string::npos) {
+			peers[i].connections = 0;
 			peers.resize(1, Peer(udpendpoint()));
-			peers.front().connected = true;
-			peers.front().messages.push_back(ss((msgid = 1)++) << " hello " << peers.front().endpoint << " from client");
-		} else if (data.find("from client") != string::npos) {
-			peers[i].connected = true;
-		} else if (data.find("from peer") != string::npos) {
-			peers[i].connected = true;
+		} else if (data.find("from peer") != string::npos && !server) {
 			peers.front().messages.push_back(ss(msgid++) << " peerconnected " << count_if(peers.begin(), peers.end(), bind(&Peer::connected, _1)));
 		}
 	} else if (command == "holepunching") {
 		udpendpoint ep;
 		ss(data) >> ep;
-
 		peers.push_back(Peer(ep));
-		peers.back().messages.push_back(ss(msgid++) << " hello " << ep << " from peer");
-
+		if (peers.size() > maxpeers)
+			peers.erase(peers.begin() + 1);
 		socket.send_to(buffer(recvbuf, 1), ep);
 	} else if (command == "peerconnected") {
 		ss(data) >> peers[i].connections;
@@ -283,16 +279,16 @@ void Network::receiver(const errorcode& e, size_t n) {
 			}
 		}
 	}
+	
+	
+	if (!e && !server && n == 1 && peer != peers.end() && peer->connections == 0) {
+		peer->connections = 1;
+		peer->messages.push_back(ss(msgid++) << " hello " << endpoint << " from peer");
+	}
 
 
 	if (!e && peer == peers.end() && n > 1) {
-		unsigned idle = timerrate;
-		for (vector<Peer>::iterator it = peers.begin(); it != peers.end(); it++) {
-			if (it->endpoint.address() == endpoint.address() && it->idle >= idle) {
-				peer = it;
-				idle = it->idle;
-			}
-		}
+		for (peer = peers.begin(); peer != peers.end() && (peer->endpoint.address() != endpoint.address() || !peer->connected); peer++);
 		if (peer != peers.end()) {
 			cout << "peer " << peer - peers.begin() << " changed port to " << endpoint.port() << endl;
 			peer->endpoint = endpoint;
@@ -349,7 +345,7 @@ void Network::deadline(const errorcode& e) {
 
 
 	for (vector<Peer>::iterator peer = peers.begin(); peer != peers.end(); peer++) {
-		if (peer->idle++ > 5 * timerrate) {
+		if (peer->idle++ > 4 * timerrate) {
 			peer->connected = false;
 			if (server || peer != peers.begin()) {
 				cout << "peer " << peer - peers.begin() << " timed out" << endl;
