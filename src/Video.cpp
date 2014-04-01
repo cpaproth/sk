@@ -15,17 +15,16 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
+
 #include "Video.h"
 #include "Network.h"
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
 #include "ui.h"
 #include <iostream>
-#include "Convenience.h"
 
 
 using namespace SK;
-using namespace CPLib;
 using namespace cv;
 using namespace boost;
 
@@ -98,9 +97,9 @@ void Video::encode(const Mat& img, vector<unsigned char>& enc) {
 	vector<float> Y, U, V, W, Z;
 	for (unsigned y = 0; y < imageheight; y++) {
 		for (unsigned x = 0; x < imagewidth; x++) {
-			Y.push_back(0.3f * (float)img.at<Vec3b>(y, x)[2] + 0.5f * (float)img.at<Vec3b>(y, x)[1] + 0.2f * (float)img.at<Vec3b>(y, x)[0]);
-			U.push_back(Y.back() - (float)img.at<Vec3b>(y, x)[2]);
-			V.push_back(Y.back() - (float)img.at<Vec3b>(y, x)[0]);
+			Y.push_back(Vec3f(0.2f, 0.5f, 0.3f).dot(img.at<Vec3b>(y, x)));
+			U.push_back(Y.back() - img.at<Vec3b>(y, x)[2]);
+			V.push_back(Y.back() - img.at<Vec3b>(y, x)[0]);
 		}
 	}
 
@@ -323,14 +322,8 @@ void Video::decode(const vector<unsigned char>& enc, Mat& img) {
 			unsigned w = imagewidth / 8, h = imageheight / 8, py = y * imagewidth + x, p = my * w + mx;
 			float u = (1.f - wx) * (1.f - wy) * U[p] + wx * (1.f - wy) * U[mx + 1 < w? p + 1: p] + (1.f - wx) * wy * U[my + 1 < h? p + w: p] + wx * wy * U[mx + 1 < w && my + 1 < h? p + w + 1: p];
 			float v = (1.f - wx) * (1.f - wy) * V[p] + wx * (1.f - wy) * V[mx + 1 < w? p + 1: p] + (1.f - wx) * wy * V[my + 1 < h? p + w: p] + wx * wy * V[mx + 1 < w && my + 1 < h? p + w + 1: p];
-			float r = Y[py] - u, g = Y[py] + 0.6f * u + 0.4f * v, b = Y[py] - v;
 			
-			between(r, 0.f, 255.f);
-			between(g, 0.f, 255.f);
-			between(b, 0.f, 255.f);
-			img.at<Vec3b>(y, x)[0] = (unsigned char)b;
-			img.at<Vec3b>(y, x)[1] = (unsigned char)g;
-			img.at<Vec3b>(y, x)[2] = (unsigned char)r;
+			img.at<Vec3b>(y, x) = Vec3f(Y[py] - v, Y[py] + 0.6f * u + 0.4f * v, Y[py] - u);
 		}
 	}
 }

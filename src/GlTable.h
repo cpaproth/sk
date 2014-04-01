@@ -15,6 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
+
 #ifndef SK_GLTABLE_H
 #define SK_GLTABLE_H
 
@@ -24,6 +25,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 
 namespace SK {
+
 
 using namespace std;
 

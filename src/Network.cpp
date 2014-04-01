@@ -15,6 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
+
 #include "Network.h"
 #include <iostream>
 #include "Convenience.h"
@@ -210,7 +211,7 @@ void Network::process_message(unsigned i, const string& message) {
 	unsigned curmsgid;
 	ss(id) >> curmsgid;
 
-	if ((command != "hello" && curmsgid <= peers[i].lastmsgid) || (command == "hello" && peers[i].lastmsgid == curmsgid && curmsgid != 0)) {
+	if ((command != "hello" && curmsgid <= peers[i].lastmsgid) || (command == "hello" && peers[i].lastmsgid == curmsgid)) {
 		ignoredmsg++;
 		return;
 	}
@@ -220,12 +221,10 @@ void Network::process_message(unsigned i, const string& message) {
 	
 	if (command == "hello") {
 		peers[i].connected = true;
-		if (data.find("from server") != string::npos) {
-			peers[i].connections = 0;
+		if (data.find("from server") != string::npos)
 			peers.resize(1, Peer(udpendpoint()));
-		} else if (data.find("from peer") != string::npos && !server) {
+		else if (data.find("from peer") != string::npos && !server)
 			peers.front().messages.push_back(ss(msgid++) << " peerconnected " << count_if(peers.begin(), peers.end(), bind(&Peer::connected, _1)));
-		}
 	} else if (command == "holepunching") {
 		udpendpoint ep;
 		ss(data) >> ep;
@@ -288,7 +287,8 @@ void Network::receiver(const errorcode& e, size_t n) {
 
 
 	if (!e && peer == peers.end() && n > 1) {
-		for (peer = peers.begin(); peer != peers.end() && (peer->endpoint.address() != endpoint.address() || !peer->connected); peer++);
+		for (vector<Peer>::iterator it = peers.begin(); it != peers.end(); it++)
+			peer = it->endpoint.address() == endpoint.address() && it->connected? it: peer;
 		if (peer != peers.end()) {
 			cout << "peer " << peer - peers.begin() << " changed port to " << endpoint.port() << endl;
 			peer->endpoint = endpoint;
@@ -346,12 +346,13 @@ void Network::deadline(const errorcode& e) {
 
 	for (vector<Peer>::iterator peer = peers.begin(); peer != peers.end(); peer++) {
 		if (peer->idle++ > 4 * timerrate) {
-			peer->connected = false;
 			if (server || peer != peers.begin()) {
 				cout << "peer " << peer - peers.begin() << " timed out" << endl;
 				peer = peers.erase(peer);
 				if (peer == peers.end())
 					break;
+			} else {
+				*peer = Peer(peer->endpoint);
 			}
 		}
 

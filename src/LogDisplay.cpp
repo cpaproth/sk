@@ -15,10 +15,12 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
+
 #include "LogDisplay.h"
 #include <FL/Fl.H>
 #include <iostream>
 #include <climits>
+#include <boost/thread/locks.hpp>
 
 
 using namespace SK;

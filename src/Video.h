@@ -15,11 +15,13 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
+
 #ifndef SK_VIDEO_H
 #define SK_VIDEO_H
 
 
 #include <boost/thread/thread.hpp>
+#include <boost/shared_ptr.hpp>
 #include <vector>
 
 
@@ -27,10 +29,11 @@ namespace cv {
 class VideoCapture;
 class Mat;
 }
-
 class UserInterface;
 
+
 namespace SK {
+
 
 class Network;
 

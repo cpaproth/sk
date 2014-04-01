@@ -15,15 +15,15 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
+
 #ifndef SK_NETWORK_H
 #define SK_NETWORK_H
 
 
 #include <boost/asio/ip/udp.hpp>
 #include <boost/asio/deadline_timer.hpp>
-#include <boost/thread/thread.hpp>
+#include <boost/thread.hpp>
 #include <boost/function/function3.hpp>
-
 #include <vector>
 #include <deque>
 #include <string>
@@ -31,6 +31,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 
 namespace SK {
+
 
 using namespace std;
 

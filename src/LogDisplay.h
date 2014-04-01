@@ -15,15 +15,17 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
+
 #ifndef SK_LOGDISPLAY_H
 #define SK_LOGDISPLAY_H
 
 
 #include <FL/Fl_Text_Display.H>
-#include <boost/thread/thread.hpp>
+#include <boost/thread/mutex.hpp>
 
 
 namespace SK {
+
 
 using namespace std;
 
