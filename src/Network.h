@@ -66,6 +66,7 @@ class Network {
 	};
 	
 	bool				server;
+	bool				weakport;
 	unsigned			msgid;
 	unsigned			bandwidth;
 	unsigned			mutexbusy;
@@ -99,7 +100,7 @@ public:
 
 	void add_handler(handler);
 	void remove_handler(void);
-	void connect(const string&, unsigned short, unsigned);
+	void connect(const string&, unsigned short, unsigned, bool);
 	void broadcast(const ucharbuf&, vector<ucharbuf>&, unsigned);
 	void command(unsigned, const string&, const string&);
 	void stats(void);

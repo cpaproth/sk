@@ -70,7 +70,7 @@ void Network::remove_handler(void) {
 }
 
 
-void Network::connect(const string& address, unsigned short port, unsigned bw) {
+void Network::connect(const string& address, unsigned short port, unsigned bw, bool wp) {
 	if (!hdlmutex.try_lock())
 		return;
 	lock_guard<mutex> hlock(hdlmutex, adopt_lock);
@@ -95,9 +95,11 @@ void Network::connect(const string& address, unsigned short port, unsigned bw) {
 
 	if (address.empty()) {
 		server = true;
+		weakport = wp;
 		socket.bind(udpendpoint(ip::udp::v4(), port));
 	} else {
 		server = false;
+		weakport = false;
 		
 		ip::udp::resolver resolver(io);
 		ip::udp::resolver::query query(ip::udp::v4(), address, ss(port));
@@ -221,6 +223,8 @@ void Network::process_message(unsigned i, const string& message) {
 	
 	if (command == "hello") {
 		peers[i].connected = true;
+		if (data.find("weak port") != string::npos)
+			weakport = true;
 		if (data.find("from server") != string::npos)
 			peers.resize(1, Peer(udpendpoint()));
 		else if (data.find("from peer") != string::npos && !server)
@@ -269,7 +273,7 @@ void Network::receiver(const errorcode& e, size_t n) {
 		peers.push_back(Peer(endpoint));
 		peer = peers.end() - 1;
 		cout << "new peer " << peer - peers.begin() << ": " << endpoint << endl;
-		peer->messages.push_back(ss(msgid++) << " hello " << endpoint << " from server");
+		peer->messages.push_back(ss(msgid++) << " hello " << endpoint << " from server" << (weakport? " weak port": ""));
 		for (vector<Peer>::iterator it = peers.begin(); it != peers.end(); it++) {
 			it->connections = 0;
 			if (it != peer) {
@@ -279,20 +283,20 @@ void Network::receiver(const errorcode& e, size_t n) {
 		}
 	}
 	
-	
-	if (!e && !server && n == 1 && peer != peers.end() && peer->connections == 0) {
-		peer->connections = 1;
-		peer->messages.push_back(ss(msgid++) << " hello " << endpoint << " from peer");
-	}
 
-
-	if (!e && peer == peers.end() && n > 1) {
+	if (!e && peer == peers.end() && weakport) {
 		for (vector<Peer>::iterator it = peers.begin(); it != peers.end(); it++)
-			peer = it->endpoint.address() == endpoint.address() && it->connected? it: peer;
+			peer = it->endpoint.address() == endpoint.address() && ((n == 1 && !it->connected) || n > 1)? it: peer;
 		if (peer != peers.end()) {
 			cout << "peer " << peer - peers.begin() << " changed port to " << endpoint.port() << endl;
 			peer->endpoint = endpoint;
 		}
+	}
+
+
+	if (!e && !server && n == 1 && peer != peers.end() && peer->connections == 0) {
+		peer->connections = 1;
+		peer->messages.push_back(ss(msgid++) << " hello " << endpoint << " from peer");
 	}
 
 
@@ -353,6 +357,8 @@ void Network::deadline(const errorcode& e) {
 					break;
 			} else {
 				*peer = Peer(peer->endpoint);
+				peers.resize(1, Peer(udpendpoint()));
+				weakport = false;
 			}
 		}
 

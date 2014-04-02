@@ -17,7 +17,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/} {selected in_source in_header
+along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/} {in_source in_header
 } 
 
 class UILock {} {
@@ -41,7 +41,7 @@ class UserInterface {open
     Fl_Window mainwnd {
       label {Skat-Konferenz}
       callback {mainwnd->hide();} open
-      private xywh {545 200 960 700} type Double labelsize 11 align 80
+      private xywh {319 200 960 700} type Double labelsize 11 align 80
       code0 {\#include <map>}
       code1 {\#include <string>}
       code2 {\#include <boost/function/function0.hpp>} visible
@@ -50,7 +50,7 @@ class UserInterface {open
         xywh {0 0 960 700} labelsize 11
       } {
         Fl_Group {} {
-          label Skat open
+          label Skat open selected
           xywh {0 25 960 675} labelsize 11
         } {
           Fl_Box table {
@@ -266,8 +266,12 @@ prefs.set("bandwidth", bandwidth->value());}
             Fl_Check_Button autoconnect {
               label Auto
               callback {prefs.set("autoconnect", autoconnect->value());}
-              tooltip {When activated, the network will be connected automatically during the next program start. This is only reasonable for the server or a connection to a static IP address or hostname.} xywh {125 260 60 25} down_box DOWN_BOX labelsize 11
+              tooltip {When activated, the network will be connected automatically during the next program start. This is only reasonable for the server or a connection to a static IP address or hostname.} xywh {120 260 80 25} down_box DOWN_BOX labelsize 11
               code0 {int i; prefs.get("autoconnect", i, 0); autoconnect->value(i != 0);}
+            }
+            Fl_Check_Button weakport {
+              label {Weak Port}
+              tooltip {This experimental flag is only effective for a new connection of the server. The server allows all peers to accept UDP port alterations of other peers to keep connections alive. This can lead to unexpected behavior, if there are peers sharing one IP address.} xywh {120 310 80 25} down_box DOWN_BOX labelsize 11
             }
           }
           Fl_Group {} {
