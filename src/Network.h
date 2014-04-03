@@ -56,17 +56,17 @@ class Network {
 		ucharbuf	buffer;
 		deque<string>	messages;
 		bool		connected;
+		bool		weakport;
 		unsigned	idle;
 		unsigned	fifoempty;
 		unsigned	fifofull;
 		unsigned	lastmsgid;
 		unsigned	bucket;
 		unsigned	connections;
-		Peer(const udpendpoint& ep) : endpoint(ep), connected(false), idle(0), fifoempty(0), fifofull(0), lastmsgid(-1), bucket(0), connections(0) {}
+		Peer(const udpendpoint& ep) : endpoint(ep), connected(false), weakport(false), idle(0), fifoempty(0), fifofull(0), lastmsgid(-1), bucket(0), connections(0) {}
 	};
 	
 	bool				server;
-	bool				weakport;
 	unsigned			msgid;
 	unsigned			bandwidth;
 	unsigned			mutexbusy;
@@ -100,7 +100,7 @@ public:
 
 	void add_handler(handler);
 	void remove_handler(void);
-	void connect(const string&, unsigned short, unsigned, bool);
+	void connect(const string&, unsigned short, unsigned);
 	void broadcast(const ucharbuf&, vector<ucharbuf>&, unsigned);
 	void command(unsigned, const string&, const string&);
 	void stats(void);

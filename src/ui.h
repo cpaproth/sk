@@ -187,7 +187,6 @@ private:
   void cb_autoconnect_i(Fl_Check_Button*, void*);
   static void cb_autoconnect(Fl_Check_Button*, void*);
 public:
-  Fl_Check_Button *weakport;
   Fl_Input *name;
 private:
   void cb_name_i(Fl_Input*, void*);

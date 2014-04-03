@@ -266,12 +266,8 @@ prefs.set("bandwidth", bandwidth->value());}
             Fl_Check_Button autoconnect {
               label Auto
               callback {prefs.set("autoconnect", autoconnect->value());}
-              tooltip {When activated, the network will be connected automatically during the next program start. This is only reasonable for the server or a connection to a static IP address or hostname.} xywh {120 260 80 25} down_box DOWN_BOX labelsize 11
+              tooltip {When activated, the network will be connected automatically during the next program start. This is only reasonable for the server or a connection to a static IP address or hostname.} xywh {140 260 60 25} down_box DOWN_BOX labelsize 11
               code0 {int i; prefs.get("autoconnect", i, 0); autoconnect->value(i != 0);}
-            }
-            Fl_Check_Button weakport {
-              label {Weak Port}
-              tooltip {This experimental flag is only effective for a new connection of the server. The server allows all peers to accept UDP port alterations of other peers to keep connections alive. This can lead to unexpected behavior, if there are peers sharing one IP address.} xywh {120 310 80 25} down_box DOWN_BOX labelsize 11
             }
           }
           Fl_Group {} {

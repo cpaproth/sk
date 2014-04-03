@@ -740,7 +740,7 @@ are connected with each other, the game starts.");
             o->labelsize(11);
             o->callback((Fl_Callback*)cb_Stats);
           } // Fl_Button* o
-          { autoconnect = new Fl_Check_Button(120, 260, 80, 25, "Auto");
+          { autoconnect = new Fl_Check_Button(140, 260, 60, 25, "Auto");
             autoconnect->tooltip("When activated, the network will be connected automatically during the next p\
 rogram start. This is only reasonable for the server or a connection to a stat\
 ic IP address or hostname.");
@@ -749,14 +749,6 @@ ic IP address or hostname.");
             autoconnect->callback((Fl_Callback*)cb_autoconnect);
             int i; prefs.get("autoconnect", i, 0); autoconnect->value(i != 0);
           } // Fl_Check_Button* autoconnect
-          { weakport = new Fl_Check_Button(120, 310, 80, 25, "Weak Port");
-            weakport->tooltip("This experimental flag is only effective for a new connection of the server. \
-The server allows all peers to accept UDP port alterations of other peers to k\
-eep connections alive. This can lead to unexpected behavior, if there are peer\
-s sharing one IP address.");
-            weakport->down_box(FL_DOWN_BOX);
-            weakport->labelsize(11);
-          } // Fl_Check_Button* weakport
           o->end();
         } // Fl_Group* o
         { Fl_Group* o = new Fl_Group(525, 320, 245, 175, "Player");

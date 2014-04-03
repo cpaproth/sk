@@ -31,7 +31,7 @@ using namespace SK;
 
 
 void connect_network(UserInterface& ui, Network& network) {
-	network.connect(ui.address->value(), (unsigned short)ui.port->value(), (unsigned)ui.bandwidth->value(), ui.weakport->value() != 0);
+	network.connect(ui.address->value(), (unsigned short)ui.port->value(), (unsigned)ui.bandwidth->value());
 }
 
 
