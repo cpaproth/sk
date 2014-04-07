@@ -27,7 +27,7 @@ using namespace boost;
 using namespace boost::asio;
 
 
-istream& operator>>(istream& s, ip::udp::endpoint& ep) {
+static istream& operator>>(istream& s, ip::udp::endpoint& ep) {
 	string a;
 	unsigned short p;
 	getline(s, a, ':');
@@ -37,8 +37,13 @@ istream& operator>>(istream& s, ip::udp::endpoint& ep) {
 }
 
 
+static bool fifo_cmp(const vector<unsigned char>& l, const vector<unsigned char>& r) {
+	return abs((int)(l[0] & 63) - (int)(r[0] & 63)) < 32? (l[0] & 63) < (r[0] & 63): (r[0] & 63) < (l[0] & 63);
+}
+
+
 Network::Network(void) : socket(io, ip::udp::v4()), timer(io) {
-	msgid = 0;
+	msgid = 1;
 	bandwidth = maxpeers * minbw;
 	mutexbusy = 0;
 	ignoredmsg = 0;
@@ -87,6 +92,7 @@ void Network::connect(const string& address, unsigned short port, unsigned bw) {
 
 	lock_guard<timed_mutex> nlock(netmutex);
 	peers.clear();
+	ignorepeers.clear();
 	socket.open(ip::udp::v4());
 	endpoint = udpendpoint();
 	io.reset();
@@ -211,7 +217,7 @@ void Network::process_message(unsigned i, const string& message) {
 	unsigned curmsgid;
 	ss(id) >> curmsgid;
 
-	if ((command != "hello" && curmsgid <= peers[i].lastmsgid) || (command == "hello" && peers[i].lastmsgid == curmsgid)) {
+	if (curmsgid <= peers[i].lastmsgid) {
 		ignoredmsg++;
 		return;
 	}
@@ -253,17 +259,33 @@ void Network::worker(void) {
 }
 
 
-static bool fifo_cmp(const vector<unsigned char>& l, const vector<unsigned char>& r) {
-	return abs((int)(l[0] & 63) - (int)(r[0] & 63)) < 32? (l[0] & 63) < (r[0] & 63): (r[0] & 63) < (l[0] & 63);
-}
-
-
 void Network::receiver(const errorcode& e, size_t n) {
 	if (e == error::operation_aborted)
 		return;
-
 	lock_guard<timed_mutex> lock(netmutex);
+
+
 	vector<Peer>::iterator peer = find_if(peers.begin(), peers.end(), bind(&Peer::endpoint, _1) == endpoint);
+	if (!e && peer == peers.end() && (!server || n > 1)) {
+		for (vector<Peer>::iterator it = peers.begin(); it != peers.end(); it++)
+			peer = (it->weakport || it->idle > 2 * timerrate) && it->endpoint.address() == endpoint.address()? it: peer;
+		if (peer != peers.end()) {
+			if (!peer->weakport)
+				cout << "warning: peer " << peer - peers.begin() << " changed port" << endl;
+			peer->endpoint = endpoint;
+			peer->weakport = true;
+		}
+	}
+	if (!e && peer == peers.end() && !server && n == 1) {
+		peer = find_if(peers.begin(), peers.end(), bind(&Peer::idle, _1) > 2 * timerrate);
+		if (peer != peers.end()) {
+			cout << "warning: peer " << peer - peers.begin() << " changed address" << endl;
+			peer->endpoint = endpoint;
+		}
+	}
+	if (!e && peer != peers.end())
+		peer->idle = 0;
+
 
 	if (!e && server && n == 1 && peer == peers.end() && peers.size() < maxpeers) {
 		peers.push_back(Peer(endpoint));
@@ -278,34 +300,16 @@ void Network::receiver(const errorcode& e, size_t n) {
 			}
 		}
 	}
-
-
-	if (!e && peer == peers.end() && (!server || n > 1)) {
-		for (vector<Peer>::iterator it = peers.begin(); it != peers.end(); it++)
-			peer = (it->weakport || it->idle > 2 * timerrate) && it->endpoint.address() == endpoint.address()? it: peer;
-		if (peer != peers.end()) {
-			if (!peer->weakport)
-				cout << "warning: peer " << peer - peers.begin() << " changed port" << endl;
-			peer->endpoint = endpoint;
-			peer->weakport = true;
-		}
-	}
-
-
 	if (!e && !server && n == 1 && peer != peers.end() && peer->connections == 0) {
 		peer->connections = 1;
 		peer->messages.push_back(ss(msgid++) << " hello " << endpoint << " from peer");
 	}
 
 
-	if (!e && peer != peers.end())
-		peer->idle = 0;
-
-
 	if (e) {
 		cout << "receive error: " << e.message() << endl;
 	} else if (peer == peers.end()) {
-		if (server && n == 1 && ignorepeers.size() < 10 && ignorepeers.insert(endpoint).second) {
+		if (server && n == 1 && ignorepeers[endpoint]++ % (30 * timerrate) == 0) {
 			cout << "ignored peer: " << endpoint << endl;
 			socket.send_to(buffer((string)(ss(msgid++) << " busy")), endpoint);
 		}
@@ -341,11 +345,7 @@ void Network::deadline(const errorcode& e) {
 	lock_guard<timed_mutex> lock(netmutex);
 
 
-	static unsigned count = 0;
-	if (server && ++count % (10 * timerrate) == 0)
-		ignorepeers.clear();
-
-
+	//static unsigned count = 0;
 	//if (!server && ++count % 1 == 0 && (bandwidth & 1) != 0) {
 	//	socket.close();
 	//	socket.open(ip::udp::v4());
@@ -354,7 +354,7 @@ void Network::deadline(const errorcode& e) {
 
 
 	for (vector<Peer>::iterator peer = peers.begin(); peer != peers.end(); peer++) {
-		if (peer->idle++ > 4 * timerrate) {
+		if (peer->idle++ > 6 * timerrate) {
 			if (server || peer != peers.begin()) {
 				cout << "peer " << peer - peers.begin() << " timed out" << endl;
 				peer = peers.erase(peer);
@@ -377,7 +377,6 @@ void Network::deadline(const errorcode& e) {
 		peer->bucket += max(bandwidth / peers.size() - minbw, (size_t)500) / timerrate;
 		maximal(peer->bucket, bandwidth);
 	}
-
 	
 	timer.expires_at(timer.expires_at() + posix_time::milliseconds(1000 / timerrate));
 	timer.async_wait(bind(&Network::deadline, this, _1));

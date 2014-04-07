@@ -63,7 +63,7 @@ class Network {
 		unsigned	lastmsgid;
 		unsigned	bucket;
 		unsigned	connections;
-		Peer(const udpendpoint& ep) : endpoint(ep), connected(false), weakport(false), idle(0), fifoempty(0), fifofull(0), lastmsgid(-1), bucket(0), connections(0) {}
+		Peer(const udpendpoint& ep) : endpoint(ep), connected(false), weakport(false), idle(0), fifoempty(0), fifofull(0), lastmsgid(0), bucket(0), connections(0) {}
 	};
 	
 	bool				server;
@@ -81,7 +81,7 @@ class Network {
 	boost::thread			iothread;
 	boost::timed_mutex		netmutex;
 	boost::mutex			hdlmutex;
-	set<udpendpoint>		ignorepeers;
+	map<udpendpoint, unsigned>	ignorepeers;
 
 
 	void handle_command(unsigned, const string&, const string&);
