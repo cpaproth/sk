@@ -92,7 +92,7 @@ void Network::connect(const string& address, unsigned short port, unsigned bw) {
 
 	lock_guard<timed_mutex> nlock(netmutex);
 	peers.clear();
-	ignorepeers.clear();
+	ignoredpeers.clear();
 	socket.open(ip::udp::v4());
 	endpoint = udpendpoint();
 	io.reset();
@@ -157,7 +157,7 @@ void Network::broadcast(const ucharbuf& send, vector<ucharbuf>& recv, unsigned l
 void Network::command(unsigned i, const string& command, const string& data) {
 	lock_guard<timed_mutex> lock(netmutex);
 		
-	if (i >= peers.size())
+	if (i >= peers.size() || !peers[i].connected)
 		return;
 		
 	peers[i].messages.push_back(ss(msgid++) << ' ' << command << ' ' << data);
@@ -227,10 +227,19 @@ void Network::process_message(unsigned i, const string& message) {
 	
 	if (command == "hello") {
 		peers[i].connected = true;
-		if (data.find("from server") != string::npos)
+		if (data.find("from server") != string::npos) {
 			peers.resize(1, Peer(udpendpoint()));
-		else if (data.find("from peer") != string::npos && !server)
+		} else if (server && data.find("from peer") != string::npos) {
+			for (unsigned j = 0; j < peers.size(); j++) {
+				peers[j].connections = 0;
+				if (i != j && peers[j].connected) {
+					peers[j].messages.push_back(ss(msgid++) << " holepunching " << peers[i].endpoint);
+					peers[i].messages.push_back(ss(msgid++) << " holepunching " << peers[j].endpoint);
+				}
+			}
+		} else if (!server && data.find("from peer") != string::npos) {
 			peers.front().messages.push_back(ss(msgid++) << " peerconnected " << count_if(peers.begin(), peers.end(), bind(&Peer::connected, _1)));
+		}
 	} else if (command == "holepunching") {
 		udpendpoint ep;
 		ss(data) >> ep;
@@ -276,7 +285,7 @@ void Network::receiver(const errorcode& e, size_t n) {
 			peer->weakport = true;
 		}
 	}
-	if (!e && peer == peers.end() && !server && n == 1) {
+	if (!e && peer == peers.end() && !server) {
 		peer = find_if(peers.begin(), peers.end(), bind(&Peer::idle, _1) > 2 * timerrate);
 		if (peer != peers.end()) {
 			cout << "warning: peer " << peer - peers.begin() << " changed address" << endl;
@@ -292,13 +301,6 @@ void Network::receiver(const errorcode& e, size_t n) {
 		peer = peers.end() - 1;
 		cout << "new peer " << peer - peers.begin() << ": " << endpoint << endl;
 		peer->messages.push_back(ss(msgid++) << " hello " << endpoint << " from server");
-		for (vector<Peer>::iterator it = peers.begin(); it != peers.end(); it++) {
-			it->connections = 0;
-			if (it != peer) {
-				it->messages.push_back(ss(msgid++) << " holepunching " << peer->endpoint);
-				peer->messages.push_back(ss(msgid++) << " holepunching " << it->endpoint);
-			}
-		}
 	}
 	if (!e && !server && n == 1 && peer != peers.end() && peer->connections == 0) {
 		peer->connections = 1;
@@ -309,7 +311,7 @@ void Network::receiver(const errorcode& e, size_t n) {
 	if (e) {
 		cout << "receive error: " << e.message() << endl;
 	} else if (peer == peers.end()) {
-		if (server && n == 1 && ignorepeers[endpoint]++ % (30 * timerrate) == 0) {
+		if (server && n == 1 && ignoredpeers[endpoint]++ % (30 * timerrate) == 0) {
 			cout << "ignored peer: " << endpoint << endl;
 			socket.send_to(buffer((string)(ss(msgid++) << " busy")), endpoint);
 		}

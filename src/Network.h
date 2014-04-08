@@ -81,7 +81,7 @@ class Network {
 	boost::thread			iothread;
 	boost::timed_mutex		netmutex;
 	boost::mutex			hdlmutex;
-	map<udpendpoint, unsigned>	ignorepeers;
+	map<udpendpoint, unsigned>	ignoredpeers;
 
 
 	void handle_command(unsigned, const string&, const string&);
