@@ -40,15 +40,15 @@ To build *sk*, you need to install the dependencies with the corresponding devel
 For other operating systems, you have to create appropriate build files by hand.
 
 1. Install all the dependencies and CMake by using, for example:
-		sudo apt-get install build-essential libfltk1.3-dev libboost-all-dev libopencv-dev portaudio19-dev cmake
+        sudo apt-get install build-essential libfltk1.3-dev libboost-all-dev libopencv-dev portaudio19-dev cmake
 2. [Download](https://github.com/cpaproth/sk/archive/master.zip) and unpack the *sk* source code.
 3. Build and run *sk*:
-		cd sk-master
-		mkdir build
-		cd build
-		cmake -D CMAKE_BUILD_TYPE=Release ../src/
-		make
-		./sk
+        cd sk-master
+        mkdir build
+        cd build
+        cmake -D CMAKE_BUILD_TYPE=Release ../src/
+        make
+        ./sk
 
 
 ## Usage
