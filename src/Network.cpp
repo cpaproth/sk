@@ -346,15 +346,6 @@ void Network::deadline(const errorcode& e) {
 
 	lock_guard<timed_mutex> lock(netmutex);
 
-
-	//static unsigned count = 0;
-	//if (!server && ++count % 1 == 0 && (bandwidth & 1) != 0) {
-	//	socket.close();
-	//	socket.open(ip::udp::v4());
-	//	socket.async_receive_from(buffer(recvbuf), endpoint, bind(&Network::receiver, this, _1, _2));
-	//}
-
-
 	for (vector<Peer>::iterator peer = peers.begin(); peer != peers.end(); peer++) {
 		if (peer->idle++ > 6 * timerrate) {
 			if (server || peer != peers.begin()) {

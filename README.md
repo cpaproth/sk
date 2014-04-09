@@ -1,4 +1,4 @@
-![screenshot](https://github.com/cpaproth/sk/raw/development/images/screenshot.jpg)
+![screenshot](https://github.com/cpaproth/sk/raw/master/images/screenshot.jpg)
 
 # Skat-Konferenz *(sk)*
 
@@ -6,7 +6,7 @@ Skat-Konferenz is the popular German card game Skat played online combined with 
 This program is free software and comes with ABSOLUTELY NO WARRANTY. Licensed under the terms of [GPLv3](http://www.gnu.org/licenses/).
 
 Skat-Konferenz is written in C++ using portable libraries exclusively, so it should be compatible with UNIX/Linux (X11), MS Windows, and Mac OS X. Till now,
-it has been tested on Ubuntu 11.10 - 13.04 (32-bit and 64-bit), MS Windows XP and Windows 7 ([download](https://github.com/cpaproth/sk/releases/download/v1.0-beta/sk_windows.zip)).
+it has been tested on Ubuntu 11.10 - 13.10 (32-bit and 64-bit), MS Windows XP and Windows 7 ([download](https://github.com/cpaproth/sk/releases/download/v1.2-beta/sk_windows.zip)).
 
 
 ## History
@@ -36,19 +36,19 @@ Playing card images are copied from [GNOME Aisleriot](https://live.gnome.org/Ais
 ## Building
 
 To build *sk*, you need to install the dependencies with the corresponding development files first, use your package manager (if available) to install them.
-*sk* comes with a simple CMakeLists.txt file, thus you can use CMake to generate a makefile. Currently, this procedure works only on Linux,
-for other operating systems, you have to create appropriate build files by hand. Install all the dependencies and maybe CMake by using, for example:
+*sk* comes with a simple CMakeLists.txt file, thus you can use CMake to generate a makefile. Currently, this procedure works only on Linux.
+For other operating systems, you have to create appropriate build files by hand.
 
-    sudo apt-get install build-essential libfltk1.3-dev libboost-all-dev libopencv-dev portaudio19-dev cmake
-
-[Download](https://github.com/cpaproth/sk/archive/master.zip) and unpack the *sk* source code. Finally, you can build and run *sk*:
-
-    cd sk-master
-    mkdir build
-    cd build
-    cmake -D CMAKE_BUILD_TYPE=Release ../src/
-    make
-    ./sk
+1. Install all the dependencies and CMake by using, for example:
+		sudo apt-get install build-essential libfltk1.3-dev libboost-all-dev libopencv-dev portaudio19-dev cmake
+2. [Download](https://github.com/cpaproth/sk/archive/master.zip) and unpack the *sk* source code.
+3. Build and run *sk*:
+		cd sk-master
+		mkdir build
+		cd build
+		cmake -D CMAKE_BUILD_TYPE=Release ../src/
+		make
+		./sk
 
 
 ## Usage
