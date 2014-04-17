@@ -60,7 +60,6 @@ private:
 public:
   SK::GlImage *leftimage;
   SK::GlImage *rightimage;
-  SK::GlImage *midimage;
   Fl_Box *info;
   SK::BidButton *bid;
 private:
@@ -154,6 +153,7 @@ private:
   void cb_giveup_i(Fl_Button*, void*);
   static void cb_giveup(Fl_Button*, void*);
 public:
+  SK::GlImage *midimage;
   Fl_Input *chat;
 private:
   void cb_chat_i(Fl_Input*, void*);

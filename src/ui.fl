@@ -41,16 +41,16 @@ class UserInterface {open
     Fl_Window mainwnd {
       label {Skat-Konferenz}
       callback {mainwnd->hide();} open
-      private xywh {319 200 960 700} type Double labelsize 11 align 80
+      private xywh {265 88 960 700} type Double labelsize 11 align 80 resizable
       code0 {\#include <map>}
       code1 {\#include <string>}
-      code2 {\#include <boost/function/function0.hpp>} visible
+      code2 {\#include <boost/function/function0.hpp>} size_range {960 700 0 0} visible
     } {
       Fl_Tabs {} {open
         xywh {0 0 960 700} labelsize 11
       } {
         Fl_Group {} {
-          label Skat open selected
+          label Skat open
           xywh {0 25 960 675} labelsize 11
         } {
           Fl_Box table {
@@ -59,146 +59,154 @@ class UserInterface {open
             code0 {\#include "GlTable.h"}
             class {SK::GlTable}
           }
-          Fl_Box leftimage {
-            xywh {0 25 320 240} box FLAT_BOX color 56 labelsize 11
-            code0 {\#include "GlImage.h"}
-            class {SK::GlImage}
-          }
-          Fl_Box rightimage {
-            xywh {320 25 320 240} box FLAT_BOX color 56 labelsize 11
-            class {SK::GlImage}
-          }
-          Fl_Box midimage {
-            xywh {640 440 320 240} box FLAT_BOX color 56 labelsize 11
-            class {SK::GlImage}
-          }
-          Fl_Group {} {open
-            xywh {640 25 320 85} box DOWN_BOX labelsize 11
+          Fl_Group {} {
+            xywh {0 25 640 240} resizable
           } {
-            Fl_Box info {
-              label Information
-              xywh {640 35 320 25} labelfont 1 labelsize 11 align 32
+            Fl_Box leftimage {
+              xywh {0 25 320 240} box FLAT_BOX color 56 labelsize 11
+              code0 {\#include "GlImage.h"}
+              class {SK::GlImage}
             }
-            Fl_Button bid {
-              label Reizen
-              callback {f["game bid"]();}
-              xywh {680 70 105 25} box PLASTIC_UP_BOX color 2 labelfont 1 labelsize 11
-              code0 {\#include "BidButton.h"}
-              class {SK::BidButton}
-            }
-            Fl_Button fold {
-              label Passen
-              callback {f["game fold"]();}
-              xywh {815 70 105 25} box PLASTIC_UP_BOX color 1 labelfont 1 labelsize 11
+            Fl_Box rightimage {
+              xywh {320 25 320 240} box FLAT_BOX color 56 labelsize 11
+              class {SK::GlImage}
             }
           }
-          Fl_Group {} {open
-            xywh {640 110 320 240} box DOWN_BOX labelsize 11
+          Fl_Group {} {selected
+            xywh {640 25 320 415}
           } {
-            Fl_Box gameinfo {
-              label Spielinfo
-              xywh {640 120 320 25} labelfont 1 labelsize 11 align 32
-            }
-            Fl_Group {} {open
-              xywh {700 155 200 70} labelsize 11
+            Fl_Group {} {
+              xywh {640 25 320 85} box DOWN_BOX labelsize 11
             } {
-              Fl_Button diamonds {
-                callback {f["game select"]();}
-                tooltip {Karo ist Trumpf.} image {../images/diamonds.xpm} xywh {700 155 50 35} type Radio value 1 labelsize 11
+              Fl_Box info {
+                label Information
+                xywh {640 35 320 25} labelfont 1 labelsize 11 align 32
               }
-              Fl_Button hearts {
-                callback {f["game select"]();}
-                tooltip {Herz ist Trumpf.} image {../images/hearts.xpm} xywh {750 155 50 35} type Radio labelsize 11
+              Fl_Button bid {
+                label Reizen
+                callback {f["game bid"]();}
+                xywh {680 70 105 25} box PLASTIC_UP_BOX color 2 labelfont 1 labelsize 11
+                code0 {\#include "BidButton.h"}
+                class {SK::BidButton}
               }
-              Fl_Button spades {
-                callback {f["game select"]();}
-                tooltip {Pik ist Trumpf.} image {../images/spades.xpm} xywh {800 155 50 35} type Radio labelsize 11
-              }
-              Fl_Button clubs {
-                callback {f["game select"]();}
-                tooltip {Kreuz ist Trumpf.} image {../images/clubs.xpm} xywh {850 155 50 35} type Radio labelsize 11
-              }
-              Fl_Button grand {
-                label Grand
-                callback {f["game select"]();}
-                tooltip {Nur Buben sind Trumpf.} xywh {700 190 60 35} type Radio labelfont 1 labelsize 11
-              }
-              Fl_Button null {
-                label Null
-                callback {f["game select"]();}
-                tooltip {Nullspiel, es gibt kein Trumpf.} xywh {760 190 45 35} type Radio labelfont 1 labelsize 11
-              }
-              Fl_Button nullouvert {
-                label {Null Ouvert}
-                callback {f["game select"]();}
-                tooltip {Offenes Nullspiel, es gibt kein Trumpf.} xywh {805 190 95 35} type Radio labelfont 1 labelsize 11
+              Fl_Button fold {
+                label Passen
+                callback {f["game fold"]();}
+                xywh {815 70 105 25} box PLASTIC_UP_BOX color 1 labelfont 1 labelsize 11
               }
             }
-            Fl_Group hand {open
-              xywh {700 225 200 35} labelsize 11
+            Fl_Group {} {
+              xywh {640 110 320 240} box DOWN_BOX labelsize 11
             } {
-              Fl_Button schneider {
-                label Schneider
-                callback {if (!schneider->value()) {
+              Fl_Box gameinfo {
+                label Spielinfo
+                xywh {640 120 320 25} labelfont 1 labelsize 11 align 32
+              }
+              Fl_Group {} {
+                xywh {700 155 200 70} labelsize 11
+              } {
+                Fl_Button diamonds {
+                  callback {f["game select"]();}
+                  tooltip {Karo ist Trumpf.} image {../images/diamonds.xpm} xywh {700 155 50 35} type Radio value 1 labelsize 11
+                }
+                Fl_Button hearts {
+                  callback {f["game select"]();}
+                  tooltip {Herz ist Trumpf.} image {../images/hearts.xpm} xywh {750 155 50 35} type Radio labelsize 11
+                }
+                Fl_Button spades {
+                  callback {f["game select"]();}
+                  tooltip {Pik ist Trumpf.} image {../images/spades.xpm} xywh {800 155 50 35} type Radio labelsize 11
+                }
+                Fl_Button clubs {
+                  callback {f["game select"]();}
+                  tooltip {Kreuz ist Trumpf.} image {../images/clubs.xpm} xywh {850 155 50 35} type Radio labelsize 11
+                }
+                Fl_Button grand {
+                  label Grand
+                  callback {f["game select"]();}
+                  tooltip {Nur Buben sind Trumpf.} xywh {700 190 60 35} type Radio labelfont 1 labelsize 11
+                }
+                Fl_Button null {
+                  label Null
+                  callback {f["game select"]();}
+                  tooltip {Nullspiel, es gibt kein Trumpf.} xywh {760 190 45 35} type Radio labelfont 1 labelsize 11
+                }
+                Fl_Button nullouvert {
+                  label {Null Ouvert}
+                  callback {f["game select"]();}
+                  tooltip {Offenes Nullspiel, es gibt kein Trumpf.} xywh {805 190 95 35} type Radio labelfont 1 labelsize 11
+                }
+              }
+              Fl_Group hand {
+                xywh {700 225 200 35} labelsize 11
+              } {
+                Fl_Button schneider {
+                  label Schneider
+                  callback {if (!schneider->value()) {
   schwarz->value(false);
   ouvert->value(false);
 }
 f["game select"]();}
-                tooltip {Handspiel, Schneider angesagt.} xywh {700 225 80 35} type Toggle labelfont 1 labelsize 11
-              }
-              Fl_Button schwarz {
-                label Schwarz
-                callback {if (schwarz->value())
+                  tooltip {Handspiel, Schneider angesagt.} xywh {700 225 80 35} type Toggle labelfont 1 labelsize 11
+                }
+                Fl_Button schwarz {
+                  label Schwarz
+                  callback {if (schwarz->value())
   schneider->value(true);
 else
   ouvert->value(false);
 f["game select"]();}
-                tooltip {Handspiel, Schneider und Schwarz angesagt.} xywh {780 225 65 35} type Toggle labelfont 1 labelsize 11
-              }
-              Fl_Button ouvert {
-                label Ouvert
-                callback {if (ouvert->value()) {
+                  tooltip {Handspiel, Schneider und Schwarz angesagt.} xywh {780 225 65 35} type Toggle labelfont 1 labelsize 11
+                }
+                Fl_Button ouvert {
+                  label Ouvert
+                  callback {if (ouvert->value()) {
   schneider->value(true);
   schwarz->value(true);
 }
 f["game select"]();}
-                tooltip {Offenes Handspiel, Schneider und Schwarz angesagt.} xywh {845 225 55 35} type Toggle labelfont 1 labelsize 11
+                  tooltip {Offenes Handspiel, Schneider und Schwarz angesagt.} xywh {845 225 55 35} type Toggle labelfont 1 labelsize 11
+                }
+              }
+              Fl_Button skat {
+                label {Skat aufnehmen}
+                callback {f["skat take"]();}
+                tooltip {Kein Handspiel.} xywh {700 270 200 25} labelfont 1 labelsize 11
+              }
+              Fl_Button announce {
+                label {Spiel ansagen}
+                callback {f["game announce"]();}
+                xywh {700 305 200 25} labelfont 1 labelsize 11
               }
             }
-            Fl_Button skat {
-              label {Skat aufnehmen}
-              callback {f["skat take"]();}
-              tooltip {Kein Handspiel.} xywh {700 270 200 25} labelfont 1 labelsize 11
-            }
-            Fl_Button announce {
-              label {Spiel ansagen}
-              callback {f["game announce"]();}
-              xywh {700 305 200 25} labelfont 1 labelsize 11
+            Fl_Group {} {
+              xywh {640 350 320 90} box DOWN_BOX labelsize 11
+            } {
+              Fl_Button dealout {
+                label {Karten austeilen}
+                callback {f["game dealout"]();}
+                xywh {655 365 140 25} color 2 labelfont 1 labelsize 11
+              }
+              Fl_Button disclose {
+                label {Karten aufdecken}
+                callback {f["game disclose"]();}
+                xywh {655 400 140 25} labelfont 1 labelsize 11
+              }
+              Fl_Button contrare {
+                label {Kontra / Re}
+                callback {f["game contrare"]();}
+                xywh {810 365 140 25} type Toggle color 1 labelfont 1 labelsize 11
+              }
+              Fl_Button giveup {
+                label {Spiel abbrechen}
+                callback {f["game giveup"]();}
+                xywh {810 400 140 25} type Toggle labelfont 1 labelsize 11
+              }
             }
           }
-          Fl_Group {} {open
-            xywh {640 350 320 90} box DOWN_BOX labelsize 11
-          } {
-            Fl_Button dealout {
-              label {Karten austeilen}
-              callback {f["game dealout"]();}
-              xywh {655 365 140 25} color 2 labelfont 1 labelsize 11
-            }
-            Fl_Button disclose {
-              label {Karten aufdecken}
-              callback {f["game disclose"]();}
-              xywh {655 400 140 25} labelfont 1 labelsize 11
-            }
-            Fl_Button contrare {
-              label {Kontra / Re}
-              callback {f["game contrare"]();}
-              xywh {810 365 140 25} type Toggle color 1 labelfont 1 labelsize 11
-            }
-            Fl_Button giveup {
-              label {Spiel abbrechen}
-              callback {f["game giveup"]();}
-              xywh {810 400 140 25} type Toggle labelfont 1 labelsize 11
-            }
+          Fl_Box midimage {
+            xywh {640 440 320 240} box FLAT_BOX color 56 labelsize 11
+            class {SK::GlImage}
           }
           Fl_Input chat {
             callback {f["chat message"]();}
@@ -207,7 +215,7 @@ f["game select"]();}
           }
         }
         Fl_Group {} {
-          label System open
+          label System
           xywh {0 25 960 675} labelsize 11 hide
         } {
           Fl_Group {} {
@@ -339,10 +347,10 @@ f["rule change"]();}
         }
         Fl_Group {} {
           label Log open
-          xywh {0 25 960 675} labelsize 11 hide
+          xywh {0 25 960 675} labelsize 11 hide resizable
         } {
           Fl_Text_Display {} {
-            private xywh {0 25 480 675} box DOWN_BOX color 55 labelsize 11 textsize 11
+            private xywh {0 25 480 675} box DOWN_BOX color 55 labelsize 11 textsize 11 resizable
             code0 {\#include "LogDisplay.h"}
             class {SK::LogDisplay}
           }

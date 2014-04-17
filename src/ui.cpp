@@ -44,21 +44,21 @@ void UserInterface::cb_bid_i(SK::BidButton*, void*) {
   f["game bid"]();
 }
 void UserInterface::cb_bid(SK::BidButton* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_bid_i(o,v);
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_bid_i(o,v);
 }
 
 void UserInterface::cb_fold_i(Fl_Button*, void*) {
   f["game fold"]();
 }
 void UserInterface::cb_fold(Fl_Button* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_fold_i(o,v);
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_fold_i(o,v);
 }
 
 void UserInterface::cb_diamonds_i(Fl_Button*, void*) {
   f["game select"]();
 }
 void UserInterface::cb_diamonds(Fl_Button* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_diamonds_i(o,v);
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_diamonds_i(o,v);
 }
 
 #include <FL/Fl_Pixmap.H>
@@ -99,7 +99,7 @@ void UserInterface::cb_hearts_i(Fl_Button*, void*) {
   f["game select"]();
 }
 void UserInterface::cb_hearts(Fl_Button* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_hearts_i(o,v);
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_hearts_i(o,v);
 }
 
 static const char *idata_hearts[] = {
@@ -138,7 +138,7 @@ void UserInterface::cb_spades_i(Fl_Button*, void*) {
   f["game select"]();
 }
 void UserInterface::cb_spades(Fl_Button* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_spades_i(o,v);
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_spades_i(o,v);
 }
 
 static const char *idata_spades[] = {
@@ -180,7 +180,7 @@ void UserInterface::cb_clubs_i(Fl_Button*, void*) {
   f["game select"]();
 }
 void UserInterface::cb_clubs(Fl_Button* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_clubs_i(o,v);
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_clubs_i(o,v);
 }
 
 static const char *idata_clubs[] = {
@@ -218,21 +218,21 @@ void UserInterface::cb_grand_i(Fl_Button*, void*) {
   f["game select"]();
 }
 void UserInterface::cb_grand(Fl_Button* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_grand_i(o,v);
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_grand_i(o,v);
 }
 
 void UserInterface::cb_null_i(Fl_Button*, void*) {
   f["game select"]();
 }
 void UserInterface::cb_null(Fl_Button* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_null_i(o,v);
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_null_i(o,v);
 }
 
 void UserInterface::cb_nullouvert_i(Fl_Button*, void*) {
   f["game select"]();
 }
 void UserInterface::cb_nullouvert(Fl_Button* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_nullouvert_i(o,v);
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_nullouvert_i(o,v);
 }
 
 void UserInterface::cb_schneider_i(Fl_Button*, void*) {
@@ -243,7 +243,7 @@ void UserInterface::cb_schneider_i(Fl_Button*, void*) {
 f["game select"]();
 }
 void UserInterface::cb_schneider(Fl_Button* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_schneider_i(o,v);
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_schneider_i(o,v);
 }
 
 void UserInterface::cb_schwarz_i(Fl_Button*, void*) {
@@ -254,7 +254,7 @@ else
 f["game select"]();
 }
 void UserInterface::cb_schwarz(Fl_Button* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_schwarz_i(o,v);
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_schwarz_i(o,v);
 }
 
 void UserInterface::cb_ouvert_i(Fl_Button*, void*) {
@@ -265,49 +265,49 @@ void UserInterface::cb_ouvert_i(Fl_Button*, void*) {
 f["game select"]();
 }
 void UserInterface::cb_ouvert(Fl_Button* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_ouvert_i(o,v);
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_ouvert_i(o,v);
 }
 
 void UserInterface::cb_skat_i(Fl_Button*, void*) {
   f["skat take"]();
 }
 void UserInterface::cb_skat(Fl_Button* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_skat_i(o,v);
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_skat_i(o,v);
 }
 
 void UserInterface::cb_announce_i(Fl_Button*, void*) {
   f["game announce"]();
 }
 void UserInterface::cb_announce(Fl_Button* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_announce_i(o,v);
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_announce_i(o,v);
 }
 
 void UserInterface::cb_dealout_i(Fl_Button*, void*) {
   f["game dealout"]();
 }
 void UserInterface::cb_dealout(Fl_Button* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_dealout_i(o,v);
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_dealout_i(o,v);
 }
 
 void UserInterface::cb_disclose_i(Fl_Button*, void*) {
   f["game disclose"]();
 }
 void UserInterface::cb_disclose(Fl_Button* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_disclose_i(o,v);
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_disclose_i(o,v);
 }
 
 void UserInterface::cb_contrare_i(Fl_Button*, void*) {
   f["game contrare"]();
 }
 void UserInterface::cb_contrare(Fl_Button* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_contrare_i(o,v);
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_contrare_i(o,v);
 }
 
 void UserInterface::cb_giveup_i(Fl_Button*, void*) {
   f["game giveup"]();
 }
 void UserInterface::cb_giveup(Fl_Button* o, void* v) {
-  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_giveup_i(o,v);
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->parent()->user_data()))->cb_giveup_i(o,v);
 }
 
 void UserInterface::cb_chat_i(Fl_Input*, void*) {
@@ -463,28 +463,193 @@ UserInterface::UserInterface(void):prefs(Fl_Preferences::USER, "cpaproth", "sk")
           table->align(Fl_Align(FL_ALIGN_CENTER));
           table->when(FL_WHEN_RELEASE);
         } // SK::GlTable* table
-        { leftimage = new SK::GlImage(0, 25, 320, 240);
-          leftimage->box(FL_FLAT_BOX);
-          leftimage->color(FL_BLACK);
-          leftimage->selection_color(FL_BACKGROUND_COLOR);
-          leftimage->labeltype(FL_NORMAL_LABEL);
-          leftimage->labelfont(0);
-          leftimage->labelsize(11);
-          leftimage->labelcolor(FL_FOREGROUND_COLOR);
-          leftimage->align(Fl_Align(FL_ALIGN_CENTER));
-          leftimage->when(FL_WHEN_RELEASE);
-        } // SK::GlImage* leftimage
-        { rightimage = new SK::GlImage(320, 25, 320, 240);
-          rightimage->box(FL_FLAT_BOX);
-          rightimage->color(FL_BLACK);
-          rightimage->selection_color(FL_BACKGROUND_COLOR);
-          rightimage->labeltype(FL_NORMAL_LABEL);
-          rightimage->labelfont(0);
-          rightimage->labelsize(11);
-          rightimage->labelcolor(FL_FOREGROUND_COLOR);
-          rightimage->align(Fl_Align(FL_ALIGN_CENTER));
-          rightimage->when(FL_WHEN_RELEASE);
-        } // SK::GlImage* rightimage
+        { Fl_Group* o = new Fl_Group(0, 25, 640, 240);
+          { leftimage = new SK::GlImage(0, 25, 320, 240);
+            leftimage->box(FL_FLAT_BOX);
+            leftimage->color(FL_BLACK);
+            leftimage->selection_color(FL_BACKGROUND_COLOR);
+            leftimage->labeltype(FL_NORMAL_LABEL);
+            leftimage->labelfont(0);
+            leftimage->labelsize(11);
+            leftimage->labelcolor(FL_FOREGROUND_COLOR);
+            leftimage->align(Fl_Align(FL_ALIGN_CENTER));
+            leftimage->when(FL_WHEN_RELEASE);
+          } // SK::GlImage* leftimage
+          { rightimage = new SK::GlImage(320, 25, 320, 240);
+            rightimage->box(FL_FLAT_BOX);
+            rightimage->color(FL_BLACK);
+            rightimage->selection_color(FL_BACKGROUND_COLOR);
+            rightimage->labeltype(FL_NORMAL_LABEL);
+            rightimage->labelfont(0);
+            rightimage->labelsize(11);
+            rightimage->labelcolor(FL_FOREGROUND_COLOR);
+            rightimage->align(Fl_Align(FL_ALIGN_CENTER));
+            rightimage->when(FL_WHEN_RELEASE);
+          } // SK::GlImage* rightimage
+          o->end();
+          Fl_Group::current()->resizable(o);
+        } // Fl_Group* o
+        { Fl_Group* o = new Fl_Group(640, 25, 320, 415);
+          { Fl_Group* o = new Fl_Group(640, 25, 320, 85);
+            o->box(FL_DOWN_BOX);
+            o->labelsize(11);
+            { info = new Fl_Box(640, 35, 320, 25, "Information");
+              info->labelfont(1);
+              info->labelsize(11);
+              info->align(Fl_Align(FL_ALIGN_TEXT_OVER_IMAGE));
+            } // Fl_Box* info
+            { bid = new SK::BidButton(680, 70, 105, 25, "Reizen");
+              bid->box(FL_PLASTIC_UP_BOX);
+              bid->color((Fl_Color)2);
+              bid->selection_color(FL_BACKGROUND_COLOR);
+              bid->labeltype(FL_NORMAL_LABEL);
+              bid->labelfont(1);
+              bid->labelsize(11);
+              bid->labelcolor(FL_FOREGROUND_COLOR);
+              bid->callback((Fl_Callback*)cb_bid);
+              bid->align(Fl_Align(FL_ALIGN_CENTER));
+              bid->when(FL_WHEN_RELEASE);
+            } // SK::BidButton* bid
+            { fold = new Fl_Button(815, 70, 105, 25, "Passen");
+              fold->box(FL_PLASTIC_UP_BOX);
+              fold->color((Fl_Color)1);
+              fold->labelfont(1);
+              fold->labelsize(11);
+              fold->callback((Fl_Callback*)cb_fold);
+            } // Fl_Button* fold
+            o->end();
+          } // Fl_Group* o
+          { Fl_Group* o = new Fl_Group(640, 110, 320, 240);
+            o->box(FL_DOWN_BOX);
+            o->labelsize(11);
+            { gameinfo = new Fl_Box(640, 120, 320, 25, "Spielinfo");
+              gameinfo->labelfont(1);
+              gameinfo->labelsize(11);
+              gameinfo->align(Fl_Align(FL_ALIGN_TEXT_OVER_IMAGE));
+            } // Fl_Box* gameinfo
+            { Fl_Group* o = new Fl_Group(700, 155, 200, 70);
+              o->labelsize(11);
+              { diamonds = new Fl_Button(700, 155, 50, 35);
+                diamonds->tooltip("Karo ist Trumpf.");
+                diamonds->type(102);
+                diamonds->value(1);
+                diamonds->image(image_diamonds);
+                diamonds->labelsize(11);
+                diamonds->callback((Fl_Callback*)cb_diamonds);
+              } // Fl_Button* diamonds
+              { hearts = new Fl_Button(750, 155, 50, 35);
+                hearts->tooltip("Herz ist Trumpf.");
+                hearts->type(102);
+                hearts->image(image_hearts);
+                hearts->labelsize(11);
+                hearts->callback((Fl_Callback*)cb_hearts);
+              } // Fl_Button* hearts
+              { spades = new Fl_Button(800, 155, 50, 35);
+                spades->tooltip("Pik ist Trumpf.");
+                spades->type(102);
+                spades->image(image_spades);
+                spades->labelsize(11);
+                spades->callback((Fl_Callback*)cb_spades);
+              } // Fl_Button* spades
+              { clubs = new Fl_Button(850, 155, 50, 35);
+                clubs->tooltip("Kreuz ist Trumpf.");
+                clubs->type(102);
+                clubs->image(image_clubs);
+                clubs->labelsize(11);
+                clubs->callback((Fl_Callback*)cb_clubs);
+              } // Fl_Button* clubs
+              { grand = new Fl_Button(700, 190, 60, 35, "Grand");
+                grand->tooltip("Nur Buben sind Trumpf.");
+                grand->type(102);
+                grand->labelfont(1);
+                grand->labelsize(11);
+                grand->callback((Fl_Callback*)cb_grand);
+              } // Fl_Button* grand
+              { null = new Fl_Button(760, 190, 45, 35, "Null");
+                null->tooltip("Nullspiel, es gibt kein Trumpf.");
+                null->type(102);
+                null->labelfont(1);
+                null->labelsize(11);
+                null->callback((Fl_Callback*)cb_null);
+              } // Fl_Button* null
+              { nullouvert = new Fl_Button(805, 190, 95, 35, "Null Ouvert");
+                nullouvert->tooltip("Offenes Nullspiel, es gibt kein Trumpf.");
+                nullouvert->type(102);
+                nullouvert->labelfont(1);
+                nullouvert->labelsize(11);
+                nullouvert->callback((Fl_Callback*)cb_nullouvert);
+              } // Fl_Button* nullouvert
+              o->end();
+            } // Fl_Group* o
+            { hand = new Fl_Group(700, 225, 200, 35);
+              hand->labelsize(11);
+              { schneider = new Fl_Button(700, 225, 80, 35, "Schneider");
+                schneider->tooltip("Handspiel, Schneider angesagt.");
+                schneider->type(1);
+                schneider->labelfont(1);
+                schneider->labelsize(11);
+                schneider->callback((Fl_Callback*)cb_schneider);
+              } // Fl_Button* schneider
+              { schwarz = new Fl_Button(780, 225, 65, 35, "Schwarz");
+                schwarz->tooltip("Handspiel, Schneider und Schwarz angesagt.");
+                schwarz->type(1);
+                schwarz->labelfont(1);
+                schwarz->labelsize(11);
+                schwarz->callback((Fl_Callback*)cb_schwarz);
+              } // Fl_Button* schwarz
+              { ouvert = new Fl_Button(845, 225, 55, 35, "Ouvert");
+                ouvert->tooltip("Offenes Handspiel, Schneider und Schwarz angesagt.");
+                ouvert->type(1);
+                ouvert->labelfont(1);
+                ouvert->labelsize(11);
+                ouvert->callback((Fl_Callback*)cb_ouvert);
+              } // Fl_Button* ouvert
+              hand->end();
+            } // Fl_Group* hand
+            { skat = new Fl_Button(700, 270, 200, 25, "Skat aufnehmen");
+              skat->tooltip("Kein Handspiel.");
+              skat->labelfont(1);
+              skat->labelsize(11);
+              skat->callback((Fl_Callback*)cb_skat);
+            } // Fl_Button* skat
+            { announce = new Fl_Button(700, 305, 200, 25, "Spiel ansagen");
+              announce->labelfont(1);
+              announce->labelsize(11);
+              announce->callback((Fl_Callback*)cb_announce);
+            } // Fl_Button* announce
+            o->end();
+          } // Fl_Group* o
+          { Fl_Group* o = new Fl_Group(640, 350, 320, 90);
+            o->box(FL_DOWN_BOX);
+            o->labelsize(11);
+            { dealout = new Fl_Button(655, 365, 140, 25, "Karten austeilen");
+              dealout->color((Fl_Color)2);
+              dealout->labelfont(1);
+              dealout->labelsize(11);
+              dealout->callback((Fl_Callback*)cb_dealout);
+            } // Fl_Button* dealout
+            { disclose = new Fl_Button(655, 400, 140, 25, "Karten aufdecken");
+              disclose->labelfont(1);
+              disclose->labelsize(11);
+              disclose->callback((Fl_Callback*)cb_disclose);
+            } // Fl_Button* disclose
+            { contrare = new Fl_Button(810, 365, 140, 25, "Kontra / Re");
+              contrare->type(1);
+              contrare->color((Fl_Color)1);
+              contrare->labelfont(1);
+              contrare->labelsize(11);
+              contrare->callback((Fl_Callback*)cb_contrare);
+            } // Fl_Button* contrare
+            { giveup = new Fl_Button(810, 400, 140, 25, "Spiel abbrechen");
+              giveup->type(1);
+              giveup->labelfont(1);
+              giveup->labelsize(11);
+              giveup->callback((Fl_Callback*)cb_giveup);
+            } // Fl_Button* giveup
+            o->end();
+          } // Fl_Group* o
+          o->end();
+        } // Fl_Group* o
         { midimage = new SK::GlImage(640, 440, 320, 240);
           midimage->box(FL_FLAT_BOX);
           midimage->color(FL_BLACK);
@@ -496,164 +661,6 @@ UserInterface::UserInterface(void):prefs(Fl_Preferences::USER, "cpaproth", "sk")
           midimage->align(Fl_Align(FL_ALIGN_CENTER));
           midimage->when(FL_WHEN_RELEASE);
         } // SK::GlImage* midimage
-        { Fl_Group* o = new Fl_Group(640, 25, 320, 85);
-          o->box(FL_DOWN_BOX);
-          o->labelsize(11);
-          { info = new Fl_Box(640, 35, 320, 25, "Information");
-            info->labelfont(1);
-            info->labelsize(11);
-            info->align(Fl_Align(FL_ALIGN_TEXT_OVER_IMAGE));
-          } // Fl_Box* info
-          { bid = new SK::BidButton(680, 70, 105, 25, "Reizen");
-            bid->box(FL_PLASTIC_UP_BOX);
-            bid->color((Fl_Color)2);
-            bid->selection_color(FL_BACKGROUND_COLOR);
-            bid->labeltype(FL_NORMAL_LABEL);
-            bid->labelfont(1);
-            bid->labelsize(11);
-            bid->labelcolor(FL_FOREGROUND_COLOR);
-            bid->callback((Fl_Callback*)cb_bid);
-            bid->align(Fl_Align(FL_ALIGN_CENTER));
-            bid->when(FL_WHEN_RELEASE);
-          } // SK::BidButton* bid
-          { fold = new Fl_Button(815, 70, 105, 25, "Passen");
-            fold->box(FL_PLASTIC_UP_BOX);
-            fold->color((Fl_Color)1);
-            fold->labelfont(1);
-            fold->labelsize(11);
-            fold->callback((Fl_Callback*)cb_fold);
-          } // Fl_Button* fold
-          o->end();
-        } // Fl_Group* o
-        { Fl_Group* o = new Fl_Group(640, 110, 320, 240);
-          o->box(FL_DOWN_BOX);
-          o->labelsize(11);
-          { gameinfo = new Fl_Box(640, 120, 320, 25, "Spielinfo");
-            gameinfo->labelfont(1);
-            gameinfo->labelsize(11);
-            gameinfo->align(Fl_Align(FL_ALIGN_TEXT_OVER_IMAGE));
-          } // Fl_Box* gameinfo
-          { Fl_Group* o = new Fl_Group(700, 155, 200, 70);
-            o->labelsize(11);
-            { diamonds = new Fl_Button(700, 155, 50, 35);
-              diamonds->tooltip("Karo ist Trumpf.");
-              diamonds->type(102);
-              diamonds->value(1);
-              diamonds->image(image_diamonds);
-              diamonds->labelsize(11);
-              diamonds->callback((Fl_Callback*)cb_diamonds);
-            } // Fl_Button* diamonds
-            { hearts = new Fl_Button(750, 155, 50, 35);
-              hearts->tooltip("Herz ist Trumpf.");
-              hearts->type(102);
-              hearts->image(image_hearts);
-              hearts->labelsize(11);
-              hearts->callback((Fl_Callback*)cb_hearts);
-            } // Fl_Button* hearts
-            { spades = new Fl_Button(800, 155, 50, 35);
-              spades->tooltip("Pik ist Trumpf.");
-              spades->type(102);
-              spades->image(image_spades);
-              spades->labelsize(11);
-              spades->callback((Fl_Callback*)cb_spades);
-            } // Fl_Button* spades
-            { clubs = new Fl_Button(850, 155, 50, 35);
-              clubs->tooltip("Kreuz ist Trumpf.");
-              clubs->type(102);
-              clubs->image(image_clubs);
-              clubs->labelsize(11);
-              clubs->callback((Fl_Callback*)cb_clubs);
-            } // Fl_Button* clubs
-            { grand = new Fl_Button(700, 190, 60, 35, "Grand");
-              grand->tooltip("Nur Buben sind Trumpf.");
-              grand->type(102);
-              grand->labelfont(1);
-              grand->labelsize(11);
-              grand->callback((Fl_Callback*)cb_grand);
-            } // Fl_Button* grand
-            { null = new Fl_Button(760, 190, 45, 35, "Null");
-              null->tooltip("Nullspiel, es gibt kein Trumpf.");
-              null->type(102);
-              null->labelfont(1);
-              null->labelsize(11);
-              null->callback((Fl_Callback*)cb_null);
-            } // Fl_Button* null
-            { nullouvert = new Fl_Button(805, 190, 95, 35, "Null Ouvert");
-              nullouvert->tooltip("Offenes Nullspiel, es gibt kein Trumpf.");
-              nullouvert->type(102);
-              nullouvert->labelfont(1);
-              nullouvert->labelsize(11);
-              nullouvert->callback((Fl_Callback*)cb_nullouvert);
-            } // Fl_Button* nullouvert
-            o->end();
-          } // Fl_Group* o
-          { hand = new Fl_Group(700, 225, 200, 35);
-            hand->labelsize(11);
-            { schneider = new Fl_Button(700, 225, 80, 35, "Schneider");
-              schneider->tooltip("Handspiel, Schneider angesagt.");
-              schneider->type(1);
-              schneider->labelfont(1);
-              schneider->labelsize(11);
-              schneider->callback((Fl_Callback*)cb_schneider);
-            } // Fl_Button* schneider
-            { schwarz = new Fl_Button(780, 225, 65, 35, "Schwarz");
-              schwarz->tooltip("Handspiel, Schneider und Schwarz angesagt.");
-              schwarz->type(1);
-              schwarz->labelfont(1);
-              schwarz->labelsize(11);
-              schwarz->callback((Fl_Callback*)cb_schwarz);
-            } // Fl_Button* schwarz
-            { ouvert = new Fl_Button(845, 225, 55, 35, "Ouvert");
-              ouvert->tooltip("Offenes Handspiel, Schneider und Schwarz angesagt.");
-              ouvert->type(1);
-              ouvert->labelfont(1);
-              ouvert->labelsize(11);
-              ouvert->callback((Fl_Callback*)cb_ouvert);
-            } // Fl_Button* ouvert
-            hand->end();
-          } // Fl_Group* hand
-          { skat = new Fl_Button(700, 270, 200, 25, "Skat aufnehmen");
-            skat->tooltip("Kein Handspiel.");
-            skat->labelfont(1);
-            skat->labelsize(11);
-            skat->callback((Fl_Callback*)cb_skat);
-          } // Fl_Button* skat
-          { announce = new Fl_Button(700, 305, 200, 25, "Spiel ansagen");
-            announce->labelfont(1);
-            announce->labelsize(11);
-            announce->callback((Fl_Callback*)cb_announce);
-          } // Fl_Button* announce
-          o->end();
-        } // Fl_Group* o
-        { Fl_Group* o = new Fl_Group(640, 350, 320, 90);
-          o->box(FL_DOWN_BOX);
-          o->labelsize(11);
-          { dealout = new Fl_Button(655, 365, 140, 25, "Karten austeilen");
-            dealout->color((Fl_Color)2);
-            dealout->labelfont(1);
-            dealout->labelsize(11);
-            dealout->callback((Fl_Callback*)cb_dealout);
-          } // Fl_Button* dealout
-          { disclose = new Fl_Button(655, 400, 140, 25, "Karten aufdecken");
-            disclose->labelfont(1);
-            disclose->labelsize(11);
-            disclose->callback((Fl_Callback*)cb_disclose);
-          } // Fl_Button* disclose
-          { contrare = new Fl_Button(810, 365, 140, 25, "Kontra / Re");
-            contrare->type(1);
-            contrare->color((Fl_Color)1);
-            contrare->labelfont(1);
-            contrare->labelsize(11);
-            contrare->callback((Fl_Callback*)cb_contrare);
-          } // Fl_Button* contrare
-          { giveup = new Fl_Button(810, 400, 140, 25, "Spiel abbrechen");
-            giveup->type(1);
-            giveup->labelfont(1);
-            giveup->labelsize(11);
-            giveup->callback((Fl_Callback*)cb_giveup);
-          } // Fl_Button* giveup
-          o->end();
-        } // Fl_Group* o
         { chat = new Fl_Input(640, 680, 320, 20);
           chat->box(FL_FLAT_BOX);
           chat->labelsize(11);
@@ -845,6 +852,7 @@ gt die Ramsch- auf die Bockrunde.");
           o->textsize(11);
           o->align(Fl_Align(FL_ALIGN_TOP));
           o->when(FL_WHEN_RELEASE);
+          Fl_Group::current()->resizable(o);
         } // SK::LogDisplay* o
         { listing = new Fl_Browser(480, 25, 480, 675);
           listing->selection_color((Fl_Color)215);
@@ -854,10 +862,13 @@ gt die Ramsch- auf die Bockrunde.");
           listing->add("@B49@cSpiel\t@B49@cPunkte\t@B49@cDu\t@B49@cLinks\t@B49@cRechts\t@B49@cSR");
         } // Fl_Browser* listing
         o->end();
+        Fl_Group::current()->resizable(o);
       } // Fl_Group* o
       o->end();
     } // Fl_Tabs* o
+    mainwnd->size_range(960, 700);
     mainwnd->end();
+    mainwnd->resizable(mainwnd);
   } // Fl_Double_Window* mainwnd
   mainwnd->show();
 }

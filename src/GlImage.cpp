@@ -18,7 +18,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 #include "GlImage.h"
 #include <FL/gl.h>
-#include <opencv/cxcore.h>
+#include <opencv/cv.h>
 
 
 using namespace SK;
@@ -49,10 +49,17 @@ void GlImage::draw(void) {
 
 	glPixelZoom(1.f, -1.f);
 	glRasterPos2i(0, h());
-	if (img && img->size().area() > 0 && img->elemSize() == 3)
-		glDrawPixels(img->cols, img->rows, GL_BGR_EXT, GL_UNSIGNED_BYTE, img->data);
-	else
+	if (img && img->size().area() > 0 && img->elemSize() == 3) {
+		if (img->cols == w() && img->rows == h()) {
+			glDrawPixels(img->cols, img->rows, GL_BGR_EXT, GL_UNSIGNED_BYTE, img->data);
+		} else {
+			cv::Mat res(h() * 4 / 3 < w()? w() * 3 / 4: h(), w() * 3 / 4 < h()? h() * 4 / 3: w(), CV_8UC3);
+			cv::resize(*img, res, res.size());
+			glDrawPixels(res.cols, res.rows, GL_BGR_EXT, GL_UNSIGNED_BYTE, res.data);
+		}
+	} else {
 		glClear(GL_COLOR_BUFFER_BIT);
+	}
 
 	if (!str.empty()) {
 		glPixelZoom(1.f, 1.f);
