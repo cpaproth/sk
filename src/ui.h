@@ -48,8 +48,8 @@ class UserInterface {
 public:
   std::map<std::string, boost::function<void(void)> > f; 
   UserInterface(void);
-private:
   Fl_Double_Window *mainwnd;
+private:
   void cb_mainwnd_i(Fl_Double_Window*, void*);
   static void cb_mainwnd(Fl_Double_Window*, void*);
 public:

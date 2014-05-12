@@ -132,10 +132,11 @@ unsigned GlTable::selection(void) {
 
 
 void GlTable::get_position(unsigned i, size_t s, float& x, float& y, float& a) {
-	x = w() / 2.f + (0.5f + i - s / 2.f) * (90.f - 4.f * s);
-	y = -4.f * 45.f / w() / w() * x * (x - w());
+	x = (0.5f + i - s / 2.f) * (90.f - 4.f * s);
+	y = -45.f / 102400.f * (x + 320.f) * (x - 320.f);
 	a = -(0.5f + i - s / 2.f) * 0.06f;
 
+	x += w() / 2.f;
 	x += pushed && i == selected? -50.f * sin(a): 0.f;
 	y += pushed && i == selected? 50.f * cos(a): 0.f;
 }
@@ -208,27 +209,27 @@ void GlTable::draw(void) {
 	}
 
 	if (skat.size() > 0 && skat[0] < 32)
-		draw_card(skat[0], 250.f, 300.f, 0.1f, pushed && selected == 100? 200.f: 160.f);
+		draw_card(skat[0], w() / 2.f - 70.f, 300.f, 0.1f, pushed && selected == 100? 200.f: 160.f);
 	if (skat.size() > 1 && skat[1] < 32)
-		draw_card(skat[1], 390.f, 300.f, -0.1f, pushed && selected == 101? 200.f: 160.f);
+		draw_card(skat[1], w() / 2.f + 70.f, 300.f, -0.1f, pushed && selected == 101? 200.f: 160.f);
 
 	if (selected == UINT_MAX || selected < 200 || !pushed) {
 		for (unsigned i = 0; i < trick.size(); i++) {
 			if ((i + start) % 3 == 0)
-				draw_card(trick[i], 330.f, 290.f, 0.05f, 160.f);
+				draw_card(trick[i], w() / 2.f + 10.f, 290.f, 0.05f, 160.f);
 			else if ((i + start) % 3 == 1)
-				draw_card(trick[i], 270.f, 320.f, 0.2f, 160.f);
+				draw_card(trick[i], w() / 2.f - 50.f, 320.f, 0.2f, 160.f);
 			else
-				draw_card(trick[i], 370.f, 330.f, -0.25f, 160.f);
+				draw_card(trick[i], w() / 2.f + 50.f, 330.f, -0.25f, 160.f);
 		}
 
 		for (unsigned i = 0; i < lefthand.size(); i++) {
 			float a = 0.785f + (0.5f + i - lefthand.size() / 2.f) * 0.13f;
-			draw_card(lefthand[i], sin(a) * 120.f, h() - cos(a) * 120.f, -3.142f + a, 120.f);
+			draw_card(lefthand[i], w() / 2.f - 320.f + sin(a) * 120.f, h() - cos(a) * 120.f, -3.142f + a, 120.f);
 		}
 		for (unsigned i = 0; i < righthand.size(); i++) {
 			float a = 0.785f + (0.5f + i - righthand.size() / 2.f) * 0.13f;
-			draw_card(righthand[i], w() - cos(a) * 120.f, h() - sin(a) * 120.f, -4.712f + a, 120.f);
+			draw_card(righthand[i], w() / 2.f + 320.f - cos(a) * 120.f, h() - sin(a) * 120.f, -4.712f + a, 120.f);
 		}
 
 	} else {
@@ -268,19 +269,19 @@ int GlTable::handle(int event) {
 				sel = i;
 		}
 
-		if (skat.size() > 0 && skat[0] < 32 && inside_card(mx, h() - my - 1, 250.f, 300.f, 0.1f, pushed && selected == 100? 200.f: 160.f))
+		if (skat.size() > 0 && skat[0] < 32 && inside_card(mx, h() - my - 1, w() / 2.f - 70.f, 300.f, 0.1f, pushed && selected == 100? 200.f: 160.f))
 			sel = 100;
-		if (skat.size() > 1 && skat[1] < 32 && inside_card(mx, h() - my - 1, 390.f, 300.f, -0.1f, pushed && selected == 101? 200.f: 160.f))
+		if (skat.size() > 1 && skat[1] < 32 && inside_card(mx, h() - my - 1, w() / 2.f + 70.f, 300.f, -0.1f, pushed && selected == 101? 200.f: 160.f))
 			sel = 101;
 
 		for (unsigned i = 0; i < lefthand.size(); i++) {
 			float a = 0.785f + (0.5f + i - lefthand.size() / 2.f) * 0.13f;
-			if (inside_card(mx, h() - my - 1, sin(a) * 120.f, h() - cos(a) * 120.f, -3.142f + a, 120.f))
+			if (inside_card(mx, h() - my - 1, w() / 2.f - 320.f + sin(a) * 120.f, h() - cos(a) * 120.f, -3.142f + a, 120.f))
 				sel = 200 + i;
 		}
 		for (unsigned i = 0; i < righthand.size(); i++) {
 			float a = 0.785f + (0.5f + i - righthand.size() / 2.f) * 0.13f;
-			if (inside_card(mx, h() - my - 1, w() - cos(a) * 120.f, h() - sin(a) * 120.f, -4.712f + a, 120.f))
+			if (inside_card(mx, h() - my - 1, w() / 2.f + 320.f - cos(a) * 120.f, h() - sin(a) * 120.f, -4.712f + a, 120.f))
 				sel = 300 + i;
 		}
 

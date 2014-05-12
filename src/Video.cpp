@@ -344,7 +344,9 @@ void Video::worker(void) {
 
 		while (working) {
 			this_thread::sleep(posix_time::milliseconds(10));
-			*capture >> cap;
+
+			if (ui.mainwnd->visible())
+				*capture >> cap;
 
 			if (cap.size().area() == 0) {
 				capture->open("webcam.avi");
