@@ -58,7 +58,7 @@ class Video {
 	void encode(const cv::Mat&, std::vector<unsigned char>&);
 	void decode(const std::vector<unsigned char>&, cv::Mat&);
 
-	void worker(void);
+	void worker();
 
 	bool handle_command(unsigned, const std::string&, const std::string&);
 
@@ -66,9 +66,9 @@ class Video {
 	void operator=(const Video&);
 public:
 	Video(UserInterface&, Network&);
-	~Video(void);
+	~Video();
 
-	void send_chat(void);
+	void send_chat();
 };
 
 

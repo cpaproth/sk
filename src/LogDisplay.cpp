@@ -33,7 +33,7 @@ LogDisplay::LogDisplay(int x, int y, int w ,int h, const char* l) : Fl_Text_Disp
 }
 
 
-LogDisplay::~LogDisplay(void) {
+LogDisplay::~LogDisplay() {
 	Fl::remove_timeout(timeout, this);
 	buffer(0);
 	cout.rdbuf(oldsbuf);

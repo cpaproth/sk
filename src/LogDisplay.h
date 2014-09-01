@@ -40,7 +40,7 @@ class LogDisplay : streambuf, public Fl_Text_Display {
 	static void timeout(void*);
 public:
 	LogDisplay(int, int, int, int, const char* = 0);
-	~LogDisplay(void);
+	~LogDisplay();
 };
 
 

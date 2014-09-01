@@ -64,7 +64,7 @@ public:
 	ss& operator<<(ostream& (*)(ostream&));
 	ss& operator>>(istream& (*)(istream&));
 	const char* operator|(const c_str_t&);
-	operator string(void);
+	operator string();
 };
 
 

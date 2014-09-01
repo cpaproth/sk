@@ -40,7 +40,7 @@ void GlImage::set(const std::string& s) {
 }
 
 
-void GlImage::draw(void) {
+void GlImage::draw() {
 	if (!valid()) {
 		ortho();
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);

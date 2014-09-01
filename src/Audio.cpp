@@ -54,7 +54,7 @@ void Transform::fft(unsigned g, unsigned o) {
 }
 
 
-void Transform::mdct(void) {
+void Transform::mdct() {
 	for (unsigned i = 0; i < data.size(); i++)
 		data[i] = window[i] * complex<float>(tdata[i], -tdata[tdata.size() - 1 - i]) * twiddle[i];
 	fft();
@@ -65,7 +65,7 @@ void Transform::mdct(void) {
 }
 
 
-void Transform::imdct(void) {
+void Transform::imdct() {
 	for (unsigned i = 0; i < data.size(); i++)
 		data[i] = fdata[i] * factor[i];
 	fft();
@@ -85,7 +85,7 @@ Audio::Audio(Network& nw) : trafo(framesize), bits(8 * encsize), encbuf(encsize 
 }
 
 
-Audio::~Audio(void) {
+Audio::~Audio() {
 	try {
 		if (stream) {
 			if (!Pa_IsStreamStopped(stream))
@@ -99,7 +99,7 @@ Audio::~Audio(void) {
 }
 
 
-void Audio::restart(void) {
+void Audio::restart() {
 	if (!stream && Pa_OpenDefaultStream(&stream, 1, 1, paInt16, samplerate, framesize, &callback, this) != paNoError)
 		throw runtime_error("open audio stream failed");
 	if (!Pa_IsStreamStopped(stream)) {
@@ -112,7 +112,7 @@ void Audio::restart(void) {
 }
 
 
-void Audio::toggle_playmic(void) {
+void Audio::toggle_playmic() {
 	playmic = !playmic;
 }
 

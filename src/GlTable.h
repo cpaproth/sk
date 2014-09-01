@@ -52,7 +52,7 @@ class GlTable : public Fl_Gl_Window {
 	void draw_card(uchar, float, float, float, float);
 	bool inside_card(int, int, float, float, float, float);
 
-	void draw(void);
+	void draw();
 	int handle(int);
 
 public:
@@ -63,7 +63,7 @@ public:
 	void show_trick(const vector<uchar>&, unsigned);
 	void show_disclosed(const vector<uchar>&, const vector<uchar>&);
 	
-	unsigned selection(void);
+	unsigned selection();
 };
 
 

@@ -89,42 +89,42 @@ class Game {
 
 
 	bool rule(unsigned);
-	void shuffle(void);
+	void shuffle();
 	string cards_string(const vector<uchar>&);
 	vector<uchar> string_cards(const string&);
 
 	void reset_game(unsigned);
-	void reset_round(void);
+	void reset_round();
 	void show_bid(bool, unsigned, bool);
 	void show_contrare(const char*, bool, bool);
 	void show_info(const string&);
 	void show_gameinfo(const string&);
-	void sort_hand(void);
+	void sort_hand();
 	string game_name(bool);
 
-	void check_rules(void);
-	void send_rules(void);
-	void send_name(void);
-	void select_game(void);
+	void check_rules();
+	void send_rules();
+	void send_name();
+	void select_game();
 	bool permit_card(uchar);
-	void game_over(void);
-	void check_trick(void);
-	void table_event(void);
+	void game_over();
+	void check_trick();
+	void table_event();
 
-	void single_player(void);
-	void junk_player(void);
-	void bid_game(void);
-	void fold_game(void);
-	void take_skat(void);
-	void announce_game(void);
+	void single_player();
+	void junk_player();
+	void bid_game();
+	void fold_game();
+	void take_skat();
+	void announce_game();
 
-	void dealout_game(void);
-	void disclose_hand(void);
-	void giveup_game(void);
-	void contrare_game(void);
+	void dealout_game();
+	void disclose_hand();
+	void giveup_game();
+	void contrare_game();
 
 	void deal_cards(unsigned, bool);
-	void decipher_cards(void);
+	void decipher_cards();
 
 	bool handle_command(unsigned, const string&, const string&);
 
@@ -132,7 +132,7 @@ class Game {
 	void operator=(const Game&);
 public:
 	Game(UserInterface&, Network&);
-	~Game(void);
+	~Game();
 };
 
 

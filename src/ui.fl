@@ -34,9 +34,9 @@ class UserInterface {open
 } {
   decl {Fl_Preferences prefs;} {private local
   }
-  decl {std::map<std::string, boost::function<void(void)> > f;} {public local
+  decl {std::map<std::string, boost::function<void()> > f;} {public local
   }
-  Function {UserInterface(void):prefs(Fl_Preferences::USER, "cpaproth", "sk")} {open selected
+  Function {UserInterface():prefs(Fl_Preferences::USER, "cpaproth", "sk")} {open
   } {
     code {UILock lock;} {}
     Fl_Window mainwnd {
@@ -365,7 +365,8 @@ f["rule change"]();}
     }
     code {mainwnd->show();} {}
   }
-  Function {~UserInterface(void)} {} {
+  Function {~UserInterface()} {open selected
+  } {
     code {delete mainwnd;} {}
   }
   Function {UserInterface(const UserInterface&):prefs("", "", "")} {private

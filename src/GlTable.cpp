@@ -126,7 +126,7 @@ void GlTable::show_disclosed(const vector<uchar>& l, const vector<uchar>& r) {
 }
 
 
-unsigned GlTable::selection(void) {
+unsigned GlTable::selection() {
 	return selected;
 }
 
@@ -175,7 +175,7 @@ bool GlTable::inside_card(int mx, int my, float x, float y, float a, float sy) {
 }
 
 
-void GlTable::draw(void) {
+void GlTable::draw() {
 	if (!valid()) {
 		glDeleteTextures(1, &texture);
 		glGenTextures(1, &texture);

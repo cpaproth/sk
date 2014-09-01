@@ -48,8 +48,8 @@ class Transform {
 public:
 	Transform(size_t);
 
-	void mdct(void);
-	void imdct(void);
+	void mdct();
+	void imdct();
 	float& t(size_t i) {return tdata[i];}
 	float& f(size_t i) {return fdata[i];}
 };
@@ -79,10 +79,10 @@ class Audio {
 	void operator=(const Audio&);
 public:
 	Audio(Network&);
-	~Audio(void);
+	~Audio();
 	
-	void restart(void);
-	void toggle_playmic(void);
+	void restart();
+	void toggle_playmic();
 };
 
 

@@ -34,7 +34,7 @@ const char* ss::operator|(const c_str_t&) {
 	getline(ioss, str, '\0');
 	return str.c_str();
 }
-ss::operator string(void) {
+ss::operator string() {
 	getline(ioss, str, '\0');
 	return str;
 }

@@ -33,20 +33,20 @@ Video::Video(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 	left = 0;
 	right = 1;
 
-	capture = shared_ptr<VideoCapture>(new VideoCapture(0));
+	capture = boost::shared_ptr<VideoCapture>(new VideoCapture(0));
 
 	if (!capture->isOpened() && !capture->open("webcam.avi"))
 		throw runtime_error("open webcam failed");
 	
 	working = true;
-	videothread = thread(bind(&Video::worker, this));
+	videothread = thread(boost::bind(&Video::worker, this));
 
 	cout << "video capture started" << endl;
-	network.add_handler(bind(&Video::handle_command, this, _1, _2, _3));
+	network.add_handler(boost::bind(&Video::handle_command, this, _1, _2, _3));
 }
 
 
-Video::~Video(void) {
+Video::~Video() {
 	try {
 		network.remove_handler();
 		ui.midimage->set(0);
@@ -63,7 +63,7 @@ Video::~Video(void) {
 }
 
 
-void Video::send_chat(void) {
+void Video::send_chat() {
 	network.command(left, "chat", ui.chat->value());
 	network.command(right, "chat", ui.chat->value());
 	ui.chat->value("");
@@ -329,15 +329,15 @@ void Video::decode(const vector<unsigned char>& enc, Mat& img) {
 }
 
 
-void Video::worker(void) {
+void Video::worker() {
 	try {
 		Mat				cap(imageheight, imagewidth, CV_8UC3);
 		vector<unsigned char>		encbuf;
 		vector<vector<unsigned char> >	decbuf;
 
-		img = shared_ptr<Mat>(new Mat(imageheight, imagewidth, CV_8UC3, Scalar()));
-		limg = shared_ptr<Mat>(new Mat(imageheight, imagewidth, CV_8UC3, Scalar()));
-		rimg = shared_ptr<Mat>(new Mat(imageheight, imagewidth, CV_8UC3, Scalar()));
+		img = boost::shared_ptr<Mat>(new Mat(imageheight, imagewidth, CV_8UC3, Scalar()));
+		limg = boost::shared_ptr<Mat>(new Mat(imageheight, imagewidth, CV_8UC3, Scalar()));
+		rimg = boost::shared_ptr<Mat>(new Mat(imageheight, imagewidth, CV_8UC3, Scalar()));
 		ui.midimage->set(img.get());
 		ui.leftimage->set(limg.get());
 		ui.rightimage->set(rimg.get());

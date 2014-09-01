@@ -36,7 +36,7 @@ class GlImage : public Fl_Gl_Window {
 	cv::Mat*	img;
 	std::string	str;
 
-	void draw(void);
+	void draw();
 
 public:
 	GlImage(int, int, int, int, const char* = 0);

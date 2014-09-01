@@ -46,8 +46,8 @@ public:
 class UserInterface {
   Fl_Preferences prefs; 
 public:
-  std::map<std::string, boost::function<void(void)> > f; 
-  UserInterface(void);
+  std::map<std::string, boost::function<void()> > f; 
+  UserInterface();
   Fl_Double_Window *mainwnd;
 private:
   void cb_mainwnd_i(Fl_Double_Window*, void*);
@@ -223,7 +223,7 @@ private:
   static void cb_junkrule(Fl_Check_Button*, void*);
 public:
   Fl_Browser *listing;
-  ~UserInterface(void);
+  ~UserInterface();
 private:
   UserInterface(const UserInterface&);
   void operator=(const UserInterface&);

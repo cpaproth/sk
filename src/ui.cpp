@@ -441,7 +441,7 @@ void UserInterface::cb_junkrule(Fl_Check_Button* o, void* v) {
   ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_junkrule_i(o,v);
 }
 
-UserInterface::UserInterface(void):prefs(Fl_Preferences::USER, "cpaproth", "sk") {
+UserInterface::UserInterface():prefs(Fl_Preferences::USER, "cpaproth", "sk") {
   UILock lock;
   { mainwnd = new Fl_Double_Window(960, 700, "Skat-Konferenz");
     mainwnd->labelsize(11);
@@ -873,6 +873,6 @@ gt die Ramsch- auf die Bockrunde.");
   mainwnd->show();
 }
 
-UserInterface::~UserInterface(void) {
+UserInterface::~UserInterface() {
   delete mainwnd;
 }

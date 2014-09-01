@@ -42,7 +42,7 @@ static bool fifo_cmp(const vector<unsigned char>& l, const vector<unsigned char>
 }
 
 
-Network::Network(void) : socket(io, ip::udp::v4()), timer(io) {
+Network::Network() : socket(io, ip::udp::v4()), timer(io) {
 	msgid = 1;
 	bandwidth = maxpeers * minbw;
 	mutexbusy = 0;
@@ -51,7 +51,7 @@ Network::Network(void) : socket(io, ip::udp::v4()), timer(io) {
 }
 
 
-Network::~Network(void) {
+Network::~Network() {
 	try {
 		netmutex.lock();
 		timer.cancel();
@@ -69,7 +69,7 @@ void Network::add_handler(handler h) {
 }
 
 
-void Network::remove_handler(void) {
+void Network::remove_handler() {
 	lock_guard<mutex> lock(hdlmutex);
 	handlers.clear();
 }
@@ -114,9 +114,9 @@ void Network::connect(const string& address, unsigned short port, unsigned bw) {
 	}
 
 	timer.expires_from_now(posix_time::milliseconds(1000 / timerrate));
-	timer.async_wait(bind(&Network::deadline, this, _1));
-	socket.async_receive_from(buffer(recvbuf), endpoint, bind(&Network::receiver, this, _1, _2));
-	iothread = thread(bind(&Network::worker, this));
+	timer.async_wait(boost::bind(&Network::deadline, this, _1));
+	socket.async_receive_from(buffer(recvbuf), endpoint, boost::bind(&Network::receiver, this, _1, _2));
+	iothread = thread(boost::bind(&Network::worker, this));
 }
 
 
@@ -129,7 +129,7 @@ void Network::broadcast(const ucharbuf& send, vector<ucharbuf>& recv, unsigned l
 	}
 	lock_guard<timed_mutex> lock(netmutex, adopt_lock);
 
-	shared_ptr<ucharbuf> buf(new ucharbuf(send));
+	boost::shared_ptr<ucharbuf> buf(new ucharbuf(send));
 
 	for (unsigned i = 0; i < peers.size() && send.size() > 0; i++) {
 		if (!peers[i].connected)
@@ -141,12 +141,12 @@ void Network::broadcast(const ucharbuf& send, vector<ucharbuf>& recv, unsigned l
 			} else {
 				peers[i].fifoempty++;
 			}
-			socket.async_send_to(buffer(*buf), peers[i].endpoint, bind(&Network::sender, this, buf, _1, _2));
+			socket.async_send_to(buffer(*buf), peers[i].endpoint, boost::bind(&Network::sender, this, buf, _1, _2));
 		} else if ((send[0] & 192) == 128) {
 			recv.push_back(peers[i].buffer);
 			peers[i].buffer.clear();
 			if (peers[i].bucket >= buf->size()) {
-				socket.async_send_to(buffer(*buf), peers[i].endpoint, bind(&Network::sender, this, buf, _1, _2));
+				socket.async_send_to(buffer(*buf), peers[i].endpoint, boost::bind(&Network::sender, this, buf, _1, _2));
 				peers[i].bucket -= buf->size();
 			}
 		}
@@ -163,13 +163,13 @@ void Network::command(unsigned i, const string& command, const string& data) {
 	peers[i].messages.push_back(ss(msgid++) << ' ' << command << ' ' << data);
 	
 	if (peers[i].messages.size() == 1) {
-		shared_ptr<ucharbuf> buf(new ucharbuf(peers[i].messages[0].begin(), peers[i].messages[0].end()));
-		socket.async_send_to(buffer(*buf), peers[i].endpoint, bind(&Network::sender, this, buf, _1, _2));
+		boost::shared_ptr<ucharbuf> buf(new ucharbuf(peers[i].messages[0].begin(), peers[i].messages[0].end()));
+		socket.async_send_to(buffer(*buf), peers[i].endpoint, boost::bind(&Network::sender, this, buf, _1, _2));
 	}
 }
 
 
-void Network::stats(void) {
+void Network::stats() {
 	lock_guard<timed_mutex> lock(netmutex);
 	cout << "known peers: " << peers.size() << ", local port: " << socket.local_endpoint().port() << ", mutex busy: " << mutexbusy << ", messages ignored: " << ignoredmsg << endl;
 	for (unsigned i = 0; i < peers.size(); i++)
@@ -210,8 +210,8 @@ void Network::process_message(unsigned i, const string& message) {
 		return;
 	} else {
 		string reply = id + " reply";
-		shared_ptr<ucharbuf> buf(new ucharbuf(reply.begin(), reply.end()));
-		socket.async_send_to(buffer(*buf), endpoint, bind(&Network::sender, this, buf, _1, _2));
+		boost::shared_ptr<ucharbuf> buf(new ucharbuf(reply.begin(), reply.end()));
+		socket.async_send_to(buffer(*buf), endpoint, boost::bind(&Network::sender, this, buf, _1, _2));
 	}
 
 	unsigned curmsgid;
@@ -238,7 +238,7 @@ void Network::process_message(unsigned i, const string& message) {
 				}
 			}
 		} else if (!server && data.find("from peer") != string::npos) {
-			peers.front().messages.push_back(ss(msgid++) << " peerconnected " << count_if(peers.begin(), peers.end(), bind(&Peer::connected, _1)));
+			peers.front().messages.push_back(ss(msgid++) << " peerconnected " << count_if(peers.begin(), peers.end(), boost::bind(&Peer::connected, _1)));
 		}
 	} else if (command == "holepunching") {
 		udpendpoint ep;
@@ -249,15 +249,15 @@ void Network::process_message(unsigned i, const string& message) {
 		socket.send_to(buffer(recvbuf, 1), ep);
 	} else if (command == "peerconnected") {
 		ss(data) >> peers[i].connections;
-		if (find_if(peers.begin(), peers.end(), bind(&Peer::connections, _1) != peers.size()) == peers.end())
-			io.post(bind(&Network::handle_command, this, i, "peersconnected", (string)ss(peers.size())));
+		if (find_if(peers.begin(), peers.end(), boost::bind(&Peer::connections, _1) != peers.size()) == peers.end())
+			io.post(boost::bind(&Network::handle_command, this, i, "peersconnected", (string)ss(peers.size())));
 	} else {
-		io.post(bind(&Network::handle_command, this, i, command, data));
+		io.post(boost::bind(&Network::handle_command, this, i, command, data));
 	}
 }
 
 
-void Network::worker(void) {
+void Network::worker() {
 	try {
 		cout << "network connected as " << (server? "server": "client") << endl;
 		io.run();
@@ -274,7 +274,7 @@ void Network::receiver(const errorcode& e, size_t n) {
 	lock_guard<timed_mutex> lock(netmutex);
 
 
-	vector<Peer>::iterator peer = find_if(peers.begin(), peers.end(), bind(&Peer::endpoint, _1) == endpoint);
+	vector<Peer>::iterator peer = find_if(peers.begin(), peers.end(), boost::bind(&Peer::endpoint, _1) == endpoint);
 	if (!e && peer == peers.end() && (!server || n > 1)) {
 		for (vector<Peer>::iterator it = peers.begin(); it != peers.end(); it++)
 			peer = (it->weakport || it->idle > 2 * timerrate) && it->endpoint.address() == endpoint.address()? it: peer;
@@ -286,7 +286,7 @@ void Network::receiver(const errorcode& e, size_t n) {
 		}
 	}
 	if (!e && peer == peers.end() && !server) {
-		peer = find_if(peers.begin(), peers.end(), bind(&Peer::idle, _1) > 2 * timerrate);
+		peer = find_if(peers.begin(), peers.end(), boost::bind(&Peer::idle, _1) > 2 * timerrate);
 		if (peer != peers.end()) {
 			cout << "warning: peer " << peer - peers.begin() << " changed address" << endl;
 			peer->endpoint = endpoint;
@@ -330,11 +330,11 @@ void Network::receiver(const errorcode& e, size_t n) {
 		peer->buffer.assign(recvbuf.begin(), recvbuf.begin() + n);
 	}
 
-	socket.async_receive_from(buffer(recvbuf), endpoint, bind(&Network::receiver, this, _1, _2));
+	socket.async_receive_from(buffer(recvbuf), endpoint, boost::bind(&Network::receiver, this, _1, _2));
 }
 
 
-void Network::sender(shared_ptr<ucharbuf>, const errorcode& e, size_t) {
+void Network::sender(boost::shared_ptr<ucharbuf>, const errorcode& e, size_t) {
 	if (e)
 		cout << "send error: " << e.message() << endl;
 }
@@ -363,8 +363,8 @@ void Network::deadline(const errorcode& e) {
 			socket.send_to(buffer(recvbuf, 1), peer->endpoint);
 
 		if (peer->messages.size() > 0) {
-			shared_ptr<ucharbuf> buf(new ucharbuf(peer->messages[0].begin(), peer->messages[0].end()));
-			socket.async_send_to(buffer(*buf), peer->endpoint, bind(&Network::sender, this, buf, _1, _2));
+			boost::shared_ptr<ucharbuf> buf(new ucharbuf(peer->messages[0].begin(), peer->messages[0].end()));
+			socket.async_send_to(buffer(*buf), peer->endpoint, boost::bind(&Network::sender, this, buf, _1, _2));
 		}
 		
 		peer->bucket += max(bandwidth / peers.size() - minbw, (size_t)500) / timerrate;
@@ -372,5 +372,5 @@ void Network::deadline(const errorcode& e) {
 	}
 	
 	timer.expires_at(timer.expires_at() + posix_time::milliseconds(1000 / timerrate));
-	timer.async_wait(bind(&Network::deadline, this, _1));
+	timer.async_wait(boost::bind(&Network::deadline, this, _1));
 }

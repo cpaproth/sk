@@ -35,7 +35,7 @@ void connect_network(UserInterface& ui, Network& network) {
 }
 
 
-int main(void) {
+int main() {
 	try {
 		UserInterface	ui;
 

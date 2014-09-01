@@ -62,11 +62,11 @@ Game::Game(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 
 	reset_game(myself);
 
-	network.add_handler(bind(&Game::handle_command, this, _1, _2, _3));
+	network.add_handler(boost::bind(&Game::handle_command, this, _1, _2, _3));
 }
 
 
-Game::~Game(void) {
+Game::~Game() {
 	try {
 		network.remove_handler();
 	
@@ -79,7 +79,7 @@ bool Game::rule(unsigned r) {
 }
 
 
-void Game::shuffle(void) {
+void Game::shuffle() {
 	boost::random::uniform_01<double> dist;
 	for (ptrdiff_t i = deck.size() - 1; i > 0; i--)
 		swap(deck[i], deck[(ptrdiff_t)(dist(rangen) * (i + 1))]);
@@ -148,7 +148,7 @@ void Game::reset_game(unsigned d) {
 }
 
 
-void Game::reset_round(void) {
+void Game::reset_round() {
 	scores = leftscores = rightscores = 0;
 	rounds.clear();
 	header.clear();
@@ -209,7 +209,7 @@ void Game::show_gameinfo(const string& info) {
 }
 
 
-void Game::sort_hand(void) {
+void Game::sort_hand() {
 	map<uchar, set<uchar> > suits;
 	set<uchar> jacks;
 	bool trump = !ui.null->value() && !ui.nullouvert->value();
@@ -262,27 +262,27 @@ string Game::game_name(bool select) {
 }
 
 
-void Game::check_rules(void) {
+void Game::check_rules() {
 	rules = (ui.foldrule->value()? 1: 0) | (ui.contrarerule->value()? 2: 0) | (ui.bockrule->value()? 4: 0) | (ui.junkrule->value()? 8: 0);
 	rounds.resize(remove(rounds.begin(), rounds.end(), rule(4)? 2: 0) - rounds.begin());
 	rounds.resize(remove(rounds.begin(), rounds.end(), rule(8)? 2: 1) - rounds.begin());
 }
 
 
-void Game::send_rules(void) {
+void Game::send_rules() {
 	check_rules();
 	network.command(left, "rules", ss(rules));
 	network.command(right, "rules", ss(rules));
 }
 
 
-void Game::send_name(void) {
+void Game::send_name() {
 	network.command(left, "name", ui.name->value());
 	network.command(right, "name", ui.name->value());
 }
 
 
-void Game::select_game(void) {
+void Game::select_game() {
 	if (ui.null->value() || ui.nullouvert->value())
 		ui.hand->deactivate();
 	else if (ui.skat->active())
@@ -338,7 +338,7 @@ bool Game::permit_card(uchar card) {
 }
 
 
-void Game::game_over(void) {
+void Game::game_over() {
 	int score;
 	unsigned ptricks = player == myself? tricks.size(): player == left? lefttricks.size(): righttricks.size();
 	unsigned otricks = tricks.size() + lefttricks.size() + righttricks.size() - ptricks;
@@ -505,7 +505,7 @@ void Game::game_over(void) {
 }
 
 
-void Game::check_trick(void) {
+void Game::check_trick() {
 	if (trick.size() == 0)
 		starter = dealer == myself? left: dealer == left? right: myself;
 	else
@@ -546,7 +546,7 @@ void Game::check_trick(void) {
 }
 
 
-void Game::table_event(void) {
+void Game::table_event() {
 	unsigned sel = ui.table->selection();
 	
 	if (skat.size() > 1) {
@@ -585,7 +585,7 @@ void Game::table_event(void) {
 }
 
 
-void Game::single_player(void) {
+void Game::single_player() {
 	player = myself;
 	show_info(ss("Spiel für ") << bid << " erhalten.");
 	network.command(left, "bidvalue", ss(bid));
@@ -597,7 +597,7 @@ void Game::single_player(void) {
 }
 
 
-void Game::junk_player(void) {
+void Game::junk_player() {
 	player = myself;
 	playing = true;
 	gname = 32;
@@ -607,7 +607,7 @@ void Game::junk_player(void) {
 }
 
 
-void Game::bid_game(void) {
+void Game::bid_game() {
 	string type = ss(ui.bid->label()) >> bid >> ws;
 	show_bid(false, bid, type == "Reizen");
 	show_info("");
@@ -621,7 +621,7 @@ void Game::bid_game(void) {
 }
 
 
-void Game::fold_game(void) {
+void Game::fold_game() {
 	string type = ss(ui.bid->label()) >> bid >> ws;
 	bid = bid == 0? 264: bid;
 	show_bid(false, -1, false);
@@ -642,7 +642,7 @@ void Game::fold_game(void) {
 }
 
 
-void Game::take_skat(void) {
+void Game::take_skat() {
 	if (dealer == myself || dealer == left)
 		network.command(right, "dealskat", "");
 	else
@@ -654,7 +654,7 @@ void Game::take_skat(void) {
 }
 
 
-void Game::announce_game(void) {
+void Game::announce_game() {
 	if (gname > 32 && (int)bid > (gname == 128 && gextra == 1? 59: gname == 128? 46: gextra == 1? 35: 23))
 		return;
 
@@ -683,7 +683,7 @@ void Game::announce_game(void) {
 }
 
 
-void Game::dealout_game(void) {
+void Game::dealout_game() {
 	reset_game(myself);
 	shuffle();
 
@@ -692,14 +692,14 @@ void Game::dealout_game(void) {
 }
 
 
-void Game::disclose_hand(void) {
+void Game::disclose_hand() {
 	network.command(left, "disclose", cards_string(hand));
 	network.command(right, "disclose", cards_string(hand));
 	ui.disclose->deactivate();
 }
 
 
-void Game::giveup_game(void) {
+void Game::giveup_game() {
 	if (player == myself || (givingup && ui.giveup->value())) {
 		quitter = myself;
 		network.command(left, "giveup", "");
@@ -714,7 +714,7 @@ void Game::giveup_game(void) {
 }
 
 
-void Game::contrare_game(void) {
+void Game::contrare_game() {
 	contrare = player == myself? 4: 2;
 	network.command(left, "contrare", "");
 	network.command(right, "contrare", "");
@@ -736,7 +736,7 @@ void Game::deal_cards(unsigned n, bool cipher) {
 }
 
 
-void Game::decipher_cards(void) {
+void Game::decipher_cards() {
 	if (secretdeck.size() == 0 || secretcards.size() == 0)
 		return;
 

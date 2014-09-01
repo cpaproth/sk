@@ -87,7 +87,7 @@ class Network {
 	void handle_command(unsigned, const string&, const string&);
 	void process_message(unsigned, const string&);
 
-	void worker(void);
+	void worker();
 	void receiver(const errorcode&, size_t);
 	void sender(boost::shared_ptr<ucharbuf>, const errorcode&, size_t);
 	void deadline(const errorcode&);
@@ -95,15 +95,15 @@ class Network {
 	Network(const Network&);
 	void operator=(const Network&);
 public:
-	Network(void);
-	~Network(void);
+	Network();
+	~Network();
 
 	void add_handler(handler);
-	void remove_handler(void);
+	void remove_handler();
 	void connect(const string&, unsigned short, unsigned);
 	void broadcast(const ucharbuf&, vector<ucharbuf>&, unsigned);
 	void command(unsigned, const string&, const string&);
-	void stats(void);
+	void stats();
 };
 
 
