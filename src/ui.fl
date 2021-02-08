@@ -1,8 +1,8 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0300 
-header_name {.h} 
+version 1.0304
+header_name {.h}
 code_name {.cpp}
-comment {/*Copyright (C) 2012-2014 Carsten Paproth
+comment {/*Copyright (C) 2012-2014, 2021 Carsten Paproth
 
 This file is part of Skat-Konferenz.
 
@@ -18,7 +18,7 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/} {in_source in_header
-} 
+}
 
 class UILock {open
 } {
@@ -28,7 +28,7 @@ class UILock {open
   Function {~UILock()} {} {
     code {Fl::unlock();} {}
   }
-} 
+}
 
 class UserInterface {open
 } {
@@ -41,7 +41,7 @@ class UserInterface {open
     code {UILock lock;} {}
     Fl_Window mainwnd {
       label {Skat-Konferenz}
-      callback {mainwnd->hide();}
+      callback {mainwnd->hide();} open
       xywh {265 88 960 700} type Double labelsize 11 align 80 resizable
       code0 {\#include <map>}
       code1 {\#include <string>}
@@ -212,7 +212,6 @@ f["game select"]();}
           Fl_Input chat {
             callback {f["chat message"]();}
             xywh {640 680 320 20} box FLAT_BOX labelsize 11 when 8 textsize 11
-            code0 {chat->take_focus();}
           }
         }
         Fl_Group {} {
@@ -363,9 +362,11 @@ f["rule change"]();}
         }
       }
     }
-    code {mainwnd->show();} {}
+    code {mainwnd->show();
+chat->take_focus();} {selected
+    }
   }
-  Function {~UserInterface()} {open selected
+  Function {~UserInterface()} {open
   } {
     code {delete mainwnd;} {}
   }
@@ -373,4 +374,4 @@ f["rule change"]();}
   } {}
   Function {operator=(const UserInterface&)} {private
   } {}
-} 
+}
