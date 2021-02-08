@@ -357,7 +357,9 @@ void Video::worker() {
 				throw runtime_error("empty captured image");
 			} else {
 				UILock lock;
-				resize(cap, *img, img->size());
+				int arcols = min<int>(cap.cols, cap.rows * imagewidth / imageheight);
+				int arrows = min<int>(cap.rows, cap.cols * imageheight / imagewidth);
+				resize(cap(Rect((cap.cols - arcols) / 2, (cap.rows - arrows) / 2, arcols, arrows)), *img, img->size());
 				ui.midimage->redraw();
 			}
 			encode(*img, encbuf);
