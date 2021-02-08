@@ -1,4 +1,4 @@
-/*Copyright (C) 2012-2014 Carsten Paproth
+/*Copyright (C) 2012-2014, 2021 Carsten Paproth
 
 This file is part of Skat-Konferenz.
 
@@ -64,13 +64,13 @@ Network::~Network() {
 
 
 void Network::add_handler(handler h) {
-	lock_guard<mutex> lock(hdlmutex);
+	boost::lock_guard<boost::mutex> lock(hdlmutex);
 	handlers.push_back(h);
 }
 
 
 void Network::remove_handler() {
-	lock_guard<mutex> lock(hdlmutex);
+	boost::lock_guard<boost::mutex> lock(hdlmutex);
 	handlers.clear();
 }
 
@@ -78,9 +78,9 @@ void Network::remove_handler() {
 void Network::connect(const string& address, unsigned short port, unsigned bw) {
 	if (!hdlmutex.try_lock())
 		return;
-	lock_guard<mutex> hlock(hdlmutex, adopt_lock);
+	boost::lock_guard<boost::mutex> hlock(hdlmutex, boost::adopt_lock);
 	if (netmutex.try_lock()) {
-		lock_guard<timed_mutex> nlock(netmutex, adopt_lock);
+		boost::lock_guard<boost::timed_mutex> nlock(netmutex, boost::adopt_lock);
 		timer.cancel();
 		socket.close();
 	} else {
@@ -90,7 +90,7 @@ void Network::connect(const string& address, unsigned short port, unsigned bw) {
 	if (iothread.joinable())
 		iothread.join();
 
-	lock_guard<timed_mutex> nlock(netmutex);
+	boost::lock_guard<boost::timed_mutex> nlock(netmutex);
 	peers.clear();
 	ignoredpeers.clear();
 	socket.open(ip::udp::v4());
@@ -127,7 +127,7 @@ void Network::broadcast(const ucharbuf& send, vector<ucharbuf>& recv, unsigned l
 		mutexbusy++;
 		return;
 	}
-	lock_guard<timed_mutex> lock(netmutex, adopt_lock);
+	boost::lock_guard<boost::timed_mutex> lock(netmutex, boost::adopt_lock);
 
 	boost::shared_ptr<ucharbuf> buf(new ucharbuf(send));
 
@@ -155,7 +155,7 @@ void Network::broadcast(const ucharbuf& send, vector<ucharbuf>& recv, unsigned l
 
 
 void Network::command(unsigned i, const string& command, const string& data) {
-	lock_guard<timed_mutex> lock(netmutex);
+	boost::lock_guard<boost::timed_mutex> lock(netmutex);
 		
 	if (i >= peers.size() || !peers[i].connected)
 		return;
@@ -170,7 +170,7 @@ void Network::command(unsigned i, const string& command, const string& data) {
 
 
 void Network::stats() {
-	lock_guard<timed_mutex> lock(netmutex);
+	boost::lock_guard<boost::timed_mutex> lock(netmutex);
 	cout << "known peers: " << peers.size() << ", local port: " << socket.local_endpoint().port() << ", mutex busy: " << mutexbusy << ", messages ignored: " << ignoredmsg << endl;
 	for (unsigned i = 0; i < peers.size(); i++)
 		cout << "peer " << i << " (" << peers[i].endpoint << ") fifo empty/full/size: " << peers[i].fifoempty << '/' << peers[i].fifofull << '/' << peers[i].fifo.size() << endl;
@@ -180,7 +180,7 @@ void Network::stats() {
 void Network::handle_command(unsigned i, const string& command, const string& data) {
 	if (!hdlmutex.try_lock())
 		return;
-	lock_guard<mutex> lock(hdlmutex, adopt_lock);
+	boost::lock_guard<boost::mutex> lock(hdlmutex, boost::adopt_lock);
 
 	bool handled = false;
 	for (unsigned j = 0; j < handlers.size(); j++)
@@ -271,7 +271,7 @@ void Network::worker() {
 void Network::receiver(const errorcode& e, size_t n) {
 	if (e == error::operation_aborted)
 		return;
-	lock_guard<timed_mutex> lock(netmutex);
+	boost::lock_guard<boost::timed_mutex> lock(netmutex);
 
 
 	vector<Peer>::iterator peer = find_if(peers.begin(), peers.end(), boost::bind(&Peer::endpoint, _1) == endpoint);
@@ -344,7 +344,7 @@ void Network::deadline(const errorcode& e) {
 	if (e)
 		return;
 
-	lock_guard<timed_mutex> lock(netmutex);
+	boost::lock_guard<boost::timed_mutex> lock(netmutex);
 
 	for (vector<Peer>::iterator peer = peers.begin(); peer != peers.end(); peer++) {
 		if (peer->idle++ > 6 * timerrate) {

@@ -1,4 +1,4 @@
-/*Copyright (C) 2012-2014 Carsten Paproth
+/*Copyright (C) 2012-2014, 2021 Carsten Paproth
 
 This file is part of Skat-Konferenz.
 
@@ -18,7 +18,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 #include "GlImage.h"
 #include <FL/gl.h>
-#include <opencv/cv.h>
+#include <opencv2/opencv.hpp>
 
 
 using namespace SK;

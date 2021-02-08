@@ -1,4 +1,4 @@
-/*Copyright (C) 2012-2014 Carsten Paproth
+/*Copyright (C) 2012-2014, 2021 Carsten Paproth
 
 This file is part of Skat-Konferenz.
 
@@ -19,8 +19,9 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "GlTable.h"
 #include <FL/gl.h>
 #include <FL/Fl.H>
-#include <opencv/highgui.h>
+#include <opencv2/highgui/highgui.hpp>
 #include <stdexcept>
+#include <map>
 #include "../images/cards.xpm"
 #include "Convenience.h"
 
