@@ -41,6 +41,8 @@ class GlTable : public Fl_Gl_Window {
 	vector<uchar>		skat;
 	vector<uchar>		trick;
 	unsigned		start;
+	vector<uchar>		lasttrick;
+	unsigned		laststart;
 	vector<uchar>		lefthand;
 	vector<uchar>		righthand;
 	

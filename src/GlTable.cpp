@@ -109,6 +109,7 @@ void GlTable::show_cards(const vector<uchar>& h, const vector<uchar>& s) {
 	hand = h;
 	skat = s;
 	selected = UINT_MAX;
+	lasttrick.clear();
 	redraw();
 }
 
@@ -116,6 +117,10 @@ void GlTable::show_cards(const vector<uchar>& h, const vector<uchar>& s) {
 void GlTable::show_trick(const vector<uchar>& t, unsigned s) {
 	trick = t;
 	start = s;
+	if (t.size() == 3) {
+		lasttrick = t;
+		laststart = s;
+	}
 	redraw();
 }
 
@@ -233,12 +238,22 @@ void GlTable::draw() {
 			draw_card(righthand[i], w() / 2.f + 320.f - cos(a) * 120.f, h() - sin(a) * 120.f, -4.712f + a, 120.f);
 		}
 
-	} else {
+	} else if (selected < 400) {
 		vector<uchar>& cards = selected < 300? lefthand: righthand;
 		for (unsigned i = 0; i < cards.size(); i++) {
 			float x, y, a;
 			get_position(i, cards.size(), x, y, a);
 			draw_card(cards[i], x, h() - 80.f - y, -a, 160.f);
+		}
+
+	} else {
+		for (unsigned i = 0; i < lasttrick.size(); i++) {
+			if ((i + laststart) % 3 == 0)
+				draw_card(lasttrick[i], w() / 2.f + 10.f, 290.f, 0.05f, 180.f);
+			else if ((i + laststart) % 3 == 1)
+				draw_card(lasttrick[i], w() / 2.f - 50.f, 320.f, 0.2f, 180.f);
+			else
+				draw_card(lasttrick[i], w() / 2.f + 50.f, 330.f, -0.25f, 180.f);
 		}
 	}
 
@@ -274,6 +289,15 @@ int GlTable::handle(int event) {
 			sel = 100;
 		if (skat.size() > 1 && skat[1] < 32 && inside_card(mx, h() - my - 1, w() / 2.f + 70.f, 300.f, -0.1f, pushed && selected == 101? 200.f: 160.f))
 			sel = 101;
+
+		for (unsigned i = 0; i < trick.size() && lasttrick.size() == 3; i++) {
+			if ((i + start) % 3 == 0 && inside_card(mx, h() - my - 1, w() / 2.f + 10.f, 290.f, 0.05f, 160.f))
+				sel = 400;
+			else if ((i + start) % 3 == 1 && inside_card(mx, h() - my - 1, w() / 2.f - 50.f, 320.f, 0.2f, 160.f))
+				sel = 401;
+			else if (inside_card(mx, h() - my - 1, w() / 2.f + 50.f, 330.f, -0.25f, 160.f))
+				sel = 402;
+		}
 
 		for (unsigned i = 0; i < lefthand.size(); i++) {
 			float a = 0.785f + (0.5f + i - lefthand.size() / 2.f) * 0.13f;
