@@ -1,4 +1,4 @@
-/*Copyright (C) 2012-2014 Carsten Paproth
+/*Copyright (C) 2012-2014, 2021 Carsten Paproth
 
 This file is part of Skat-Konferenz.
 

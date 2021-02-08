@@ -290,15 +290,6 @@ int GlTable::handle(int event) {
 		if (skat.size() > 1 && skat[1] < 32 && inside_card(mx, h() - my - 1, w() / 2.f + 70.f, 300.f, -0.1f, pushed && selected == 101? 200.f: 160.f))
 			sel = 101;
 
-		for (unsigned i = 0; i < trick.size() && lasttrick.size() == 3; i++) {
-			if ((i + start) % 3 == 0 && inside_card(mx, h() - my - 1, w() / 2.f + 10.f, 290.f, 0.05f, 160.f))
-				sel = 400;
-			else if ((i + start) % 3 == 1 && inside_card(mx, h() - my - 1, w() / 2.f - 50.f, 320.f, 0.2f, 160.f))
-				sel = 401;
-			else if (inside_card(mx, h() - my - 1, w() / 2.f + 50.f, 330.f, -0.25f, 160.f))
-				sel = 402;
-		}
-
 		for (unsigned i = 0; i < lefthand.size(); i++) {
 			float a = 0.785f + (0.5f + i - lefthand.size() / 2.f) * 0.13f;
 			if (inside_card(mx, h() - my - 1, w() / 2.f - 320.f + sin(a) * 120.f, h() - cos(a) * 120.f, -3.142f + a, 120.f))
@@ -308,6 +299,15 @@ int GlTable::handle(int event) {
 			float a = 0.785f + (0.5f + i - righthand.size() / 2.f) * 0.13f;
 			if (inside_card(mx, h() - my - 1, w() / 2.f + 320.f - cos(a) * 120.f, h() - sin(a) * 120.f, -4.712f + a, 120.f))
 				sel = 300 + i;
+		}
+
+		for (unsigned i = 0; i < trick.size() && lasttrick.size() == 3; i++) {
+			if ((i + start) % 3 == 0 && inside_card(mx, h() - my - 1, w() / 2.f + 10.f, 290.f, 0.05f, 160.f))
+				sel = 400;
+			else if ((i + start) % 3 == 1 && inside_card(mx, h() - my - 1, w() / 2.f - 50.f, 320.f, 0.2f, 160.f))
+				sel = 401;
+			else if (inside_card(mx, h() - my - 1, w() / 2.f + 50.f, 330.f, -0.25f, 160.f))
+				sel = 402;
 		}
 
 		if (sel != selected) {
