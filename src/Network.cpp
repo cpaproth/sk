@@ -110,7 +110,13 @@ void Network::connect(const string& address, unsigned short port, unsigned bw) {
 		endpoint = *resolver.resolve(query);
 		peers.push_back(Peer(endpoint));
 
+		ip::udp::socket tmpsocket(io, ip::udp::v4());
+		tmpsocket.connect(endpoint);
+
 		socket.send_to(buffer(recvbuf, 1), endpoint);
+
+		udpendpoint ep(tmpsocket.local_endpoint().address(), socket.local_endpoint().port());
+		cout << "connect from " << ep << " to " << endpoint << endl;
 	}
 
 	timer.expires_from_now(posix_time::milliseconds(1000 / timerrate));
@@ -295,6 +301,8 @@ void Network::receiver(const errorcode& e, size_t n) {
 	if (!e && peer != peers.end())
 		peer->idle = 0;
 
+	if (!e && n == 1 && peer != peers.end() && peer->connected && peer->bucket >= bandwidth)
+		socket.send_to(buffer(recvbuf, 1), peer->endpoint);
 
 	if (!e && server && n == 1 && peer == peers.end() && peers.size() < maxpeers) {
 		peers.push_back(Peer(endpoint));
@@ -306,7 +314,6 @@ void Network::receiver(const errorcode& e, size_t n) {
 		peer->connections = 1;
 		peer->messages.push_back(ss(msgid++) << " hello " << endpoint << " from peer");
 	}
-
 
 	if (e) {
 		cout << "receive error: " << e.message() << endl;
@@ -347,7 +354,7 @@ void Network::deadline(const errorcode& e) {
 	boost::lock_guard<boost::timed_mutex> lock(netmutex);
 
 	for (vector<Peer>::iterator peer = peers.begin(); peer != peers.end(); peer++) {
-		if (peer->idle++ > 6 * timerrate) {
+		if (peer->idle++ > 8 * timerrate) {
 			if (server || peer != peers.begin()) {
 				cout << "peer " << peer - peers.begin() << " timed out" << endl;
 				peer = peers.erase(peer);
@@ -359,8 +366,13 @@ void Network::deadline(const errorcode& e) {
 			}
 		}
 
-		if (!peer->connected)
+		if (!peer->connected || peer->idle > 2 * timerrate)
 			socket.send_to(buffer(recvbuf, 1), peer->endpoint);
+
+		if (!server && peer != peers.begin() && !peer->connected && peer->idle > 4 * timerrate) {
+			for (unsigned short p = 1; p < 100; p++)
+				socket.send_to(buffer(recvbuf, 1), udpendpoint(peer->endpoint.address(), peer->endpoint.port() + p));
+		}
 
 		if (peer->messages.size() > 0) {
 			boost::shared_ptr<ucharbuf> buf(new ucharbuf(peer->messages[0].begin(), peer->messages[0].end()));
