@@ -28,11 +28,12 @@ using namespace boost::asio;
 
 
 static istream& operator>>(istream& s, ip::udp::endpoint& ep) {
+	system::error_code e;
 	string a;
-	unsigned short p;
+	unsigned short p = 0;
 	getline(s, a, ':');
 	s >> p;
-	ep = ip::udp::endpoint(ip::address_v4::from_string(a), p);
+	ep = ip::udp::endpoint(ip::address_v4::from_string(a, e), p);
 	return s;
 }
 
@@ -110,13 +111,12 @@ void Network::connect(const string& address, unsigned short port, unsigned bw) {
 		endpoint = *resolver.resolve(query);
 		peers.push_back(Peer(endpoint));
 
-		ip::udp::socket tmpsocket(io, ip::udp::v4());
-		tmpsocket.connect(endpoint);
-
 		socket.send_to(buffer(recvbuf, 1), endpoint);
 
-		udpendpoint ep(tmpsocket.local_endpoint().address(), socket.local_endpoint().port());
-		cout << "connect from " << ep << " to " << endpoint << endl;
+		ip::udp::socket tmpsocket(io, ip::udp::v4());
+		tmpsocket.connect(endpoint);
+		localendpoint = udpendpoint(tmpsocket.local_endpoint().address(), socket.local_endpoint().port());
+		cout << "connect from " << localendpoint << " to " << endpoint << endl;
 	}
 
 	timer.expires_from_now(posix_time::milliseconds(1000 / timerrate));
@@ -232,27 +232,34 @@ void Network::process_message(unsigned i, const string& message) {
 	cout << i << " > " << command << ' ' << data << endl;
 	
 	if (command == "hello") {
+		string str, type;
+		unsigned v = 0;
+		ss(data) >> str >> str >> type >> str >> v >> ws >> peers[i].altendpoint;
+		if (v != version) {
+			cout << "peer " << i << " incompatible version " << v << endl;
+			peers.erase(peers.begin() + i);
+			return;
+		}
+
 		peers[i].connected = true;
-		if (data.find("from server") != string::npos) {
+		if (type == "server") {
 			peers.resize(1, Peer(udpendpoint()));
-		} else if (server && data.find("from peer") != string::npos) {
+		} else if (server && type == "peer") {
 			for (unsigned j = 0; j < peers.size(); j++) {
 				peers[j].connections = 0;
 				if (i != j && peers[j].connected) {
-					peers[j].messages.push_back(ss(msgid++) << " holepunching " << peers[i].endpoint);
-					peers[i].messages.push_back(ss(msgid++) << " holepunching " << peers[j].endpoint);
+					peers[j].messages.push_back(ss(msgid++) << " holepunching " << peers[i].endpoint << ' ' << peers[i].altendpoint);
+					peers[i].messages.push_back(ss(msgid++) << " holepunching " << peers[j].endpoint << ' ' << peers[j].altendpoint);
 				}
 			}
-		} else if (!server && data.find("from peer") != string::npos) {
+		} else if (!server && type == "peer") {
 			peers.front().messages.push_back(ss(msgid++) << " peerconnected " << count_if(peers.begin(), peers.end(), boost::bind(&Peer::connected, _1)));
 		}
 	} else if (command == "holepunching") {
-		udpendpoint ep;
-		ss(data) >> ep;
-		peers.push_back(Peer(ep));
+		peers.push_back(Peer(udpendpoint()));
+		ss(data) >> peers.back().endpoint >> ws >> peers.back().altendpoint;
 		if (peers.size() > maxpeers)
 			peers.erase(peers.begin() + 1);
-		socket.send_to(buffer(recvbuf, 1), ep);
 	} else if (command == "peerconnected") {
 		ss(data) >> peers[i].connections;
 		if (find_if(peers.begin(), peers.end(), boost::bind(&Peer::connections, _1) != peers.size()) == peers.end())
@@ -265,7 +272,7 @@ void Network::process_message(unsigned i, const string& message) {
 
 void Network::worker() {
 	try {
-		cout << "network connected as " << (server? "server": "client") << endl;
+		cout << "network " << (server? "server": "peer") << " version " << version << endl;
 		io.run();
 		cout << "network disconnected" << endl;
 	} catch (std::exception& e) {
@@ -301,18 +308,15 @@ void Network::receiver(const errorcode& e, size_t n) {
 	if (!e && peer != peers.end())
 		peer->idle = 0;
 
-	if (!e && n == 1 && peer != peers.end() && peer->connected && peer->bucket >= bandwidth)
-		socket.send_to(buffer(recvbuf, 1), peer->endpoint);
-
 	if (!e && server && n == 1 && peer == peers.end() && peers.size() < maxpeers) {
 		peers.push_back(Peer(endpoint));
 		peer = peers.end() - 1;
 		cout << "new peer " << peer - peers.begin() << ": " << endpoint << endl;
-		peer->messages.push_back(ss(msgid++) << " hello " << endpoint << " from server");
+		peer->messages.push_back(ss(msgid++) << " hello " << endpoint << " from server version " << version);
 	}
 	if (!e && !server && n == 1 && peer != peers.end() && peer->connections == 0) {
 		peer->connections = 1;
-		peer->messages.push_back(ss(msgid++) << " hello " << endpoint << " from peer");
+		peer->messages.push_back(ss(msgid++) << " hello " << endpoint << " from peer version " << version << ' ' << localendpoint);
 	}
 
 	if (e) {
@@ -366,12 +370,14 @@ void Network::deadline(const errorcode& e) {
 			}
 		}
 
-		if (!peer->connected || peer->idle > 2 * timerrate)
+		if (!peer->connected || peer->bucket >= bandwidth)
 			socket.send_to(buffer(recvbuf, 1), peer->endpoint);
 
 		if (!server && peer != peers.begin() && !peer->connected && peer->idle > 4 * timerrate) {
 			for (unsigned short p = 1; p < 100; p++)
 				socket.send_to(buffer(recvbuf, 1), udpendpoint(peer->endpoint.address(), peer->endpoint.port() + p));
+			if (peer->altendpoint != udpendpoint())
+				socket.send_to(buffer(recvbuf, 1), peer->altendpoint);
 		}
 
 		if (peer->messages.size() > 0) {

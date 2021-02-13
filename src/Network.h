@@ -38,6 +38,7 @@ using namespace std;
 
 
 class Network {
+	static const unsigned version = 0;
 	static const size_t maxpeers = 2;
 	static const size_t fifomax = 10;
 	static const size_t recvsize = 60000;
@@ -53,6 +54,7 @@ class Network {
 
 	struct Peer {
 		udpendpoint	endpoint;
+		udpendpoint	altendpoint;
 		list<ucharbuf>	fifo;
 		ucharbuf	buffer;
 		deque<string>	messages;
@@ -76,6 +78,7 @@ class Network {
 	boost::asio::io_service		io;
 	boost::asio::ip::udp::socket	socket;
 	udpendpoint			endpoint;
+	udpendpoint			localendpoint;
 	boost::asio::deadline_timer	timer;
 	ucharbuf			recvbuf;
 	vector<Peer>			peers;
