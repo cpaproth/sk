@@ -105,14 +105,12 @@ void Network::connect(const string& address, unsigned short port, unsigned bw) {
 		socket.bind(udpendpoint(ip::udp::v4(), port));
 	} else {
 		server = false;
-		
 		ip::udp::resolver resolver(io);
 		ip::udp::resolver::query query(ip::udp::v4(), address, ss(port));
 		endpoint = *resolver.resolve(query);
 		peers.push_back(Peer(endpoint));
 
 		socket.send_to(buffer(recvbuf, 1), endpoint);
-
 		ip::udp::socket tmpsocket(io, ip::udp::v4());
 		tmpsocket.connect(endpoint);
 		localendpoint = udpendpoint(tmpsocket.local_endpoint().address(), socket.local_endpoint().port());
@@ -301,7 +299,8 @@ void Network::receiver(const errorcode& e, size_t n) {
 	if (!e && peer == peers.end() && !server) {
 		peer = find_if(peers.begin(), peers.end(), boost::bind(&Peer::idle, _1) > 2 * timerrate);
 		if (peer != peers.end()) {
-			cout << "warning: peer " << peer - peers.begin() << " changed address" << endl;
+			if (peer->altendpoint != endpoint)
+				cout << "warning: peer " << peer - peers.begin() << " changed address" << endl;
 			peer->endpoint = endpoint;
 		}
 	}
@@ -324,7 +323,9 @@ void Network::receiver(const errorcode& e, size_t n) {
 	} else if (peer == peers.end()) {
 		if (server && n == 1 && ignoredpeers[endpoint]++ % (30 * timerrate) == 0) {
 			cout << "ignored peer: " << endpoint << endl;
-			socket.send_to(buffer((string)(ss(msgid++) << " busy")), endpoint);
+			string reply = ss(msgid++) << " busy";
+			boost::shared_ptr<ucharbuf> buf(new ucharbuf(reply.begin(), reply.end()));
+			socket.async_send_to(buffer(*buf), endpoint, boost::bind(&Network::sender, this, buf, _1, _2));
 		}
 	} else if (n > 1 && (recvbuf[0] & 192) == 0) {
 		process_message(peer - peers.begin(), string(recvbuf.begin(), recvbuf.begin() + n));
@@ -370,14 +371,15 @@ void Network::deadline(const errorcode& e) {
 			}
 		}
 
-		if (!peer->connected || peer->bucket >= bandwidth)
-			socket.send_to(buffer(recvbuf, 1), peer->endpoint);
 
+		boost::shared_ptr<ucharbuf> beacon(new ucharbuf(1));
+		if (!peer->connected || peer->bucket >= bandwidth)
+			socket.async_send_to(buffer(*beacon), peer->endpoint, boost::bind(&Network::sender, this, beacon, _1, _2));
 		if (!server && peer != peers.begin() && !peer->connected && peer->idle > 4 * timerrate) {
 			for (unsigned short p = 1; p < 100; p++)
-				socket.send_to(buffer(recvbuf, 1), udpendpoint(peer->endpoint.address(), peer->endpoint.port() + p));
+				socket.async_send_to(buffer(*beacon), udpendpoint(peer->endpoint.address(), peer->endpoint.port() + p), boost::bind(&Network::sender, this, beacon, _1, _2));
 			if (peer->altendpoint != udpendpoint())
-				socket.send_to(buffer(recvbuf, 1), peer->altendpoint);
+				socket.async_send_to(buffer(*beacon), peer->altendpoint, boost::bind(&Network::sender, this, beacon, _1, _2));
 		}
 
 		if (peer->messages.size() > 0) {
