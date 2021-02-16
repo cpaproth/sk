@@ -82,7 +82,8 @@ class Network {
 	boost::asio::deadline_timer	timer;
 	ucharbuf			recvbuf;
 	vector<Peer>			peers;
-	boost::thread			iothread;
+	boost::thread			iothread1;
+	boost::thread			iothread2;
 	boost::timed_mutex		netmutex;
 	boost::mutex			hdlmutex;
 	map<udpendpoint, unsigned>	ignoredpeers;
@@ -91,7 +92,7 @@ class Network {
 	void handle_command(unsigned, const string&, const string&);
 	void process_message(unsigned, const string&);
 
-	void worker();
+	void worker(size_t);
 	void receiver(const errorcode&, size_t);
 	void sender(boost::shared_ptr<ucharbuf>, const errorcode&, size_t);
 	void deadline(const errorcode&);

@@ -26,7 +26,6 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 using namespace SK;
 using namespace cv;
-using namespace boost;
 
 
 Video::Video(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
@@ -39,7 +38,7 @@ Video::Video(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 		throw runtime_error("open webcam failed");
 	
 	working = true;
-	videothread = thread(boost::bind(&Video::worker, this));
+	videothread = boost::thread(boost::bind(&Video::worker, this));
 
 	cout << "video capture started" << endl;
 	network.add_handler(boost::bind(&Video::handle_command, this, _1, _2, _3));
@@ -343,7 +342,7 @@ void Video::worker() {
 		ui.rightimage->set(rimg.get());
 
 		while (working) {
-			this_thread::sleep(posix_time::milliseconds(10));
+			boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 
 			if (ui.mainwnd->visible())
 				*capture >> cap;

@@ -23,12 +23,11 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 using namespace SK;
 using namespace CPLib;
-using namespace boost;
 using namespace boost::asio;
 
 
 static istream& operator>>(istream& s, ip::udp::endpoint& ep) {
-	system::error_code e;
+	boost::system::error_code e;
 	string a;
 	unsigned short p = 0;
 	getline(s, a, ':');
@@ -57,9 +56,12 @@ Network::~Network() {
 		netmutex.lock();
 		timer.cancel();
 		socket.close();
+		io.stop();
 		netmutex.unlock();
-		if (iothread.joinable())
-			iothread.join();
+		if (iothread1.joinable())
+			iothread1.join();
+		if (iothread2.joinable())
+			iothread2.join();
 	} catch (...) {}
 }
 
@@ -77,19 +79,25 @@ void Network::remove_handler() {
 
 
 void Network::connect(const string& address, unsigned short port, unsigned bw) {
-	if (!hdlmutex.try_lock())
+	if (!hdlmutex.try_lock()) {
+		cout << "network threads busy, new connection rejected" << endl;
 		return;
+	}
 	boost::lock_guard<boost::mutex> hlock(hdlmutex, boost::adopt_lock);
 	if (netmutex.try_lock()) {
 		boost::lock_guard<boost::timed_mutex> nlock(netmutex, boost::adopt_lock);
 		timer.cancel();
 		socket.close();
+		io.stop();
 	} else {
+		cout << "network threads busy, new connection rejected" << endl;
 		return;
 	}
 
-	if (iothread.joinable())
-		iothread.join();
+	if (iothread1.joinable())
+		iothread1.join();
+	if (iothread2.joinable())
+		iothread2.join();
 
 	boost::lock_guard<boost::timed_mutex> nlock(netmutex);
 	peers.clear();
@@ -116,18 +124,20 @@ void Network::connect(const string& address, unsigned short port, unsigned bw) {
 		localendpoint = udpendpoint(tmpsocket.local_endpoint().address(), socket.local_endpoint().port());
 		cout << "connect from " << localendpoint << " to " << endpoint << endl;
 	}
+	cout << "network " << (server? "server": "peer") << " version " << version << endl;
 
-	timer.expires_from_now(posix_time::milliseconds(1000 / timerrate));
+	timer.expires_from_now(boost::posix_time::milliseconds(1000 / timerrate));
 	timer.async_wait(boost::bind(&Network::deadline, this, _1));
 	socket.async_receive_from(buffer(recvbuf), endpoint, boost::bind(&Network::receiver, this, _1, _2));
-	iothread = thread(boost::bind(&Network::worker, this));
+	iothread1 = boost::thread(boost::bind(&Network::worker, this, 1));
+	iothread2 = boost::thread(boost::bind(&Network::worker, this, 2));
 }
 
 
 void Network::broadcast(const ucharbuf& send, vector<ucharbuf>& recv, unsigned latency) {
 	recv.clear();
 
-	if (!netmutex.timed_lock(posix_time::milliseconds(latency))) {
+	if (!netmutex.timed_lock(boost::posix_time::milliseconds(latency))) {
 		mutexbusy++;
 		return;
 	}
@@ -182,8 +192,10 @@ void Network::stats() {
 
 
 void Network::handle_command(unsigned i, const string& command, const string& data) {
-	if (!hdlmutex.try_lock())
+	if (!hdlmutex.try_lock()) {
+		io.post(boost::bind(&Network::handle_command, this, i, command, data));
 		return;
+	}
 	boost::lock_guard<boost::mutex> lock(hdlmutex, boost::adopt_lock);
 
 	bool handled = false;
@@ -268,11 +280,11 @@ void Network::process_message(unsigned i, const string& message) {
 }
 
 
-void Network::worker() {
+void Network::worker(size_t i) {
 	try {
-		cout << "network " << (server? "server": "peer") << " version " << version << endl;
+		cout << "network thread " << i << " started" << endl;
 		io.run();
-		cout << "network disconnected" << endl;
+		cout << "network thread " << i << " stopped" << endl;
 	} catch (std::exception& e) {
 		cout << "network failure: " << e.what() << endl;
 	}
@@ -371,7 +383,6 @@ void Network::deadline(const errorcode& e) {
 			}
 		}
 
-
 		boost::shared_ptr<ucharbuf> beacon(new ucharbuf(1));
 		if (!peer->connected || peer->bucket >= bandwidth)
 			socket.async_send_to(buffer(*beacon), peer->endpoint, boost::bind(&Network::sender, this, beacon, _1, _2));
@@ -391,6 +402,6 @@ void Network::deadline(const errorcode& e) {
 		maximal(peer->bucket, bandwidth);
 	}
 	
-	timer.expires_at(timer.expires_at() + posix_time::milliseconds(1000 / timerrate));
+	timer.expires_at(timer.expires_at() + boost::posix_time::milliseconds(1000 / timerrate));
 	timer.async_wait(boost::bind(&Network::deadline, this, _1));
 }
