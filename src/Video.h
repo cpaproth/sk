@@ -22,6 +22,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 #include <boost/thread/thread.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/atomic.hpp>
 #include <vector>
 
 
@@ -51,7 +52,7 @@ class Video {
 	boost::thread				videothread;
 	unsigned				left;
 	unsigned				right;
-	bool					working;
+	boost::atomic<bool>			working;
 	UserInterface&				ui;
 	Network&				network;
 

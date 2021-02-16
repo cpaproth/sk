@@ -80,7 +80,7 @@ void Network::remove_handler() {
 
 void Network::connect(const string& address, unsigned short port, unsigned bw) {
 	if (!hdlmutex.try_lock()) {
-		cout << "network threads busy, new connection rejected" << endl;
+		cout << "network busy, new connection rejected" << endl;
 		return;
 	}
 	boost::lock_guard<boost::mutex> hlock(hdlmutex, boost::adopt_lock);
@@ -90,7 +90,7 @@ void Network::connect(const string& address, unsigned short port, unsigned bw) {
 		socket.close();
 		io.stop();
 	} else {
-		cout << "network threads busy, new connection rejected" << endl;
+		cout << "network busy, new connection rejected" << endl;
 		return;
 	}
 
