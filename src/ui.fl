@@ -1,6 +1,6 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0304
-header_name {.h}
+version 1.0303 
+header_name {.h} 
 code_name {.cpp}
 comment {/*Copyright (C) 2012-2014, 2021 Carsten Paproth
 
@@ -18,7 +18,7 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/} {in_source in_header
-}
+} 
 
 class UILock {open
 } {
@@ -28,7 +28,7 @@ class UILock {open
   Function {~UILock()} {} {
     code {Fl::unlock();} {}
   }
-}
+} 
 
 class UserInterface {open
 } {
@@ -51,7 +51,7 @@ class UserInterface {open
         xywh {0 0 960 700} labelsize 11
       } {
         Fl_Group {} {
-          label Skat open
+          label Skat open selected
           xywh {0 25 960 675} labelsize 11
         } {
           Fl_Box table {
@@ -73,7 +73,7 @@ class UserInterface {open
               class {SK::GlImage}
             }
           }
-          Fl_Group {} {
+          Fl_Group {} {open
             xywh {640 25 320 415}
           } {
             Fl_Group {} {
@@ -96,14 +96,14 @@ class UserInterface {open
                 xywh {815 70 105 25} box PLASTIC_UP_BOX color 1 labelfont 1 labelsize 11
               }
             }
-            Fl_Group {} {
+            Fl_Group {} {open
               xywh {640 110 320 240} box DOWN_BOX labelsize 11
             } {
               Fl_Box gameinfo {
                 label Spielinfo
                 xywh {640 120 320 25} labelfont 1 labelsize 11 align 32
               }
-              Fl_Group {} {
+              Fl_Group {} {open
                 xywh {700 155 200 70} labelsize 11
               } {
                 Fl_Button diamonds {
@@ -138,7 +138,7 @@ class UserInterface {open
                   tooltip {Offenes Nullspiel, es gibt kein Trumpf.} xywh {805 190 95 35} type Radio labelfont 1 labelsize 11
                 }
               }
-              Fl_Group hand {
+              Fl_Group hand {open
                 xywh {700 225 200 35} labelsize 11
               } {
                 Fl_Button schneider {
@@ -206,6 +206,7 @@ f["game select"]();}
             }
           }
           Fl_Box midimage {
+            callback {f["pause toggle"]();}
             xywh {640 440 320 240} box FLAT_BOX color 56 labelsize 11
             class {SK::GlImage}
           }
@@ -215,7 +216,7 @@ f["game select"]();}
           }
         }
         Fl_Group {} {
-          label System
+          label System open
           xywh {0 25 960 675} labelsize 11 hide
         } {
           Fl_Group {} {
@@ -240,7 +241,7 @@ f["game select"]();}
             Fl_Input address {
               label {IP Address}
               callback {prefs.set("ipaddress", address->value());}
-              tooltip {The IP address or hostname of the server you want to connect to. If you want to be the server (one of the peers has to be the server), leave this field empty and click Connect. Then tell the other peers your publicly reachable IP address or hostname, and UDP port.} xywh {200 110 195 25} labelsize 11 textsize 11
+              tooltip {The IP address or hostname of the server you want to connect to. If you want to be the server (one of the peers has to be the server), tick the Server checkbox and click Connect. Then tell the other peers your publicly reachable IP address or hostname, and UDP port.} xywh {200 110 195 25} labelsize 11 textsize 11
               code0 {char* c; prefs.get("ipaddress", c, ""); address->value(c); delete[] c;}
             }
             Fl_Value_Input port {
@@ -264,18 +265,18 @@ prefs.set("bandwidth", bandwidth->value());}
             Fl_Button {} {
               label Connect
               callback {f["network connect"]();}
-              tooltip {Connect to the server or start the server (if the IP address field is empty). If a connection can be established, the videoconferencing starts. If 3 peers are connected with each other, the game starts.} xywh {200 260 195 25} labelsize 11
+              tooltip {Connect to the server or run the server. If a connection can be established, the videoconferencing starts. If 3 peers are connected with each other, the game starts.} xywh {200 260 195 25} labelsize 11
             }
             Fl_Button {} {
               label Stats
               callback {f["network stats"]();}
               tooltip {Print some stats on the connected peers into the log window.} xywh {200 310 195 25} labelsize 11
             }
-            Fl_Check_Button autoconnect {
-              label Auto
-              callback {prefs.set("autoconnect", autoconnect->value());}
-              tooltip {When activated, the network will be connected automatically during the next program start. This is only reasonable for the server or a connection to a static IP address or hostname.} xywh {140 260 60 25} down_box DOWN_BOX labelsize 11
-              code0 {int i; prefs.get("autoconnect", i, 0); autoconnect->value(i != 0);}
+            Fl_Check_Button server {
+              label Server
+              callback {prefs.set("server", server->value());}
+              tooltip {When activated, the program will run as the server after the Connect button was pressed.} xywh {115 260 85 25} down_box DOWN_BOX labelsize 11
+              code0 {int i; prefs.get("server", i, 0); server->value(i != 0);}
             }
           }
           Fl_Group {} {
@@ -319,7 +320,7 @@ prefs.set("bgcolor", (int)color);}
               label {Ramschen statt Einpassen (E)}
               callback {prefs.set("rulefold", foldrule->value());
 f["rule change"]();}
-              tooltip {Wenn alle Spieler passen, wird mit der Hand Ramsch gespielt.} xywh {195 465 210 25} down_box DOWN_BOX labelsize 11
+              tooltip {Wenn alle Spieler passen, wird mit der Hand Ramsch ohne Schieben gespielt. Der Spieler mit den wenigsten Augen bekommt ein gewonnenes Nullspiel gutgeschrieben.} xywh {195 465 210 25} down_box DOWN_BOX labelsize 11
               code0 {int i; prefs.get("rulefold", i, 0); foldrule->value(i != 0);}
             }
             Fl_Check_Button contrarerule {
@@ -363,8 +364,7 @@ f["rule change"]();}
       }
     }
     code {mainwnd->show();
-chat->take_focus();} {selected
-    }
+chat->take_focus();} {}
   }
   Function {~UserInterface()} {open
   } {
@@ -374,4 +374,4 @@ chat->take_focus();} {selected
   } {}
   Function {operator=(const UserInterface&)} {private
   } {}
-}
+} 

@@ -105,7 +105,7 @@ public:
 
 	void add_handler(handler);
 	void remove_handler();
-	void connect(const string&, unsigned short, unsigned);
+	void connect(const string&, unsigned short, bool, unsigned);
 	void broadcast(const ucharbuf&, vector<ucharbuf>&, unsigned);
 	void command(unsigned, const string&, const string&);
 	void stats();

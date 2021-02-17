@@ -31,7 +31,7 @@ using namespace SK;
 
 
 void connect_network(UserInterface& ui, Network& network) {
-	network.connect(ui.address->value(), (unsigned short)ui.port->value(), (unsigned)ui.bandwidth->value());
+	network.connect(ui.address->value(), (unsigned short)ui.port->value(), (bool)ui.server->value(), (unsigned)ui.bandwidth->value());
 }
 
 
@@ -57,8 +57,7 @@ int main() {
 		
 		try {
 			audio.restart();
-			if (ui.autoconnect->value())
-				connect_network(ui, network);
+			connect_network(ui, network);
 		} catch (exception& e) {
 			cout << "start error: " << e.what() << endl;
 		}

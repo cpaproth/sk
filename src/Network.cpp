@@ -78,7 +78,7 @@ void Network::remove_handler() {
 }
 
 
-void Network::connect(const string& address, unsigned short port, unsigned bw) {
+void Network::connect(const string& address, unsigned short port, bool s, unsigned bw) {
 	if (!hdlmutex.try_lock()) {
 		cout << "network busy, new connection rejected" << endl;
 		return;
@@ -108,7 +108,16 @@ void Network::connect(const string& address, unsigned short port, unsigned bw) {
 
 	minimal(bandwidth = bw, (unsigned)(maxpeers * minbw));
 
-	if (address.empty()) {
+	if (address.empty() && !s)
+		return;
+	if (!address.empty() && s) {
+		boost::system::error_code e;
+		ip::udp::socket tmpsocket(io, ip::udp::v4());
+		tmpsocket.bind(udpendpoint(ip::udp::v4(), port), e);
+		s = e? false: true;
+	}
+
+	if (s) {
 		server = true;
 		socket.bind(udpendpoint(ip::udp::v4(), port));
 	} else {
