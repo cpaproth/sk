@@ -23,6 +23,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #include <boost/asio/ip/udp.hpp>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/io_service.hpp>
+#include <boost/asio/strand.hpp>
 #include <boost/thread.hpp>
 #include <boost/function/function3.hpp>
 #include <vector>
@@ -80,6 +81,7 @@ class Network {
 	udpendpoint			endpoint;
 	udpendpoint			localendpoint;
 	boost::asio::deadline_timer	timer;
+	boost::asio::io_service::strand	strand;
 	ucharbuf			recvbuf;
 	vector<Peer>			peers;
 	boost::thread			iothread1;
@@ -105,7 +107,7 @@ public:
 
 	void add_handler(handler);
 	void remove_handler();
-	void connect(const string&, unsigned short, bool, unsigned);
+	void connect(const string&, unsigned short, bool, unsigned, boost::function<int()>);
 	void broadcast(const ucharbuf&, vector<ucharbuf>&, unsigned);
 	void command(unsigned, const string&, const string&);
 	void stats();

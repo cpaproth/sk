@@ -42,7 +42,7 @@ static bool fifo_cmp(const vector<unsigned char>& l, const vector<unsigned char>
 }
 
 
-Network::Network() : socket(io, ip::udp::v4()), timer(io) {
+Network::Network() : socket(io, ip::udp::v4()), timer(io), strand(io) {
 	msgid = 1;
 	bandwidth = maxpeers * minbw;
 	mutexbusy = 0;
@@ -78,28 +78,20 @@ void Network::remove_handler() {
 }
 
 
-void Network::connect(const string& address, unsigned short port, bool s, unsigned bw) {
-	if (!hdlmutex.try_lock()) {
-		cout << "network busy, new connection rejected" << endl;
-		return;
-	}
-	boost::lock_guard<boost::mutex> hlock(hdlmutex, boost::adopt_lock);
-	if (netmutex.try_lock()) {
-		boost::lock_guard<boost::timed_mutex> nlock(netmutex, boost::adopt_lock);
+void Network::connect(const string& address, unsigned short port, bool s, unsigned bw, boost::function<int()> wait_to_unlock) {
+	if (true) {
+		boost::lock_guard<boost::timed_mutex> lock(netmutex);
 		timer.cancel();
 		socket.close();
 		io.stop();
-	} else {
-		cout << "network busy, new connection rejected" << endl;
-		return;
 	}
+	while (iothread1.joinable() && !iothread1.try_join_for(boost::chrono::milliseconds(100)))
+		wait_to_unlock();
+	while (iothread2.joinable() && !iothread2.try_join_for(boost::chrono::milliseconds(100)))
+		wait_to_unlock();
 
-	if (iothread1.joinable())
-		iothread1.join();
-	if (iothread2.joinable())
-		iothread2.join();
 
-	boost::lock_guard<boost::timed_mutex> nlock(netmutex);
+	boost::lock_guard<boost::timed_mutex> lock(netmutex);
 	peers.clear();
 	ignoredpeers.clear();
 	socket.open(ip::udp::v4());
@@ -201,11 +193,7 @@ void Network::stats() {
 
 
 void Network::handle_command(unsigned i, const string& command, const string& data) {
-	if (!hdlmutex.try_lock()) {
-		io.post(boost::bind(&Network::handle_command, this, i, command, data));
-		return;
-	}
-	boost::lock_guard<boost::mutex> lock(hdlmutex, boost::adopt_lock);
+	boost::lock_guard<boost::mutex> lock(hdlmutex);
 
 	bool handled = false;
 	for (unsigned j = 0; j < handlers.size(); j++)
@@ -282,9 +270,9 @@ void Network::process_message(unsigned i, const string& message) {
 	} else if (command == "peerconnected") {
 		ss(data) >> peers[i].connections;
 		if (find_if(peers.begin(), peers.end(), boost::bind(&Peer::connections, _1) != peers.size()) == peers.end())
-			io.post(boost::bind(&Network::handle_command, this, i, "peersconnected", (string)ss(peers.size())));
+			strand.post(boost::bind(&Network::handle_command, this, i, "peersconnected", (string)ss(peers.size())));
 	} else {
-		io.post(boost::bind(&Network::handle_command, this, i, command, data));
+		strand.post(boost::bind(&Network::handle_command, this, i, command, data));
 	}
 }
 

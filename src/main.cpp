@@ -31,7 +31,7 @@ using namespace SK;
 
 
 void connect_network(UserInterface& ui, Network& network) {
-	network.connect(ui.address->value(), (unsigned short)ui.port->value(), (bool)ui.server->value(), (unsigned)ui.bandwidth->value());
+	network.connect(ui.address->value(), (unsigned short)ui.port->value(), (bool)ui.server->value(), (unsigned)ui.bandwidth->value(), boost::bind(&Fl::wait, 1));
 }
 
 
@@ -54,7 +54,7 @@ int main() {
 		ui.f["chat message"] = boost::bind(&Video::send_chat, &video);
 		ui.f["network stats"] = boost::bind(&Network::stats, &network);
 		ui.f["network connect"] = boost::bind(&connect_network, boost::ref(ui), boost::ref(network));
-		
+
 		try {
 			audio.restart();
 			connect_network(ui, network);
