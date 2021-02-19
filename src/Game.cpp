@@ -439,7 +439,7 @@ void Game::game_over() {
 		uchar gvalue = gname == 0? 12: gname == 8? 11: gname == 16? 10: gname == 24? 9: 24;
 		if ((int)bid > score * gvalue) {
 			score = ((bid - 1) / gvalue + 1) * gvalue * -2;
-			show_info((player == myself? "Überreizt": (player == left? leftname: rightname) + " überreizt") + result);
+			show_info((player == myself? "Ãœberreizt": (player == left? leftname: rightname) + " Ã¼berreizt") + result);
 		} else if ((gextra >= 7 && otricks > 0) || (gextra >= 3 && psum < 90) || psum <= 60) {
 			score *= gvalue * -2;
 			show_info((player == myself? "Verloren": (player == left? leftname: rightname) + " verliert") + result);
@@ -587,7 +587,7 @@ void Game::table_event() {
 
 void Game::single_player() {
 	player = myself;
-	show_info(ss("Spiel für ") << bid << " erhalten.");
+	show_info(ss("Spiel fÃ¼r ") << bid << " erhalten.");
 	network.command(left, "bidvalue", ss(bid));
 	network.command(right, "bidvalue", ss(bid));
 
@@ -602,6 +602,10 @@ void Game::junk_player() {
 	playing = true;
 	gname = 32;
 	gextra = 31;
+	if (ui.null->value() || ui.nullouvert->value()) {
+		ui.grand->setonly();
+		select_game();
+	}
 	show_gameinfo("Ramsch");
 	check_trick();
 }
@@ -861,12 +865,12 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 	} else if (command == "hold") {
 		ss(data) >> bid;
 		listener = i;
-		show_info(ss(i == left? leftname: rightname) << " hält " << bid << '.');
+		show_info(ss(i == left? leftname: rightname) << " hÃ¤lt " << bid << '.');
 		show_bid(true, bid + 1, true);
 
 	} else if (command == "fold") {
 		if (i == dealer && bid == 18 && data == "18") {
-			show_info(ss("Spielen für 18 oder ") << (rule(1)? "Ramschen?": "Einpassen?"));
+			show_info(ss("Spielen fÃ¼r 18 oder ") << (rule(1)? "Ramschen?": "Einpassen?"));
 			listener = myself;
 			show_bid(true, bid, false);
 		} else if (i == dealer || dealer == myself) {
@@ -887,10 +891,12 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 		ss(data) >> bid;
 		player = i;
 		show_info("Warte auf Spielansage.");
-		show_gameinfo(ss(i == left? leftname: rightname) << " spielt für " << bid << '.');
+		show_gameinfo(ss(i == left? leftname: rightname) << " spielt fÃ¼r " << bid << '.');
 		
 	} else if (command == "announce") {
 		ss(data) >> gname >> gextra;
+		(gname == 24? ui.diamonds: gname == 16? ui.hearts: gname == 8? ui.spades: gname == 0? ui.clubs: gname == 32? ui.grand: gname == 64? ui.null: ui.nullouvert)->setonly();
+		select_game();
 		show_gameinfo((player == left? leftname : rightname) + " spielt " + game_name(false) + '.');
 		ui.giveup->activate();
 		if (contrare > 0)

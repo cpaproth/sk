@@ -85,9 +85,9 @@ void Network::connect(const string& address, unsigned short port, bool s, unsign
 		socket.close();
 		io.stop();
 	}
-	while (iothread1.joinable() && !iothread1.try_join_for(boost::chrono::milliseconds(100)))
+	while (iothread1.joinable() && !iothread1.timed_join(boost::posix_time::milliseconds(100)))
 		wait_to_unlock();
-	while (iothread2.joinable() && !iothread2.try_join_for(boost::chrono::milliseconds(100)))
+	while (iothread2.joinable() && !iothread2.timed_join(boost::posix_time::milliseconds(100)))
 		wait_to_unlock();
 
 
