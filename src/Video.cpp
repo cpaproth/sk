@@ -52,12 +52,10 @@ Video::~Video() {
 		ui.leftimage->set(0);
 		ui.rightimage->set(0);
 
-		cout << "stop video capture" << endl;
-
 		working = false;
-		videothread.join();
+		if (videothread.joinable())
+			videothread.join();
 
-		cout << "video capture stopped" << endl;
 	} catch (...) {}
 }
 
@@ -375,6 +373,9 @@ void Video::worker() {
 			}
 			Fl::awake();
 		}
+
+		cout << "video capture stopped" << endl;
+
 	} catch (std::exception& e) {
 		cout << "video failure: " << e.what() << endl;
 	}

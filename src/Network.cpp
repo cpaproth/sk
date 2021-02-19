@@ -125,13 +125,14 @@ void Network::connect(const string& address, unsigned short port, bool s, unsign
 		localendpoint = udpendpoint(tmpsocket.local_endpoint().address(), socket.local_endpoint().port());
 		cout << "connect from " << localendpoint << " to " << endpoint << endl;
 	}
-	cout << "network " << (server? "server": "peer") << " version " << version << endl;
 
 	timer.expires_from_now(boost::posix_time::milliseconds(1000 / timerrate));
 	timer.async_wait(boost::bind(&Network::deadline, this, _1));
 	socket.async_receive_from(buffer(recvbuf), endpoint, boost::bind(&Network::receiver, this, _1, _2));
 	iothread1 = boost::thread(boost::bind(&Network::worker, this, 1));
 	iothread2 = boost::thread(boost::bind(&Network::worker, this, 2));
+
+	cout << "network 2 threads started " << (server? "server": "peer") << " version " << version << endl;
 }
 
 
@@ -279,8 +280,8 @@ void Network::process_message(unsigned i, const string& message) {
 
 void Network::worker(size_t i) {
 	try {
-		cout << "network thread " << i << " started" << endl;
 		io.run();
+		boost::lock_guard<boost::timed_mutex> lock(netmutex);
 		cout << "network thread " << i << " stopped" << endl;
 	} catch (std::exception& e) {
 		cout << "network failure: " << e.what() << endl;
@@ -362,8 +363,10 @@ void Network::sender(boost::shared_ptr<ucharbuf>, const errorcode& e, size_t) {
 
 
 void Network::deadline(const errorcode& e) {
-	if (e)
+	if (e == error::operation_aborted)
 		return;
+	if (e)
+		throw runtime_error(e.message());
 
 	boost::lock_guard<boost::timed_mutex> lock(netmutex);
 
