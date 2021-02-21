@@ -1,4 +1,4 @@
-/*Copyright (C) 2012-2014 Carsten Paproth
+/*Copyright (C) 2012-2014, 2021 Carsten Paproth
 
 This file is part of Skat-Konferenz.
 
@@ -80,8 +80,9 @@ Audio::Audio(Network& nw) : trafo(framesize), bits(8 * encsize), encbuf(encsize 
 	stream = 0;
 	playmic = false;
 
-	if (Pa_Initialize() != paNoError)
-		throw runtime_error("audio initialization failed");
+	initerror = Pa_Initialize() != paNoError;
+	if (initerror)
+		cout << "audio initialization failed" << endl;
 }
 
 
@@ -92,7 +93,8 @@ Audio::~Audio() {
 				Pa_StopStream(stream);
 			Pa_CloseStream(stream);
 		}
-		Pa_Terminate();
+		if (!initerror)
+			Pa_Terminate();
 
 		cout << "audio stream closed" << endl;
 	} catch (...) {}
@@ -100,7 +102,7 @@ Audio::~Audio() {
 
 
 void Audio::restart() {
-	if (!stream && Pa_OpenDefaultStream(&stream, 1, 1, paInt16, samplerate, framesize, &callback, this) != paNoError)
+	if (initerror || (!stream && Pa_OpenDefaultStream(&stream, 1, 1, paInt16, samplerate, framesize, &callback, this) != paNoError))
 		throw runtime_error("open audio stream failed");
 	if (!Pa_IsStreamStopped(stream)) {
 		cout << "audio cpu load: " << Pa_GetStreamCpuLoad(stream) << endl;
@@ -109,6 +111,8 @@ void Audio::restart() {
 	}
 	if (Pa_StartStream(stream) == paNoError)
 		cout << "audio stream started" << endl;
+	else
+		throw runtime_error("start audio stream failed");
 }
 
 

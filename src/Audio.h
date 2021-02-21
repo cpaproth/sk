@@ -1,4 +1,4 @@
-/*Copyright (C) 2012-2014 Carsten Paproth
+/*Copyright (C) 2012-2014, 2021 Carsten Paproth
 
 This file is part of Skat-Konferenz.
 
@@ -56,10 +56,10 @@ public:
 
 
 class Audio {
-	static const unsigned samplerate = 8000;
-	static const size_t framesize = 256;
-	static const size_t encsize = 80;
-	static const unsigned maxlatency = 20;
+	static const unsigned	samplerate = 8000;
+	static const size_t	framesize = 256;
+	static const size_t	encsize = 80;
+	static const unsigned	maxlatency = 20;
 
 
 	PaStream*				stream;
@@ -68,6 +68,7 @@ class Audio {
 	vector<unsigned char>			encbuf;
 	vector<vector<unsigned char> >		decbuf;
 	Network&				network;
+	bool					initerror;
 	bool					playmic;
 
 	void encode(const short*);

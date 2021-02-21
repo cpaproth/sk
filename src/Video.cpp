@@ -34,13 +34,14 @@ Video::Video(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 
 	capture = boost::shared_ptr<VideoCapture>(new VideoCapture(0));
 
-	if (!capture->isOpened() && !capture->open("webcam.avi"))
-		throw runtime_error("open webcam failed");
-	
 	working = true;
 	videothread = boost::thread(boost::bind(&Video::worker, this));
 
-	cout << "video capture started" << endl;
+	if (capture->isOpened())
+		cout << "video capture started" << endl;
+	else
+		cout << "open webcam failed" << endl;
+
 	network.add_handler(boost::bind(&Video::handle_command, this, _1, _2, _3));
 }
 
@@ -329,6 +330,7 @@ void Video::decode(const vector<unsigned char>& enc, Mat& img) {
 void Video::worker() {
 	try {
 		Mat				cap(imageheight, imagewidth, CV_8UC3);
+		Mat				still(imageheight, imagewidth, CV_8UC3);
 		vector<unsigned char>		encbuf;
 		vector<vector<unsigned char> >	decbuf;
 
@@ -339,20 +341,24 @@ void Video::worker() {
 		ui.leftimage->set(limg.get());
 		ui.rightimage->set(rimg.get());
 
+		srand(time(0));
+		for (unsigned i = 0; i < 30; i++)
+			circle(still, Point(rand() % imagewidth, rand() % imageheight), 35 - i, Scalar(rand() % 150, rand() % 150, rand() % 150), CV_FILLED);
+
 		while (working) {
 			boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 
 			if (ui.mainwnd->visible())
 				*capture >> cap;
 
-			if (cap.size().area() == 0) {
-				capture->open("webcam.avi");
-				*capture >> cap;
-			}
+			if (cap.size().area() == 0) capture->open("webcam.avi");
 
 			if (cap.size().area() == 0) {
-				throw runtime_error("empty captured image");
-			} else {
+				boost::this_thread::sleep(boost::posix_time::milliseconds(500));
+				still.copyTo(cap);
+			}
+
+			if (true) {
 				UILock lock;
 				int arcols = min<int>(cap.cols, cap.rows * imagewidth / imageheight);
 				int arrows = min<int>(cap.rows, cap.cols * imageheight / imagewidth);

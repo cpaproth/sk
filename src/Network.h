@@ -39,12 +39,12 @@ using namespace std;
 
 
 class Network {
-	static const unsigned version = 0;
-	static const size_t maxpeers = 2;
-	static const size_t fifomax = 10;
-	static const size_t recvsize = 60000;
-	static const unsigned timerrate = 4;
-	static const unsigned minbw = 4000;
+	static const unsigned	version = 0;
+	static const size_t	maxpeers = 2;
+	static const size_t	fifomax = 10;
+	static const size_t	recvsize = 60000;
+	static const unsigned	timerrate = 4;
+	static const unsigned	minbw = 4000;
 
 	
 	typedef vector<unsigned char> ucharbuf;
