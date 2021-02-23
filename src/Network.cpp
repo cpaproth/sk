@@ -328,7 +328,8 @@ void Network::receiver(const errorcode& e, size_t n) {
 	}
 
 	if (e) {
-		cout << "receive error: " << e.message() << endl;
+		if (e != error::connection_reset && e != error::connection_refused)
+			cout << "receive error: " << e.message() << endl;
 	} else if (peer == peers.end()) {
 		if (server && n == 1 && ignoredpeers[endpoint]++ % (30 * timerrate) == 0) {
 			cout << "ignored peer: " << endpoint << endl;
@@ -377,6 +378,7 @@ void Network::deadline(const errorcode& e) {
 				if (peer == peers.end())
 					break;
 			} else {
+				cout << "no response from server" << endl;
 				*peer = Peer(peer->endpoint);
 				peers.resize(1, Peer(udpendpoint()));
 			}
