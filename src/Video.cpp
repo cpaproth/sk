@@ -344,8 +344,8 @@ void Video::worker() {
 		unsigned secret = 0;
 		string(ui.secret->value()).copy((char*)&secret, sizeof(unsigned));
 		srand(secret ^ (unsigned)time(0));
-		circle(still, Point(imagewidth / 2, imageheight * 19 / 16), imageheight / 2, Scalar(20 + rand() % 150, 20 + rand() % 150, 20 + rand() % 150), CV_FILLED, CV_AA);
-		circle(still, Point(imagewidth / 2, imageheight / 2), imageheight / 4, Scalar(20 + rand() % 150, 20 + rand() % 150, 20 + rand() % 150), CV_FILLED, CV_AA);
+		circle(still, Point(imagewidth / 2, imageheight * 19 / 16), imageheight / 2, Scalar(20 + rand() % 150, 20 + rand() % 150, 20 + rand() % 150), FILLED, LINE_AA);
+		circle(still, Point(imagewidth / 2, imageheight / 2), imageheight / 4, Scalar(20 + rand() % 150, 20 + rand() % 150, 20 + rand() % 150), FILLED, LINE_AA);
 
 		while (working) {
 			boost::this_thread::sleep(boost::posix_time::milliseconds(20));
@@ -359,8 +359,8 @@ void Video::worker() {
 			if (cap.size().area() == 0 || pause) {
 				still.copyTo(cap);
 				if (!pause) {
-					circle(cap, Point(imagewidth / 2 - imageheight / 10, imageheight / 2), imageheight / 20, Scalar(190, 190, 190), CV_FILLED, CV_AA);
-					circle(cap, Point(imagewidth / 2 + imageheight / 10, imageheight / 2), imageheight / 20, Scalar(190, 190, 190), CV_FILLED, CV_AA);
+					circle(cap, Point(imagewidth / 2 - imageheight / 10, imageheight / 2), imageheight / 20, Scalar(190, 190, 190), FILLED, LINE_AA);
+					circle(cap, Point(imagewidth / 2 + imageheight / 10, imageheight / 2), imageheight / 20, Scalar(190, 190, 190), FILLED, LINE_AA);
 				}
 			}
 
