@@ -341,34 +341,38 @@ void Video::worker() {
 		ui.leftimage->set(limg.get());
 		ui.rightimage->set(rimg.get());
 
-		srand(time(0));
-		for (unsigned i = 0; i < 30; i++)
-			circle(still, Point(rand() % imagewidth, rand() % imageheight), 35 - i, Scalar(rand() % 150, rand() % 150, rand() % 150), CV_FILLED);
+		unsigned secret = 0;
+		string(ui.secret->value()).copy((char*)&secret, sizeof(unsigned));
+		srand(secret ^ (unsigned)time(0));
+		circle(still, Point(imagewidth / 2, imageheight * 19 / 16), imageheight / 2, Scalar(20 + rand() % 150, 20 + rand() % 150, 20 + rand() % 150), CV_FILLED, CV_AA);
+		circle(still, Point(imagewidth / 2, imageheight / 2), imageheight / 4, Scalar(20 + rand() % 150, 20 + rand() % 150, 20 + rand() % 150), CV_FILLED, CV_AA);
 
 		while (working) {
-			boost::this_thread::sleep(boost::posix_time::milliseconds(10));
+			boost::this_thread::sleep(boost::posix_time::milliseconds(20));
 
 			if (ui.mainwnd->visible())
 				*capture >> cap;
 
 			if (cap.size().area() == 0) capture->open("webcam.avi");
 
-			if (cap.size().area() == 0) {
-				boost::this_thread::sleep(boost::posix_time::milliseconds(500));
+			bool pause = (UILock(), ui.midimage->get());
+			if (cap.size().area() == 0 || pause) {
 				still.copyTo(cap);
+				if (!pause) {
+					circle(cap, Point(imagewidth / 2 - imageheight / 10, imageheight / 2), imageheight / 20, Scalar(190, 190, 190), CV_FILLED, CV_AA);
+					circle(cap, Point(imagewidth / 2 + imageheight / 10, imageheight / 2), imageheight / 20, Scalar(190, 190, 190), CV_FILLED, CV_AA);
+				}
 			}
 
-			if (true) {
-				UILock lock;
-				int arcols = min<int>(cap.cols, cap.rows * imagewidth / imageheight);
-				int arrows = min<int>(cap.rows, cap.cols * imageheight / imagewidth);
-				resize(cap(Rect((cap.cols - arcols) / 2, (cap.rows - arrows) / 2, arcols, arrows)), *img, img->size());
-				ui.midimage->redraw();
-			}
+			int arcols = min<int>(cap.cols, cap.rows * imagewidth / imageheight);
+			int arrows = min<int>(cap.rows, cap.cols * imageheight / imagewidth);
+			UILock(), resize(cap(Rect((cap.cols - arcols) / 2, (cap.rows - arrows) / 2, arcols, arrows)), *img, img->size());
+
 			encode(*img, encbuf);
 			network.broadcast(encbuf, decbuf, maxlatency);
 
 			UILock lock;
+			ui.midimage->redraw();
 			if (decbuf.size() > left) {
 				decode(decbuf[left], *limg);
 				ui.leftimage->redraw();

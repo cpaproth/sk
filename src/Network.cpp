@@ -90,7 +90,6 @@ void Network::connect(const string& address, unsigned short port, bool s, unsign
 	while (iothread2.joinable() && !iothread2.timed_join(boost::posix_time::milliseconds(100)))
 		wait_to_unlock();
 
-
 	boost::lock_guard<boost::timed_mutex> lock(netmutex);
 	peers.clear();
 	ignoredpeers.clear();

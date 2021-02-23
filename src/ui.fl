@@ -60,7 +60,7 @@ class UserInterface {open
             code0 {\#include "GlTable.h"}
             class {SK::GlTable}
           }
-          Fl_Group {} {
+          Fl_Group {} {open
             xywh {0 25 640 240} resizable
           } {
             Fl_Box leftimage {
@@ -206,8 +206,9 @@ f["game select"]();}
             }
           }
           Fl_Box midimage {
-            callback {f["pause toggle"]();}
+            callback {f["audio mute"]();}
             xywh {640 440 320 240} box FLAT_BOX color 56 labelsize 11
+            code0 {midimage->set();}
             class {SK::GlImage}
           }
           Fl_Input chat {

@@ -121,15 +121,21 @@ void Audio::toggle_playmic() {
 }
 
 
+void Audio::mute_mic(bool m) {
+	mute = m;
+}
+
+
 void Audio::encode(const short* in) {
 	static unsigned frame = 0;
 	static float tmp[framesize];
 	static vector<pair<float, unsigned> > a(framesize);
 	static vector<pair<unsigned char, int> > v(framesize);
 
+	float scale = mute && !playmic? 0.f: 1.f / 32768.f;
 	for (unsigned i = 0; i < framesize; i++) {
 		trafo.t(i) = tmp[i];
-		tmp[i] = trafo.t(i + framesize) = in[i] / 32768.f;
+		tmp[i] = trafo.t(i + framesize) = in[i] * scale;
 	}
 	trafo.mdct();
 

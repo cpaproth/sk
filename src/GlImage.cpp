@@ -26,6 +26,7 @@ using namespace SK;
 
 GlImage::GlImage(int x, int y, int w ,int h, const char* l) : Fl_Gl_Window(x, y, w, h, l) {
 	img = 0;
+	mode = 0;
 }
 
 
@@ -37,6 +38,16 @@ void GlImage::set(cv::Mat* cvimg) {
 void GlImage::set(const std::string& s) {
 	str = s;
 	redraw();
+}
+
+
+void GlImage::set() {
+	mode = 1;
+}
+
+
+bool GlImage::get() {
+	return mode == 3;
 }
 
 
@@ -62,15 +73,61 @@ void GlImage::draw() {
 		glClear(GL_COLOR_BUFFER_BIT);
 	}
 
+	if (mode > 1) {
+		glColor4f(0.f, 0.f, 0.f, 0.5f);
+		glEnable(GL_BLEND);
+		glRectf(0.f, 0.f, (float)w(), (float)h());
+		glDisable(GL_BLEND);
+		glColor3f(1.f, 1.f, 1.f);
+		if (mode == 2) {
+			glRectf(w() / 2.f - 15.f, h() / 2.f - 15.f, w() / 2.f - 5.f, h() / 2.f + 15.f);
+			glRectf(w() / 2.f + 5.f, h() / 2.f - 15.f, w() / 2.f + 15.f, h() / 2.f + 15.f);
+		} else {
+			glBegin(GL_TRIANGLES);
+			glVertex3f(w() / 2.f - 15.f, h() / 2.f - 15.f, 0.f);
+			glVertex3f(w() / 2.f - 15.f, h() / 2.f + 15.f, 0.f);
+			glVertex3f(w() / 2.f + 15.f, h() / 2.f, 0.f);
+			glEnd();
+		}
+	}
+
 	if (!str.empty()) {
-		glPixelZoom(1.f, 1.f);
 		gl_font(FL_HELVETICA, 12);
 		glColor4f(0.f, 0.f, 0.f, 0.3f);
 		glEnable(GL_BLEND);
-		glRectf(0.f , 10.f, (float)w(), 10.f + gl_height());
+		glRectf(0.f, 10.f, (float)w(), 10.f + gl_height());
 		glDisable(GL_BLEND);
-
 		glColor3f(1.f, 1.f, 1.f);
 		gl_draw(str.c_str(), std::max(0.f, (w() - (float)gl_width(str.c_str())) / 2.f), 10.f + gl_descent());
 	}
+}
+
+
+int GlImage::handle(int event) {
+	switch(event) {
+	case FL_ENTER:
+		if (mode == 1) {
+			mode = 2;
+			redraw();
+			return 1;
+		}
+		break;
+	case FL_LEAVE:
+		if (mode == 2) {
+			mode = 1;
+			redraw();
+			return 1;
+		}
+		break;
+	case FL_PUSH:
+		if (mode > 1) {
+			mode = mode == 2? 3: 2;
+			do_callback();
+			redraw();
+			return 1;
+		}
+		break;
+	}
+
+	return Fl_Gl_Window::handle(event);
 }

@@ -30,6 +30,11 @@ using namespace CPLib;
 using namespace SK;
 
 
+void mute_audio(UserInterface& ui, Audio& audio) {
+	audio.mute_mic(ui.midimage->get());
+}
+
+
 void connect_network(UserInterface& ui, Network& network) {
 	network.connect(ui.address->value(), (unsigned short)ui.port->value(), (bool)ui.server->value(), (unsigned)ui.bandwidth->value(), boost::bind(&Fl::wait, 1));
 }
@@ -51,6 +56,7 @@ int main() {
 
 		ui.f["audio restart"] = boost::bind(&Audio::restart, &audio);
 		ui.f["audio toggle"] = boost::bind(&Audio::toggle_playmic, &audio);
+		ui.f["audio mute"] = boost::bind(&mute_audio, boost::ref(ui), boost::ref(audio));
 		ui.f["chat message"] = boost::bind(&Video::send_chat, &video);
 		ui.f["network stats"] = boost::bind(&Network::stats, &network);
 		ui.f["network connect"] = boost::bind(&connect_network, boost::ref(ui), boost::ref(network));

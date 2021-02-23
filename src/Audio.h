@@ -24,6 +24,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #include <vector>
 #include <complex>
 #include <boost/dynamic_bitset.hpp>
+#include <boost/atomic.hpp>
 
 
 namespace SK {
@@ -69,7 +70,8 @@ class Audio {
 	vector<vector<unsigned char> >		decbuf;
 	Network&				network;
 	bool					initerror;
-	bool					playmic;
+	boost::atomic<bool>			playmic;
+	boost::atomic<bool>			mute;
 
 	void encode(const short*);
 	void decode(short*);
@@ -84,6 +86,7 @@ public:
 	
 	void restart();
 	void toggle_playmic();
+	void mute_mic(bool);
 };
 
 

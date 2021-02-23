@@ -311,7 +311,7 @@ void UserInterface::cb_giveup(Fl_Button* o, void* v) {
 }
 
 void UserInterface::cb_midimage_i(SK::GlImage*, void*) {
-  f["pause toggle"]();
+  f["audio mute"]();
 }
 void UserInterface::cb_midimage(SK::GlImage* o, void* v) {
   ((UserInterface*)(o->parent()->parent()->parent()->user_data()))->cb_midimage_i(o,v);
@@ -668,6 +668,7 @@ UserInterface::UserInterface():prefs(Fl_Preferences::USER, "cpaproth", "sk") {
           midimage->callback((Fl_Callback*)cb_midimage);
           midimage->align(Fl_Align(FL_ALIGN_CENTER));
           midimage->when(FL_WHEN_RELEASE);
+          midimage->set();
         } // SK::GlImage* midimage
         { chat = new Fl_Input(640, 680, 320, 20);
           chat->box(FL_FLAT_BOX);

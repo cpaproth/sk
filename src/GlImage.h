@@ -1,4 +1,4 @@
-/*Copyright (C) 2012-2014 Carsten Paproth
+/*Copyright (C) 2012-2014, 2021 Carsten Paproth
 
 This file is part of Skat-Konferenz.
 
@@ -35,14 +35,18 @@ namespace SK {
 class GlImage : public Fl_Gl_Window {
 	cv::Mat*	img;
 	std::string	str;
+	unsigned	mode;
 
 	void draw();
+	int handle(int);
 
 public:
 	GlImage(int, int, int, int, const char* = 0);
 	
 	void set(cv::Mat*);
 	void set(const std::string&);
+	void set();
+	bool get();
 };
 
 
