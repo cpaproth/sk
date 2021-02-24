@@ -1,1 +1,19 @@
+#!/bin/sh
+
 sudo apt-get install build-essential libfltk1.3-dev libboost-all-dev libopencv-dev portaudio19-dev cmake
+
+rm -rf sk-master
+
+wget -O sk-master.zip https://github.com/cpaproth/sk/archive/master.zip
+unzip sk-master.zip
+mkdir sk-master/build
+cd sk-master/build
+cmake -D CMAKE_BUILD_TYPE=Release ../src/
+make
+cd ../..
+cp sk-master/build/sk sk
+
+rm sk-master.zip
+rm -rf sk-master
+
+./sk

@@ -350,7 +350,7 @@ void Video::worker() {
 		while (working) {
 			boost::this_thread::sleep(boost::posix_time::milliseconds(40));
 
-			if (ui.mainwnd->visible())
+			if (UILock(), ui.mainwnd->visible())
 				*capture >> cap;
 
 			//if (cap.size().area() == 0) capture->open("webcam.avi"), *capture >> cap;

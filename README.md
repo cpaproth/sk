@@ -12,6 +12,7 @@ it has been tested on Ubuntu (latest version 20.04) and MS Windows ([download Sk
 ## History
 
 Currently, this software is in [beta phase](https://github.com/cpaproth/sk/tags) and needs some testing.
+* 1.3: more robust network connections, pause broadcasting of the video and audio signal, and show the last trick
 * 1.2: MDCT-based audio codec, wavelet-based image codec with range encoding, and a more flexible network protocol
 * 1.1: ported from FLTK2.0 to FLTK1.3
 * 1.0: a more robust audio broadcast method
