@@ -6,7 +6,7 @@ Skat-Konferenz is the popular German card game Skat played online combined with 
 This program is free software and comes with ABSOLUTELY NO WARRANTY. Licensed under the terms of [GPLv3](http://www.gnu.org/licenses/).
 
 Skat-Konferenz is written in C++ using portable libraries exclusively, so it should be compatible with UNIX/Linux (X11), MS Windows, and Mac OS X. Till now,
-it has been tested on Ubuntu (latest version 20.04) and MS Windows ([download](https://github.com/cpaproth/sk/releases/download/v1.2-beta/sk_windows.zip)).
+it has been tested on Ubuntu (latest version 20.04) and MS Windows ([download Skat-Konferenz for Windows](https://github.com/cpaproth/sk/releases/latest/download/sk_windows.zip)).
 
 
 ## History
@@ -36,10 +36,10 @@ Playing card images are copied from [GNOME Aisleriot](https://live.gnome.org/Ais
 ## Building
 
 To build *sk*, you need to install the dependencies with the corresponding development files first, use your package manager (if available) to install them.
-*sk* comes with a simple CMakeLists.txt file, thus you can use CMake to generate a makefile. Currently, this procedure works only on Linux.
-For other operating systems, you have to create appropriate build files by hand.
+*sk* comes with a simple CMakeLists.txt file, thus you can use CMake to generate a build-system. CMake generates a makefile on Linux, but it is also possible to generate Visual Studio project files with CMake provided all needed libraries can be found by CMake.
+The following steps illustrate how to install all dependencies and build *sk* on Ubuntu. The [download_sk.run](download_sk.run) script contains these steps as well.
 
-1. Install all the dependencies and CMake by using, for example:
+1. Install all the dependencies and CMake by using:
 
         sudo apt-get install build-essential libfltk1.3-dev libboost-all-dev libopencv-dev portaudio19-dev cmake
 		

@@ -330,7 +330,7 @@ void Video::decode(const vector<unsigned char>& enc, Mat& img) {
 void Video::worker() {
 	try {
 		Mat				cap(imageheight, imagewidth, CV_8UC3);
-		Mat				still(imageheight, imagewidth, CV_8UC3);
+		Mat				still(imageheight, imagewidth, CV_8UC3, Scalar());
 		vector<unsigned char>		encbuf;
 		vector<vector<unsigned char> >	decbuf;
 
@@ -348,7 +348,7 @@ void Video::worker() {
 		circle(still, Point(imagewidth / 2, imageheight / 2), imageheight / 4, Scalar(20 + rand() % 150, 20 + rand() % 150, 20 + rand() % 150), -1, 16);
 
 		while (working) {
-			boost::this_thread::sleep(boost::posix_time::milliseconds(20));
+			boost::this_thread::sleep(boost::posix_time::milliseconds(40));
 
 			if (ui.mainwnd->visible())
 				*capture >> cap;
