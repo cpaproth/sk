@@ -18,15 +18,14 @@ endif()
 
 if(MSVC)
 	add_compile_definitions(_WIN32_WINNT=0x0501)
+	set(Boost_LIBRARIES "")
+	link_directories(${Boost_LIBRARY_DIRS})
 	set(LINK_WITH_STATIC 1 CACHE BOOL "all libraries are statically linked")
 	if(LINK_WITH_STATIC)
-		set(Boost_LIBRARIES "")
 		set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
 		set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
 	endif()
 endif()
-
-link_directories(${Boost_LIBRARY_DIRS})
 
 add_executable(sk WIN32 main.cpp
 	ui.cpp ui.h

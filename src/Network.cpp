@@ -79,7 +79,7 @@ void Network::remove_handler() {
 
 
 void Network::connect(const string& address, unsigned short port, bool s, unsigned bw, boost::function<int()> wait_to_unlock) {
-	if (true) {
+	{
 		boost::lock_guard<boost::timed_mutex> lock(netmutex);
 		timer.cancel();
 		socket.close();

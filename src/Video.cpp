@@ -333,16 +333,12 @@ void Video::worker() {
 		Mat				still(imageheight, imagewidth, CV_8UC3, Scalar());
 		vector<unsigned char>		encbuf;
 		vector<vector<unsigned char> >	decbuf;
-
 		img = boost::shared_ptr<Mat>(new Mat(imageheight, imagewidth, CV_8UC3, Scalar()));
 		limg = boost::shared_ptr<Mat>(new Mat(imageheight, imagewidth, CV_8UC3, Scalar()));
 		rimg = boost::shared_ptr<Mat>(new Mat(imageheight, imagewidth, CV_8UC3, Scalar()));
-		ui.midimage->set(img.get());
-		ui.leftimage->set(limg.get());
-		ui.rightimage->set(rimg.get());
-
+		
 		unsigned secret = 0;
-		string(ui.secret->value()).copy((char*)&secret, sizeof(unsigned));
+		UILock(), ui.midimage->set(img.get()), ui.leftimage->set(limg.get()), ui.rightimage->set(rimg.get()), string(ui.secret->value()).copy((char*)&secret, sizeof(unsigned));
 		srand(secret ^ (unsigned)time(0));
 		circle(still, Point(imagewidth / 2, imageheight * 19 / 16), imageheight / 2, Scalar(20 + rand() % 150, 20 + rand() % 150, 20 + rand() % 150), -1, 16);
 		circle(still, Point(imagewidth / 2, imageheight / 2), imageheight / 4, Scalar(20 + rand() % 150, 20 + rand() % 150, 20 + rand() % 150), -1, 16);
