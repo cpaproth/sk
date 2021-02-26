@@ -38,7 +38,7 @@ Playing card images are copied from [GNOME Aisleriot](https://live.gnome.org/Ais
 
 To build *sk*, you need to install the dependencies with the corresponding development files first, use your package manager (if available) to install them.
 *sk* comes with a simple CMakeLists.txt file, thus you can use CMake to generate a build-system. CMake generates a makefile on Linux, but it is also possible to generate Visual Studio project files with CMake provided all needed libraries can be found by CMake.
-The following steps illustrate how to install all dependencies and build *sk* on Ubuntu. The [download_sk.run](download_sk.run) script contains these steps as well.
+The following steps illustrate how to install all dependencies and build *sk* on Ubuntu. The [download_sk.run](https://github.com/cpaproth/sk/raw/master/download_sk.run) script contains these steps as well.
 
 1. Install all the dependencies and CMake by using:
 
