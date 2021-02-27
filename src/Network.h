@@ -88,6 +88,7 @@ class Network {
 	boost::thread			iothread2;
 	boost::timed_mutex		netmutex;
 	boost::mutex			hdlmutex;
+	boost::function<int()>		wait_to_unlock;
 	map<udpendpoint, unsigned>	ignoredpeers;
 
 
@@ -102,12 +103,12 @@ class Network {
 	Network(const Network&);
 	void operator=(const Network&);
 public:
-	Network();
+	Network(boost::function<int()>);
 	~Network();
 
 	void add_handler(handler);
 	void remove_handler();
-	void connect(const string&, unsigned short, bool, unsigned, boost::function<int()>);
+	void connect(const string&, unsigned short, bool, unsigned);
 	void broadcast(const ucharbuf&, vector<ucharbuf>&, unsigned);
 	void command(unsigned, const string&, const string&);
 	void stats();

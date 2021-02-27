@@ -449,7 +449,6 @@ void UserInterface::cb_junkrule(Fl_Check_Button* o, void* v) {
 }
 
 UserInterface::UserInterface():prefs(Fl_Preferences::USER, "cpaproth", "sk") {
-  UILock lock;
   { mainwnd = new Fl_Double_Window(960, 700, "Skat-Konferenz");
     mainwnd->labelsize(11);
     mainwnd->callback((Fl_Callback*)cb_mainwnd, (void*)(this));

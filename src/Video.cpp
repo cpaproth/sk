@@ -54,8 +54,8 @@ Video::~Video() {
 		ui.rightimage->set(0);
 
 		working = false;
-		if (videothread.joinable())
-			videothread.join();
+		while (videothread.joinable() && !videothread.timed_join(boost::posix_time::milliseconds(100)))
+			Fl::wait(0.1);
 
 	} catch (...) {}
 }

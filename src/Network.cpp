@@ -42,7 +42,7 @@ static bool fifo_cmp(const vector<unsigned char>& l, const vector<unsigned char>
 }
 
 
-Network::Network() : socket(io, ip::udp::v4()), timer(io), strand(io) {
+Network::Network(boost::function<int()> w) : socket(io, ip::udp::v4()), timer(io), strand(io), wait_to_unlock(w) {
 	msgid = 1;
 	bandwidth = maxpeers * minbw;
 	mutexbusy = 0;
@@ -58,27 +58,31 @@ Network::~Network() {
 		socket.close();
 		io.stop();
 		netmutex.unlock();
-		if (iothread1.joinable())
-			iothread1.join();
-		if (iothread2.joinable())
-			iothread2.join();
+		while (iothread1.joinable() && !iothread1.timed_join(boost::posix_time::milliseconds(100)))
+			wait_to_unlock();
+		while (iothread2.joinable() && !iothread2.timed_join(boost::posix_time::milliseconds(100)))
+			wait_to_unlock();
 	} catch (...) {}
 }
 
 
 void Network::add_handler(handler h) {
-	boost::lock_guard<boost::mutex> lock(hdlmutex);
+	while (!hdlmutex.try_lock())
+		wait_to_unlock();
+	boost::lock_guard<boost::mutex> lock(hdlmutex, boost::adopt_lock);
 	handlers.push_back(h);
 }
 
 
 void Network::remove_handler() {
-	boost::lock_guard<boost::mutex> lock(hdlmutex);
+	while (!hdlmutex.try_lock())
+		wait_to_unlock();
+	boost::lock_guard<boost::mutex> lock(hdlmutex, boost::adopt_lock);
 	handlers.clear();
 }
 
 
-void Network::connect(const string& address, unsigned short port, bool s, unsigned bw, boost::function<int()> wait_to_unlock) {
+void Network::connect(const string& address, unsigned short port, bool s, unsigned bw) {
 	{
 		boost::lock_guard<boost::timed_mutex> lock(netmutex);
 		timer.cancel();

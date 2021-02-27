@@ -38,10 +38,9 @@ class UserInterface {open
   }
   Function {UserInterface():prefs(Fl_Preferences::USER, "cpaproth", "sk")} {open
   } {
-    code {UILock lock;} {}
     Fl_Window mainwnd {
       label {Skat-Konferenz}
-      callback {mainwnd->hide();} open
+      callback {mainwnd->hide();} open selected
       xywh {265 88 960 700} type Double labelsize 11 align 80 resizable
       code0 {\#include <map>}
       code1 {\#include <string>}
@@ -51,7 +50,7 @@ class UserInterface {open
         xywh {0 0 960 700} labelsize 11
       } {
         Fl_Group {} {
-          label Skat open selected
+          label Skat open
           xywh {0 25 960 675} labelsize 11
         } {
           Fl_Box table {

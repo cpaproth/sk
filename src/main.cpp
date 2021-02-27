@@ -36,19 +36,20 @@ void mute_audio(UserInterface& ui, Audio& audio) {
 
 
 void connect_network(UserInterface& ui, Network& network) {
-	network.connect(ui.address->value(), (unsigned short)ui.port->value(), (bool)ui.server->value(), (unsigned)ui.bandwidth->value(), boost::bind(&Fl::wait, 1));
+	network.connect(ui.address->value(), (unsigned short)ui.port->value(), (bool)ui.server->value(), (unsigned)ui.bandwidth->value());
 }
 
 
 int main() {
 	try {
+		UILock		lock;
 		UserInterface	ui;
 
 		cout << "Skat-Konferenz Copyright (C) 2012-2014, 2021 Carsten Paproth." << endl;
 		cout << "This program is free software and comes with ABSOLUTELY NO WARRANTY." << endl;
 		cout << "Licensed under the terms of GPLv3, see <http://www.gnu.org/licenses/>." << endl << endl;
 
-		Network		network;
+		Network		network(boost::bind(&Fl::wait, 0.1));
 		Video		video(ui, network);
 		Audio		audio(network);
 		Game		game(ui, network);
@@ -70,7 +71,6 @@ int main() {
 
 		while(true)
 			try {
-				UILock lock;
 				return Fl::run();
 			} catch (exception& e) {
 				cout << "runtime error: " << e.what() << endl;

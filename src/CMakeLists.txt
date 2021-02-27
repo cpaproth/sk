@@ -33,7 +33,7 @@ add_executable(sk WIN32 main.cpp
 	GlTable.cpp GlTable.h
 	Network.cpp Network.h
 	Audio.cpp Audio.h
-	Video.cpp Audio.h
+	Video.cpp Video.h
 	Game.cpp Game.h
 	BidButton.cpp BidButton.h
 	LogDisplay.cpp LogDisplay.h
