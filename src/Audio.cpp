@@ -79,6 +79,7 @@ void Transform::imdct() {
 Audio::Audio(Network& nw) : trafo(framesize), bits(8 * encsize), encbuf(encsize + 1), network(nw) {
 	stream = 0;
 	playmic = false;
+	mute = false;
 
 	initerror = Pa_Initialize() != paNoError;
 	if (initerror)
