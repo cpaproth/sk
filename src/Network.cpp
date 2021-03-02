@@ -345,7 +345,8 @@ void Network::receiver(const errorcode& e, size_t n) {
 		process_message(peer - peers.begin(), string(recvbuf.begin(), recvbuf.begin() + n));
 	} else if (n > 1 && (recvbuf[0] & 192) == 64) {
 		list<ucharbuf>::iterator it = lower_bound(peer->fifo.begin(), peer->fifo.end(), recvbuf, fifo_cmp);
-		if (peer->fifo.size() == 0 || it != peer->fifo.begin())
+		//if (peer->fifo.size() == 0 || it != peer->fifo.begin())
+		if (it == peer->fifo.end() || (it != peer->fifo.begin() && fifo_cmp(recvbuf, *it)))
 			peer->fifo.insert(it, ucharbuf(recvbuf.begin(), recvbuf.begin() + n));
 		if (peer->fifo.size() > fifomax) {
 			peer->fifofull++;

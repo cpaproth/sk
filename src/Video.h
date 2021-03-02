@@ -24,6 +24,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #include <boost/shared_ptr.hpp>
 #include <boost/atomic.hpp>
 #include <vector>
+#include <set>
 
 
 namespace cv {
@@ -55,6 +56,12 @@ class Video {
 	boost::atomic<bool>			working;
 	UserInterface&				ui;
 	Network&				network;
+
+	void fcdf97(std::vector<float>&, unsigned, unsigned, unsigned);
+	void icdf97(std::vector<float>&, unsigned, unsigned, unsigned);
+	void rearrange(const std::set<unsigned>&, std::vector<float>&, std::vector<int>&, unsigned, unsigned, unsigned, float, bool);
+	void encode2(const cv::Mat&, std::vector<unsigned char>&);
+	void decode2(const std::vector<unsigned char>&, cv::Mat&);
 
 	void encode(const cv::Mat&, std::vector<unsigned char>&);
 	void decode(const std::vector<unsigned char>&, cv::Mat&);
