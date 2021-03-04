@@ -37,6 +37,9 @@ class UserInterface;
 namespace SK {
 
 
+using namespace std;
+
+
 class Network;
 
 
@@ -45,6 +48,24 @@ class Video {
 	static const unsigned imageheight = 240;
 	static const unsigned minsize = 300;
 	static const unsigned maxlatency = 200;
+
+
+	class Codec {
+		const float		a1, a2, a3, a4, k1, k2;
+		vector<float>		Y, U, V, tmpY, tmpU, tmpV;
+		set<unsigned>		mask;
+		vector<unsigned>	rndmask;
+		unsigned		frame, rndnext, w, h, l;
+
+		void fcdf97(vector<float>&, unsigned, unsigned, unsigned);
+		void icdf97(vector<float>&, unsigned, unsigned, unsigned);
+		void rearrange(const set<unsigned>&, vector<float>&, vector<int>&, unsigned, unsigned, unsigned, float, bool);
+	public:
+		Codec();
+		void encode(const cv::Mat&, vector<unsigned char>&, bool);
+		void decode(const vector<unsigned char>&, cv::Mat&);
+	};
+
 
 	boost::shared_ptr<cv::VideoCapture>	capture;
 	boost::shared_ptr<cv::Mat>		img;
@@ -57,18 +78,18 @@ class Video {
 	UserInterface&				ui;
 	Network&				network;
 
-	void fcdf97(std::vector<float>&, unsigned, unsigned, unsigned);
-	void icdf97(std::vector<float>&, unsigned, unsigned, unsigned);
-	void rearrange(const std::set<unsigned>&, std::vector<float>&, std::vector<int>&, unsigned, unsigned, unsigned, float, bool);
-	void encode2(const cv::Mat&, std::vector<unsigned char>&);
-	void decode2(const std::vector<unsigned char>&, cv::Mat&);
+	void fcdf97(vector<float>&, unsigned, unsigned, unsigned);
+	void icdf97(vector<float>&, unsigned, unsigned, unsigned);
+	void rearrange(const set<unsigned>&, vector<float>&, vector<int>&, unsigned, unsigned, unsigned, float, bool);
+	void encode2(const cv::Mat&, vector<unsigned char>&);
+	void decode2(const vector<unsigned char>&, cv::Mat&);
 
-	void encode(const cv::Mat&, std::vector<unsigned char>&);
-	void decode(const std::vector<unsigned char>&, cv::Mat&);
+	void encode(const cv::Mat&, vector<unsigned char>&);
+	void decode(const vector<unsigned char>&, cv::Mat&);
 
 	void worker();
 
-	bool handle_command(unsigned, const std::string&, const std::string&);
+	bool handle_command(unsigned, const string&, const string&);
 
 	Video(const Video&);
 	void operator=(const Video&);

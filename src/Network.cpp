@@ -139,17 +139,18 @@ void Network::connect(const string& address, unsigned short port, bool s, unsign
 }
 
 
-void Network::broadcast(const ucharbuf& send, vector<ucharbuf>& recv, unsigned latency) {
+bool Network::broadcast(const ucharbuf& send, vector<ucharbuf>& recv, unsigned latency) {
 	recv.clear();
 
 	if (!netmutex.timed_lock(boost::posix_time::milliseconds(latency))) {
 		mutexbusy++;
-		return;
+		return false;
 	}
 	boost::lock_guard<boost::timed_mutex> lock(netmutex, boost::adopt_lock);
 
 	boost::shared_ptr<ucharbuf> buf(new ucharbuf(send));
 
+	bool sent = false;
 	for (unsigned i = 0; i < peers.size() && send.size() > 0; i++) {
 		if (!peers[i].connected)
 			continue;
@@ -161,15 +162,18 @@ void Network::broadcast(const ucharbuf& send, vector<ucharbuf>& recv, unsigned l
 				peers[i].fifoempty++;
 			}
 			socket.async_send_to(buffer(*buf), peers[i].endpoint, boost::bind(&Network::sender, this, buf, _1, _2));
+			sent = true;
 		} else if ((send[0] & 192) == 128) {
 			recv.push_back(peers[i].buffer);
 			peers[i].buffer.clear();
 			if (peers[i].bucket >= buf->size()) {
 				socket.async_send_to(buffer(*buf), peers[i].endpoint, boost::bind(&Network::sender, this, buf, _1, _2));
 				peers[i].bucket -= buf->size();
+				sent = true;
 			}
 		}
 	}
+	return sent;
 }
 
 
