@@ -57,6 +57,7 @@ class Network {
 		udpendpoint	endpoint;
 		udpendpoint	altendpoint;
 		list<ucharbuf>	fifo;
+		list<ucharbuf>	buffer2;
 		ucharbuf	buffer;
 		deque<string>	messages;
 		bool		connected;

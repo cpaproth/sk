@@ -34,6 +34,7 @@ Video::Codec::Codec() : a1(-1.586134342f), a2(-0.05298011854f), a3(0.8829110762f
 	while (rndmask.size() < minsize)
 		rndmask.push_back(rndmask.size());
 	random_shuffle(rndmask.begin(), rndmask.end());
+	for (w = imagewidth, h = imageheight, l = 1; w * h > minsize; w /= 2, h /= 2, l *= 2);
 }
 
 
@@ -85,11 +86,11 @@ void Video::Codec::icdf97(vector<float>& m, unsigned p, unsigned d, unsigned s) 
 }
 
 
-void Video::Codec::rearrange(const set<unsigned>& mask, vector<float>& C, vector<int>& d, unsigned o, unsigned l, unsigned f, float q, bool fwd) {
+void Video::Codec::rearrange(const set<unsigned>& mask, vector<float>& C, vector<int>& d, unsigned o, unsigned s, unsigned f, float q, bool fwd) {
 	for (set<unsigned>::const_iterator it = mask.begin(); it != mask.end(); it++) {
-		unsigned mx = *it % 20 * 16, my = *it / 20 * 16;
-		for (unsigned y = my + f / 2 * (1 << l); y < my + 16; y += 2 << l) {
-			for (unsigned x = mx + f % 2 * (1 << l); x < mx + 16; x += 2 << l) {
+		unsigned mx = *it % w * l, my = *it / w * l;
+		for (unsigned y = my + f / 2 * (1 << s); y < my + l; y += 2 << s) {
+			for (unsigned x = mx + f % 2 * (1 << s); x < mx + l; x += 2 << s) {
 				if (fwd)
 					d[o++] = (int)(C[y * imagewidth + x] / q + (C[y * imagewidth + x] < 0.f? -0.5f: 0.5f));
 				else
@@ -101,14 +102,17 @@ void Video::Codec::rearrange(const set<unsigned>& mask, vector<float>& C, vector
 
 
 void Video::Codec::encode(const Mat& img, vector<unsigned char>& enc, bool update) {
-	for (set<unsigned>::const_iterator it = mask.begin(); it != mask.end() && update; it++) {
-		for (unsigned y = *it / w * l; y < *it / w * l + l; y++) {
-			for (unsigned x = *it % w * l; x < *it % w * l + l; x++) {
-				tmpY[y * imagewidth + x] = Y[y * imagewidth + x];
-				tmpU[y * imagewidth + x] = U[y * imagewidth + x];
-				tmpV[y * imagewidth + x] = V[y * imagewidth + x];
+	if (update) {
+		for (set<unsigned>::const_iterator it = mask.begin(); it != mask.end(); it++) {
+			for (unsigned y = *it / w * l; y < *it / w * l + l; y++) {
+				for (unsigned x = *it % w * l; x < *it % w * l + l; x++) {
+					tmpY[y * imagewidth + x] = Y[y * imagewidth + x];
+					tmpU[y * imagewidth + x] = U[y * imagewidth + x];
+					tmpV[y * imagewidth + x] = V[y * imagewidth + x];
+				}
 			}
 		}
+		frame++;
 	}
 
 	if (img.cols != (int)imagewidth || img.rows != (int)imageheight || img.elemSize() != 3)
@@ -140,7 +144,7 @@ void Video::Codec::encode(const Mat& img, vector<unsigned char>& enc, bool updat
 	mask.clear();
 	for (unsigned py = 0; py < h; py++) {
 		for (unsigned px = 0; px < w; px++) {
-			float bright = 1.f + min(tmpY[py * l * imagewidth + px * l], Y[py * l * imagewidth + px * l]) / 255.f;
+			float bright = 1.f + min(tmpY[py * l * imagewidth + px * l], Y[py * l * imagewidth + px * l]) / 120.f;
 			bool diff = false;
 			for (unsigned y = py * l; y < py * l + l; y++) {
 				for (unsigned x = px * l; x < px * l + l; x++) {
@@ -158,8 +162,8 @@ void Video::Codec::encode(const Mat& img, vector<unsigned char>& enc, bool updat
 		}
 	}
 	for (unsigned r = 0; r < 23; r++)
-		mask.insert(rndmask[rndnext++ % minsize]);
-cout<<mask.size()<<endl;
+		;//mask.insert(rndmask[rndnext++ % minsize]);
+//cout<<mask.size()<<endl;
 
 
 	vector<int> data(minsize + 264 * mask.size(), 0);
@@ -298,7 +302,7 @@ void Video::Codec::decode(const vector<unsigned char>& enc, Mat& img) {
 	}
 
 
-	set<unsigned> mask;
+	mask.clear();
 	for (unsigned i = 0; i < minsize && i < data.size(); i++)
 		if (data[i] == 1)
 			mask.insert(i);
@@ -638,335 +642,6 @@ void Video::decode(const vector<unsigned char>& enc, Mat& img) {
 }
 
 
-void Video::fcdf97(vector<float>& m, unsigned p, unsigned d, unsigned s) {
-	float a1 = -1.586134342f;
-	float a2 = -0.05298011854f;
-	float a3 = 0.8829110762f;
-	float a4 = 0.4435068522f;
-	float k1 = 0.81289306611596146f;
-	float k2 = 0.61508705245700002f;
-
-	for (unsigned i = 1; i < s - 1; i += 2)
-		m[p + i * d] += a1 * (m[p + (i - 1) * d] + m[p + (i + 1) * d]);
-	m[p + (s - 1) * d] += 2.f * a1 * m[p + (s - 2) * d];
-
-	for (unsigned i = 2; i < s - 1; i += 2)
-		m[p + i * d] += a2 * (m[p + (i - 1) * d] + m[p + (i + 1) * d]);
-	m[p] += 2.f * a2 * m[p + d];
-
-	for (unsigned i = 1; i < s - 1; i += 2)
-		m[p + i * d] += a3 * (m[p + (i - 1) * d] + m[p + (i + 1) * d]);
-	m[p + (s - 1) * d] += 2.f * a3 * m[p + (s - 2) * d];
-
-	for (unsigned i = 2; i < s - 1; i += 2)
-		m[p + i * d] += a4 * (m[p + (i - 1) * d] + m[p + (i + 1) * d]);
-	m[p] += 2.f * a4 * m[p + d];
-
-	for (unsigned i = 0; i < s / 2; i++) {
-		m[p + 2 * i * d] *= k1;
-		m[p + (2 * i + 1) * d] *= k2;
-	}
-}
-
-
-void Video::icdf97(vector<float>& m, unsigned p, unsigned d, unsigned s) {
-	float a1 = 1.586134342f;
-	float a2 = 0.05298011854f;
-	float a3 = -0.8829110762f;
-	float a4 = -0.4435068522f;
-	float k1 = 1.f / 0.81289306611596146f;
-	float k2 = 1.f / 0.61508705245700002f;
-
-	for (unsigned i = 0; i < s / 2; i++) {
-		m[p + 2 * i * d] *= k1;
-		m[p + (2 * i + 1) * d] *= k2;
-	}
-
-	for (unsigned i = 2; i < s - 1; i += 2)
-		m[p + i * d] += a4 * (m[p + (i - 1) * d] + m[p + (i + 1) * d]);
-	m[p] += 2.f * a4 * m[p + d];
-
-	for (unsigned i = 1; i < s - 1; i += 2)
-		m[p + i * d] += a3 * (m[p + (i - 1) * d] + m[p + (i + 1) * d]);
-	m[p + (s - 1) * d] += 2.f * a3 * m[p + (s - 2) * d];
-
-	for (unsigned i = 2; i < s - 1; i += 2)
-		m[p + i * d] += a2 * (m[p + (i - 1) * d] + m[p + (i + 1) * d]);
-	m[p] += 2.f * a2 * m[p + d];
-
-	for (unsigned i = 1; i < s - 1; i += 2)
-		m[p + i * d] += a1 * (m[p + (i - 1) * d] + m[p + (i + 1) * d]);
-	m[p + (s - 1) * d] += 2.f * a1 * m[p + (s - 2) * d];
-}
-
-
-void Video::rearrange(const std::set<unsigned>& mask, std::vector<float>& C, std::vector<int>& d, unsigned o, unsigned l, unsigned f, float q, bool fwd) {
-	for (set<unsigned>::const_iterator it = mask.begin(); it != mask.end(); it++) {
-		unsigned mx = *it % 20 * 16, my = *it / 20 * 16;
-		for (unsigned y = my + f / 2 * (1 << l); y < my + 16; y += 2 << l) {
-			for (unsigned x = mx + f % 2 * (1 << l); x < mx + 16; x += 2 << l) {
-				if (fwd)
-					d[o++] = (int)(C[y * imagewidth + x] / q + (C[y * imagewidth + x] < 0.f? -0.5f: 0.5f));
-				else
-					C[y * imagewidth + x] = d[o++] * q;
-			}
-		}
-	}
-}
-
-
-void Video::encode2(const Mat& img, vector<unsigned char>& enc) {
-	if (img.cols != (int)imagewidth || img.rows != (int)imageheight || img.elemSize() != 3)
-		return;
-
-	static unsigned frame = 0;
-	static vector<float> prevY(imagewidth * imageheight, 0.f), prevU(imagewidth * imageheight, 0.f), prevV(imagewidth * imageheight, 0.f);
-	static vector<unsigned> rndelem;
-	static unsigned rndnext = 0;
-	unsigned w, h, l;
-	enc.assign(1, 128 | ((frame++) & 63));
-
-	if (frame == 1) {
-		while (rndelem.size() < minsize)
-			rndelem.push_back(rndelem.size());
-		random_shuffle(rndelem.begin(), rndelem.end());
-	}
-
-
-	vector<float> Y, U, V;
-	for (unsigned y = 0; y < imageheight; y++) {
-		for (unsigned x = 0; x < imagewidth; x++) {
-			Y.push_back(Vec3f(0.2f, 0.5f, 0.3f).dot(img.at<Vec3b>(y, x)));
-			U.push_back(Y.back() - img.at<Vec3b>(y, x)[2]);
-			V.push_back(Y.back() - img.at<Vec3b>(y, x)[0]);
-		}
-	}
-
-	for (w = imagewidth, h = imageheight, l = 1; w * h > minsize; w /= 2, h /= 2, l *= 2) {
-		for (unsigned y = 0; y < h; y++) {
-			fcdf97(Y, y * l * imagewidth, l, w);
-			fcdf97(U, y * l * imagewidth, l, w);
-			fcdf97(V, y * l * imagewidth, l, w);
-		}
-		for (unsigned x = 0; x < w; x++) {
-			fcdf97(Y, x * l, l * imagewidth, h);
-			fcdf97(U, x * l, l * imagewidth, h);
-			fcdf97(V, x * l, l * imagewidth, h);
-		}
-	}
-
-
-	set<unsigned> mask;
-	for (unsigned py = 0; py < h; py++) {
-		for (unsigned px = 0; px < w; px++) {
-			float bright = 1.f + min(prevY[py * l * imagewidth + px * l], Y[py * l * imagewidth + px * l]) / 255.f;
-			bool diff = false;
-			for (unsigned y = py * l; y < py * l + l; y++) {
-				for (unsigned x = px * l; x < px * l + l; x++) {
-					//float th = y % 16 == 0 && x % 16 == 0? 1.f: y % 8 == 0 && x % 8 == 0? 2.f: y % 4 == 0 && x % 4 == 0? 4.f: y % 2 == 0 && x % 2 == 0? 8.f: 16.f;
-					float th = bright * (y % 4 == 0 && x % 4 == 0? 2.f: 8.f);
-					diff |= fabs(prevY[y * imagewidth + x] - Y[y * imagewidth + x]) > th;
-					diff |= fabs(prevU[y * imagewidth + x] - U[y * imagewidth + x]) > 4.f * th;
-					diff |= fabs(prevV[y * imagewidth + x] - V[y * imagewidth + x]) > 4.f * th;
-				}
-			}
-			if (diff) {
-				mask.insert(py * w + px);
-				for (unsigned y = py > 0? py - 1: py; y <= py + 1 && y < h; y++)
-					for (unsigned x = px > 0? px - 1: px; x <= px + 1 && x < w; x++)
-						mask.insert(y * w + x);
-			}
-		}
-	}
-	for (unsigned r = 0; r < 23; r++)
-		mask.insert(rndelem[rndnext++ % minsize]);
-cout<<mask.size()<<endl;
-
-	
-	vector<int> data(minsize + 264 * mask.size(), 0);
-	for (set<unsigned>::const_iterator it = mask.begin(); it != mask.end(); it++) {
-		for (unsigned y = *it / w * l; y < *it / w * l + l; y++) {
-			for (unsigned x = *it % w * l; x < *it % w * l + l; x++) {
-				prevY[y * imagewidth + x] = Y[y * imagewidth + x];
-				prevU[y * imagewidth + x] = U[y * imagewidth + x];
-				prevV[y * imagewidth + x] = V[y * imagewidth + x];
-			}
-		}
-		data[*it] = 1;
-	}
-
-	float q = 1.f + (mask.size() > 50? (mask.size() - 50.f) / (minsize - 50.f): 0.f);
-	for (unsigned f = 0; f < 4; f++) {
-		rearrange(mask, Y, data, minsize + 3 * f * mask.size(), 3, f, 1.f, true);
-		rearrange(mask, U, data, minsize + (3 * f + 1) * mask.size(), 3, f, 4.f, true);
-		rearrange(mask, V, data, minsize + (3 * f + 2) * mask.size(), 3, f, 4.f, true);
-	}
-	for (unsigned f = 1; f < 4; f++)
-		rearrange(mask, Y, data, minsize + ((f - 1) * 4 + 12) * mask.size(), 2, f, 1.f * q, true);
-	for (unsigned f = 1; f < 4; f++)
-		rearrange(mask, Y, data, minsize + ((f - 1) * 16 + 24) * mask.size(), 1, f, 2.f * q, true);
-	for (unsigned f = 1; f < 4; f++)
-		rearrange(mask, Y, data, minsize + ((f - 1) * 64 + 72) * mask.size(), 0, f, 4.f * q, true);
-	for (unsigned i = minsize + 3 * mask.size() - 1; i > minsize; i--)
-		data[i] -= data[i - 1];
-
-
-	unsigned size = 0;
-	for (unsigned i = 0; i < data.size(); i++) {
-		if (data[i] == 0) {
-			int z = 2;
-			for (; i + 1 < data.size() && data[i + 1] == 0; i++)
-				z++;
-			for (; z >= 2; z >>= 1)
-				data[size++] = z & 1;
-		} else {
-			data[size++] = data[i] < 0? data[i] * -2: data[i] * 2 + 1;
-		}
-	}
-	data.resize(size);
-
-	vector<unsigned> freqs(*max_element(data.begin(), data.end()) + 1, 0), starts(freqs.size() + 1, 0);
-	for (unsigned i = 0; i < size; i++)
-		freqs[data[i]]++;
-	for (int i = 0; starts[i] < size; i++)
-		starts[i + 1] = starts[i] + freqs[i];
-	for (unsigned i = 0; i < freqs.size(); i++) {
-		if (freqs[i] == 0) {
-			enc.push_back(1);
-			for (; i + 1 < freqs.size() && freqs[i + 1] == 0 && enc.back() < 63; i++)
-				enc.back()++;
-		} else if (freqs[i] <= 128) {
-			enc.push_back((freqs[i] - 1) | 128);
-		} else {
-			enc.push_back((((freqs[i] - 129) >> 8) & 63) | 64);
-			enc.push_back((freqs[i] - 129) & 255);
-		}
-	}
-	enc.push_back(0);
-
-	unsigned low = 0, range = UINT_MAX;
-	for (unsigned i = 0; i < size; i++) {
-		range /= size;
-		low += range * starts[data[i]];
-		range *= freqs[data[i]];
-
-		while (range < 400000) {
-			enc.push_back(low >> 24);
-			low <<= 8;
-			range <<= 8;
-			if (UINT_MAX - low < range)
-				range = UINT_MAX - low;
-		}
-	}
-	enc.push_back(low >> 24); enc.push_back((low >> 16) & 255); enc.push_back((low >> 8) & 255); enc.push_back(low & 255);
-}
-
-
-void Video::decode2(const vector<unsigned char>& enc, Mat& img) {
-	if (img.cols != (int)imagewidth || img.rows != (int)imageheight || img.elemSize() != 3 || enc.size() < 6)
-		return;
-
-	static vector<float> Yt(imagewidth * imageheight, 0.f), Ut(imagewidth * imageheight, 0.f), Vt(imagewidth * imageheight, 0.f);
-
-	vector<unsigned> freqs;
-	unsigned size = 0, p = 1;
-	for (; p + 1 < enc.size() && enc[p] != 0; size += freqs.back(), p++) {
-		if ((enc[p] & 192) == 0) {
-			for (unsigned i = enc[p]; i > 0; i--)
-				freqs.push_back(0);
-		} else if ((enc[p] & 128) == 128) {
-			freqs.push_back((enc[p] & 127) + 1);
-		} else {
-			freqs.push_back((enc[p++] & 63) << 8);
-			freqs.back() += enc[p] + 129;
-		}
-	}
-	if ((p += 1) + 4 >= enc.size())
-		return;
-	vector<unsigned> starts(freqs.size() + 1, 0);
-	for (int i = 0; starts[i] < size; i++)
-		starts[i + 1] = starts[i] + freqs[i];
-
-	map<unsigned, int> ranges;
-	for (int i = 0; ranges.size() == 0 || ranges.rbegin()->first < size; i++) {
-		if (freqs[i] != 0)
-			ranges[starts[i] + freqs[i]] = i;
-	}
-	vector<int> dec, data;
-	unsigned low = 0, range = UINT_MAX;
-	unsigned code = (enc[p] << 24) | (enc[p + 1] << 16) | (enc[p + 2] << 8) | enc[p + 3];
-	for (p += 4; dec.size() < size && range >= 400000;) {
-		range /= size;
-		dec.push_back(ranges.upper_bound((code - low) / range % size)->second);
-		low += range * starts[dec.back()];
-		range *= freqs[dec.back()];
-
-		while (range < 400000) {
-			if (p >= enc.size())
-				break;
-
-			code = (code << 8) | enc[p++];
-			low <<= 8;
-			range <<= 8;
-			if (UINT_MAX - low < range)
-				range = UINT_MAX - low;
-		}
-	}
-
-	for (unsigned i = 0; i < dec.size(); i++) {
-		if (dec[i] == 0 || dec[i] == 1) {
-			int z = dec[i], b = 1;
-			for (; i + 1 < dec.size() && (dec[i + 1] == 0 || dec[i + 1] == 1); i++, b++)
-				z |= dec[i + 1] << b;
-			for (z += (1 << b) - 2; z >= 0; z--)
-				data.push_back(0);
-		} else {
-			data.push_back((dec[i] & 1) == 0? dec[i] / -2: (dec[i] - 1) / 2);
-		}
-	}
-
-
-	set<unsigned> mask;
-	for (unsigned i = 0; i < minsize && i < data.size(); i++)
-		if (data[i] == 1)
-			mask.insert(i);
-	if (data.size() != minsize + 264 * mask.size())
-		return;
-
-	float q = 1.f + (mask.size() > 50? (mask.size() - 50.f) / (minsize - 50.f): 0.f);
-	for (unsigned i = minsize + 1; i < minsize + 3 * mask.size(); i++)
-		data[i] += data[i - 1];
-	for (unsigned f = 0; f < 4; f++) {
-		rearrange(mask, Yt, data, minsize + 3 * f * mask.size(), 3, f, 1.f, false);
-		rearrange(mask, Ut, data, minsize + (3 * f + 1) * mask.size(), 3, f, 4.f, false);
-		rearrange(mask, Vt, data, minsize + (3 * f + 2) * mask.size(), 3, f, 4.f, false);
-	}
-	for (unsigned f = 1; f < 4; f++)
-		rearrange(mask, Yt, data, minsize + ((f - 1) * 4 + 12) * mask.size(), 2, f, 1.f * q, false);
-	for (unsigned f = 1; f < 4; f++)
-		rearrange(mask, Yt, data, minsize + ((f - 1) * 16 + 24) * mask.size(), 1, f, 2.f * q, false);
-	for (unsigned f = 1; f < 4; f++)
-		rearrange(mask, Yt, data, minsize + ((f - 1) * 64 + 72) * mask.size(), 0, f, 4.f * q, false);
-
-	vector<float> Y(Yt), U(Ut), V(Vt);
-	for (unsigned w = imagewidth / 8, h = imageheight / 8, l = 8; w <= imagewidth; w *= 2, h *= 2, l /= 2) {
-		for (unsigned y = 0; y < h; y++) {
-			icdf97(Y, y * l * imagewidth, l, w);
-			icdf97(U, y * l * imagewidth, l, w);
-			icdf97(V, y * l * imagewidth, l, w);
-		}
-		for (unsigned x = 0; x < w; x++) {
-			icdf97(Y, x * l, l * imagewidth, h);
-			icdf97(U, x * l, l * imagewidth, h);
-			icdf97(V, x * l, l * imagewidth, h);
-		}
-	}
-
-	for (unsigned i = 0; i < Y.size(); i++)
-		img.at<Vec3b>(i / imagewidth, i % imagewidth) = Vec3f(Y[i] - V[i], Y[i] + 0.6f * U[i] + 0.4f * V[i], Y[i] - U[i]);
-}
-
-
 #include "Convenience.h"
 void Video::worker() {
 	try {
@@ -1014,8 +689,7 @@ void Video::worker() {
 			update = network.broadcast(encbuf, decbuf, maxlatency);
 			//decbuf.clear();
 			//decbuf.push_back(encbuf);
-			//encode2(*img, encbuf);
-			//encoder.encode(*img, encbuf);
+			//encoder.encode(*img, encbuf, true);
 			//decbuf.push_back(encbuf);
 
 			UILock lock;
@@ -1032,6 +706,16 @@ void Video::worker() {
 				//ui.rightimage->set(CPLib::ss(decbuf[right].size()));
 				ui.rightimage->redraw();
 			}
+
+			/*for (unsigned i = 0; i < decbuf.size(); i++) {
+				if (decbuf[i][0] == left)
+					ldecoder.decode(decbuf[i], *limg);
+				if (decbuf[i][0] == right)
+					rdecoder.decode(decbuf[i], *rimg);
+			}
+			ui.leftimage->redraw();
+			ui.rightimage->redraw();*/
+
 			Fl::awake();
 		}
 

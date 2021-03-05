@@ -37,7 +37,7 @@ static istream& operator>>(istream& s, ip::udp::endpoint& ep) {
 }
 
 
-static bool fifo_cmp(const vector<unsigned char>& l, const vector<unsigned char>& r) {
+static bool ring_cmp(const vector<unsigned char>& l, const vector<unsigned char>& r) {
 	return abs((int)(l[0] & 63) - (int)(r[0] & 63)) < 32? (l[0] & 63) < (r[0] & 63): (r[0] & 63) < (l[0] & 63);
 }
 
@@ -151,6 +151,8 @@ bool Network::broadcast(const ucharbuf& send, vector<ucharbuf>& recv, unsigned l
 	boost::shared_ptr<ucharbuf> buf(new ucharbuf(send));
 
 	bool sent = false;
+	vector<Peer>::iterator minpeer = min_element(peers.begin(), peers.end(), boost::bind(&Peer::bucket, _1) < boost::bind(&Peer::bucket, _2));
+	unsigned minbucket = minpeer != peers.end()? minpeer->bucket: 0;
 	for (unsigned i = 0; i < peers.size() && send.size() > 0; i++) {
 		if (!peers[i].connected)
 			continue;
@@ -164,9 +166,16 @@ bool Network::broadcast(const ucharbuf& send, vector<ucharbuf>& recv, unsigned l
 			socket.async_send_to(buffer(*buf), peers[i].endpoint, boost::bind(&Network::sender, this, buf, _1, _2));
 			sent = true;
 		} else if ((send[0] & 192) == 128) {
+			while (peers[i].buffer2.size() > 0) {
+				//recv.push_back(peers[i].buffer2.front());
+				//recv.back()[0] = i;
+				peers[i].buffer2.pop_front();
+			}
+
 			recv.push_back(peers[i].buffer);
 			peers[i].buffer.clear();
-			if (peers[i].bucket >= buf->size()) {
+			//if (peers[i].bucket >= buf->size()) {
+			if (minbucket >= buf->size()) {
 				socket.async_send_to(buffer(*buf), peers[i].endpoint, boost::bind(&Network::sender, this, buf, _1, _2));
 				peers[i].bucket -= buf->size();
 				sent = true;
@@ -348,9 +357,9 @@ void Network::receiver(const errorcode& e, size_t n) {
 	} else if (n > 1 && (recvbuf[0] & 192) == 0) {
 		process_message(peer - peers.begin(), string(recvbuf.begin(), recvbuf.begin() + n));
 	} else if (n > 1 && (recvbuf[0] & 192) == 64) {
-		list<ucharbuf>::iterator it = lower_bound(peer->fifo.begin(), peer->fifo.end(), recvbuf, fifo_cmp);
+		list<ucharbuf>::iterator it = lower_bound(peer->fifo.begin(), peer->fifo.end(), recvbuf, ring_cmp);
 		//if (peer->fifo.size() == 0 || it != peer->fifo.begin())
-		if (it == peer->fifo.end() || (it != peer->fifo.begin() && fifo_cmp(recvbuf, *it)))
+		if (it == peer->fifo.end() || (it != peer->fifo.begin() && ring_cmp(recvbuf, *it)))
 			peer->fifo.insert(it, ucharbuf(recvbuf.begin(), recvbuf.begin() + n));
 		if (peer->fifo.size() > fifomax) {
 			peer->fifofull++;
@@ -359,6 +368,12 @@ void Network::receiver(const errorcode& e, size_t n) {
 		}
 	} else if (n > 1 && (recvbuf[0] & 192) == 128) {
 		peer->buffer.assign(recvbuf.begin(), recvbuf.begin() + n);
+
+		list<ucharbuf>::iterator it = lower_bound(peer->buffer2.begin(), peer->buffer2.end(), recvbuf, ring_cmp);
+		if (it == peer->buffer2.end() || ring_cmp(recvbuf, *it))
+			peer->buffer2.insert(it, ucharbuf(recvbuf.begin(), recvbuf.begin() + n));
+		while (peer->buffer2.size() > fifomax)
+			peer->buffer2.pop_front();
 	}
 
 	socket.async_receive_from(buffer(recvbuf), endpoint, boost::bind(&Network::receiver, this, _1, _2));

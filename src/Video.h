@@ -78,12 +78,6 @@ class Video {
 	UserInterface&				ui;
 	Network&				network;
 
-	void fcdf97(vector<float>&, unsigned, unsigned, unsigned);
-	void icdf97(vector<float>&, unsigned, unsigned, unsigned);
-	void rearrange(const set<unsigned>&, vector<float>&, vector<int>&, unsigned, unsigned, unsigned, float, bool);
-	void encode2(const cv::Mat&, vector<unsigned char>&);
-	void decode2(const vector<unsigned char>&, cv::Mat&);
-
 	void encode(const cv::Mat&, vector<unsigned char>&);
 	void decode(const vector<unsigned char>&, cv::Mat&);
 
