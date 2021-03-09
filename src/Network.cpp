@@ -167,12 +167,12 @@ bool Network::broadcast(const ucharbuf& send, vector<ucharbuf>& recv, unsigned l
 			sent = true;
 		} else if ((send[0] & 192) == 128) {
 			while (peers[i].buffer2.size() > 0) {
-				//recv.push_back(peers[i].buffer2.front());
-				//recv.back()[0] = i;
+				recv.push_back(peers[i].buffer2.front());
+				recv.back()[0] = i;
 				peers[i].buffer2.pop_front();
 			}
 
-			recv.push_back(peers[i].buffer);
+			//recv.push_back(peers[i].buffer);
 			peers[i].buffer.clear();
 			//if (peers[i].bucket >= buf->size()) {
 			if (minbucket >= buf->size()) {

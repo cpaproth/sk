@@ -2,18 +2,23 @@
 
 sudo apt-get install build-essential libfltk1.3-dev libboost-all-dev libopencv-dev portaudio19-dev cmake
 
-rm -rf sk-master
+BRANCH=master
+if [ $# -gt 0 ]; then
+	BRANCH=$1
+fi
 
-wget -O sk-master.zip https://github.com/cpaproth/sk/archive/master.zip
-unzip sk-master.zip
-mkdir sk-master/build
-cd sk-master/build
+rm -rf sk-$BRANCH
+
+wget -O sk-$BRANCH.zip https://github.com/cpaproth/sk/archive/$BRANCH.zip || return
+unzip sk-$BRANCH.zip
+mkdir sk-$BRANCH/build || return
+cd sk-$BRANCH/build
 cmake -D CMAKE_BUILD_TYPE=Release ../src/
 make
 cd ../..
-cp sk-master/build/sk sk
+cp sk-$BRANCH/build/sk sk
 
-rm sk-master.zip
-rm -rf sk-master
+rm sk-$BRANCH.zip
+rm -rf sk-$BRANCH
 
 ./sk

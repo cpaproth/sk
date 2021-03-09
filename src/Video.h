@@ -60,6 +60,7 @@ class Video {
 		void fcdf97(vector<float>&, unsigned, unsigned, unsigned);
 		void icdf97(vector<float>&, unsigned, unsigned, unsigned);
 		void rearrange(const set<unsigned>&, vector<float>&, vector<int>&, unsigned, unsigned, unsigned, float, bool);
+		void denoise(vector<float>&, float, unsigned, unsigned);
 	public:
 		Codec();
 		void encode(const cv::Mat&, vector<unsigned char>&, bool);
