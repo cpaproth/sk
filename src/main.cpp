@@ -45,7 +45,7 @@ int main() {
 		UILock		lock;
 		UserInterface	ui;
 
-		cout << "Skat-Konferenz 1.3 beta2" << endl;
+		cout << "Skat-Konferenz 1.4.0 beta" << endl;
 		cout << "Copyright (C) 2012-2014, 2021 Carsten Paproth." << endl;
 		cout << "This program is free software and comes with ABSOLUTELY NO WARRANTY." << endl;
 		cout << "Licensed under the terms of GPLv3, see <http://www.gnu.org/licenses/>." << endl << endl;
@@ -54,7 +54,6 @@ int main() {
 		Video		video(ui, network);
 		Audio		audio(network);
 		Game		game(ui, network);
-
 
 		ui.f["audio restart"] = boost::bind(&Audio::restart, &audio);
 		ui.f["audio toggle"] = boost::bind(&Audio::toggle_playmic, &audio);
