@@ -101,60 +101,56 @@ void Video::Codec::rearrange(const set<unsigned>& mask, vector<float>& C, vector
 }
 
 
-void Video::Codec::denoise(vector<float>& C, float h, unsigned P, unsigned K) {
-	unsigned width = imagewidth + 2 * P + 2 * K;
-	unsigned height = imageheight + 2 * P + 2 * K;
-	vector<float> v(width * height), u(C.size(), 0.f), N(C.size(), 0.f), M(C.size(), 0.f);
+void Video::Codec::denoise(vector<float>& C, float h, const unsigned P, const unsigned K) {
+	const unsigned width = imagewidth + 2 * P + 2 * K;
+	const unsigned height = imageheight + 2 * P + 2 * K;
+	const int f = int(10000.f / (2 * P + 1) / (2 * P + 1) / h / h);
+	vector<int> v(width * height), S(v.size(), INT_MIN), u(C.size(), 0), N(C.size(), 0), M(C.size(), 0);
 
 	for (unsigned y = 0; y < height; y++) {
 		unsigned ys = y < P + K? P + K - y: y >= imageheight + P + K? 2 * imageheight + P + K - 2 - y: y - P - K;
 		for (unsigned x = 0; x < width; x++) {
 			unsigned xs = x < P + K? P + K - x: x >= imagewidth + P + K? 2 * imagewidth + P + K - 2 - x: x - P - K;
-			v[y * width + x] = C[ys * imagewidth + xs];
+			v[y * width + x] = (int)C[ys * imagewidth + xs];
 		}
 	}
-
-	h = 1.f / (2 * P + 1) / (2 * P + 1) / h / h;
 
 	for (int dy = -(int)K; dy <= (int)K; dy++) {
 		for (int dx = -(int)K; dx <= (int)K; dx++) {
 			if (dy == 0 && dx == 0)
 				continue;
 
-			vector<float> S(v.size(), 0.f);
+			const int delta = dy * width + dx;
 
 			for (unsigned y = K; y < height - K; y++) {
-				for (unsigned x = K; x < width - K; x++) {
-					unsigned p = y * width + x;
-					float d = v[p] - v[p + dy * width + dx];
+				unsigned p = y * width + K;
+				for (unsigned x = K; x < width - K; x++, p++) {
+					const int d = v[p] - v[p + delta];
 					S[p] = d * d + S[p - 1] + S[p - width] - S[p - width - 1];
 				}
 			}
 
 			for (unsigned y = 0; y < imageheight; y++) {
-				for (unsigned x = 0; x < imagewidth; x++) {
-					unsigned p = y * imagewidth + x;
-					unsigned q = (P + K + y) * width + P + K + x;
-					float w = S[q + P * width + P] + S[q - P * width - width - P - 1] - S[q + P * width - P - 1] - S[q - P * width - width + P];
-					//w = exp(-max(w * h - 6.25f, 0.f));
-					w = max(1.f - max(w * h - 6.25f, 0.f), 0.f);
-					u[p] += w * v[q + dy * width + dx];
+				unsigned p = y * imagewidth;
+				unsigned q = (P + K + y) * width + P + K;
+				for (unsigned x = 0; x < imagewidth; x++, p++, q++) {
+					int w = S[q + P * width + P] + S[q - P * width - width - P - 1] - S[q + P * width - P - 1] - S[q - P * width - width + P];
+					w = max(10000 - max(w * f - 62500, 0), 0);
+					u[p] += w * v[q + delta];
 					N[p] += w;
 					M[p] = max(M[p], w);
 				}
 			}
-
 		}
 	}
 
 	for (unsigned y = 0; y < imageheight; y++) {
 		for (unsigned x = 0; x < imagewidth; x++) {
 			unsigned p = y * imagewidth + x;
-			if (N[p] + M[p] != 0.f)
+			if (N[p] + M[p] != 0)
 				C[p] = (u[p] + M[p] * C[p]) / (N[p] + M[p]);
 		}
 	}
-
 }
 
 
@@ -299,7 +295,7 @@ void Video::Codec::encode(const Mat& img, vector<unsigned char>& enc, bool updat
 }
 
 
-void Video::Codec::decode(const vector<unsigned char>& enc, Mat& img, bool den) {
+void Video::Codec::decode(const vector<unsigned char>& enc, Mat& img, bool show) {
 	if (img.cols != (int)imagewidth || img.rows != (int)imageheight || img.elemSize() != 3 || enc.size() < 6)
 		return;
 
@@ -385,6 +381,9 @@ void Video::Codec::decode(const vector<unsigned char>& enc, Mat& img, bool den) 
 	for (unsigned f = 1; f < 4; f++)
 		rearrange(mask, tmpY, data, minsize + ((f - 1) * 64 + 72) * mask.size(), 0, f, 4.f * q, false);
 
+	//if (!show)
+	//	return;
+
 	Y = tmpY, U = tmpU, V = tmpV;
 	for (unsigned w = imagewidth / 8, h = imageheight / 8, l = 8; w <= imagewidth; w *= 2, h *= 2, l /= 2) {
 		for (unsigned y = 0; y < h; y++) {
@@ -399,8 +398,7 @@ void Video::Codec::decode(const vector<unsigned char>& enc, Mat& img, bool den) 
 		}
 	}
 
-	if (den)
-		denoise(Y, 2.f, 2, 3);
+if(show)	denoise(Y, 2.f, 2, 3);
 
 	for (unsigned i = 0; i < Y.size(); i++)
 		img.at<Vec3b>(i / imagewidth, i % imagewidth) = Vec3f(Y[i] - V[i], Y[i] + 0.6f * U[i] + 0.4f * V[i], Y[i] - U[i]);
@@ -753,9 +751,13 @@ void Video::worker() {
 			UILock lock;
 			ui.midimage->redraw();
 
-			for (unsigned i = 0; i < decbuf.size(); i++)
+			for (unsigned i = 0; i < decbuf.size(); i++) {
+				bool show = i + 1 >= decbuf.size() || decbuf[i][0] != decbuf[i + 1][0];
 				decode(decbuf[i], decbuf[i][0] == left? *limg: *rimg);
-				//(decbuf[i][0] == 0? decoder0: decoder1).decode(decbuf[i], decbuf[i][0] == left? *limg: *rimg, true);
+				//(decbuf[i][0] == 0? decoder0: decoder1).decode(decbuf[i], decbuf[i][0] == left? *limg: *rimg, show);
+				if (show)
+					(decbuf[i][0] == left? ui.leftimage: ui.rightimage)->redraw();
+			}
 
 			/*decode(encbuf, *limg);
 			ui.leftimage->set(CPLib::ss(encbuf.size()));
@@ -765,9 +767,6 @@ void Video::worker() {
 			decoder1.decode(encbuf, *rimg, true);*/
 //fastNlMeansDenoising(*rimg, *limg, 3, 5, 11);
 //fastNlMeansDenoising(*rimg, *rimg, 4.f, 3, 5);
-
-			ui.leftimage->redraw();
-			ui.rightimage->redraw();
 
 			Fl::awake();
 		}
