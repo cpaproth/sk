@@ -135,7 +135,7 @@ void Video::Codec::denoise(vector<float>& C, float h, const unsigned P, const un
 				unsigned q = (P + K + y) * width + P + K;
 				for (unsigned x = 0; x < imagewidth; x++, p++, q++) {
 					int w = S[q + P * width + P] + S[q - P * width - width - P - 1] - S[q + P * width - P - 1] - S[q - P * width - width + P];
-					w = max(10000 - max(w * f - 62500, 0), 0);
+					w = max(10000 - w * f, 0);
 					u[p] += w * v[q + delta];
 					N[p] += w;
 					M[p] = max(M[p], w);
@@ -398,7 +398,7 @@ void Video::Codec::decode(const vector<unsigned char>& enc, Mat& img, bool show)
 		}
 	}
 
-if(show)	denoise(Y, 2.f, 2, 3);
+if(show)	denoise(Y, 5.f, 3, 3);
 
 	for (unsigned i = 0; i < Y.size(); i++)
 		img.at<Vec3b>(i / imagewidth, i % imagewidth) = Vec3f(Y[i] - V[i], Y[i] + 0.6f * U[i] + 0.4f * V[i], Y[i] - U[i]);
@@ -724,12 +724,12 @@ void Video::worker() {
 		circle(still, Point(imagewidth / 2, imageheight / 2), imageheight / 4, Scalar(20 + rand() % 150, 20 + rand() % 150, 20 + rand() % 150), -1, 16);
 
 		while (working) {
-			boost::this_thread::sleep(boost::posix_time::milliseconds(40));
-
-			if (UILock(), ui.mainwnd->visible())
-				*capture >> cap;
-
-			if (cap.size().area() == 0) capture->open("webcam.avi"), *capture >> cap;
+			for (boost::posix_time::ptime t = boost::posix_time::microsec_clock::local_time(); (boost::posix_time::microsec_clock::local_time() - t).total_milliseconds() < 40;) {
+				if (UILock(), ui.mainwnd->visible())
+					*capture >> cap;
+				boost::this_thread::sleep(boost::posix_time::milliseconds(5));
+			}
+			//if (cap.size().area() == 0) capture->open("webcam.avi"), *capture >> cap;
 
 			bool pause = (UILock(), ui.midimage->get());
 			if (cap.size().area() == 0 || pause) {
@@ -764,7 +764,7 @@ void Video::worker() {
 			encoder.encode(*img, encbuf, true);
 			decoder0.decode(encbuf, *rimg, false);
 			ui.rightimage->set(CPLib::ss(encbuf.size()));
-			decoder1.decode(encbuf, *rimg, true);*/
+			decoder1.decode(encbuf, *limg, true);*/
 //fastNlMeansDenoising(*rimg, *limg, 3, 5, 11);
 //fastNlMeansDenoising(*rimg, *rimg, 4.f, 3, 5);
 
