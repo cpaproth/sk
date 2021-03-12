@@ -73,9 +73,11 @@ class Video {
 	boost::shared_ptr<cv::Mat>		limg;
 	boost::shared_ptr<cv::Mat>		rimg;
 	boost::thread				videothread;
+	boost::thread				codecthread;
 	unsigned				left;
 	unsigned				right;
 	boost::atomic<bool>			working;
+	boost::atomic<unsigned>			capframe;
 	UserInterface&				ui;
 	Network&				network;
 
@@ -83,6 +85,7 @@ class Video {
 	void decode(const vector<unsigned char>&, cv::Mat&);
 
 	void worker();
+	void coder();
 
 	bool handle_command(unsigned, const string&, const string&);
 

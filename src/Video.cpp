@@ -411,8 +411,10 @@ Video::Video(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 
 	capture = boost::shared_ptr<VideoCapture>(new VideoCapture(0));
 
+	capframe = 0;
 	working = true;
 	videothread = boost::thread(boost::bind(&Video::worker, this));
+	codecthread = boost::thread(boost::bind(&Video::coder, this));
 
 	if (capture->isOpened())
 		cout << "video capture started" << endl;
@@ -432,6 +434,8 @@ Video::~Video() {
 
 		working = false;
 		while (videothread.joinable() && !videothread.timed_join(boost::posix_time::milliseconds(100)))
+			Fl::wait(0.1);
+		while (codecthread.joinable() && !codecthread.timed_join(boost::posix_time::milliseconds(100)))
 			Fl::wait(0.1);
 
 	} catch (...) {}
@@ -723,12 +727,15 @@ void Video::worker() {
 		circle(still, Point(imagewidth / 2, imageheight * 19 / 16), imageheight / 2, Scalar(20 + rand() % 150, 20 + rand() % 150, 20 + rand() % 150), -1, 16);
 		circle(still, Point(imagewidth / 2, imageheight / 2), imageheight / 4, Scalar(20 + rand() % 150, 20 + rand() % 150, 20 + rand() % 150), -1, 16);
 
+		boost::posix_time::ptime t = boost::posix_time::microsec_clock::local_time();
 		while (working) {
-			for (boost::posix_time::ptime t = boost::posix_time::microsec_clock::local_time(); (boost::posix_time::microsec_clock::local_time() - t).total_milliseconds() < 40;) {
+			do {
+				boost::this_thread::sleep(boost::posix_time::milliseconds(5));
 				if (UILock(), ui.mainwnd->visible())
 					*capture >> cap;
-				boost::this_thread::sleep(boost::posix_time::milliseconds(5));
-			}
+			} while ((boost::posix_time::microsec_clock::local_time() - t).total_milliseconds() < 40);
+			t = boost::posix_time::microsec_clock::local_time();
+
 			//if (cap.size().area() == 0) capture->open("webcam.avi"), *capture >> cap;
 
 			bool pause = (UILock(), ui.midimage->get());
@@ -742,36 +749,65 @@ void Video::worker() {
 
 			int arcols = min<int>(cap.cols, cap.rows * imagewidth / imageheight);
 			int arrows = min<int>(cap.rows, cap.cols * imageheight / imagewidth);
-			UILock(), resize(cap(Rect((cap.cols - arcols) / 2, (cap.rows - arrows) / 2, arcols, arrows)), *img, img->size());
-
-			encode(*img, encbuf);
-			//encoder.encode(*img, encbuf, update);
-			update = network.broadcast(encbuf, decbuf, maxlatency);
-
 			UILock lock;
+			resize(cap(Rect((cap.cols - arcols) / 2, (cap.rows - arrows) / 2, arcols, arrows)), *img, img->size());
 			ui.midimage->redraw();
+			Fl::awake();
+
+			capframe++;
+		}
+
+		cout << "video capture stopped" << endl;
+
+	} catch (std::exception& e) {
+		cout << "video failure: " << e.what() << endl;
+	}
+}
+
+
+void Video::coder() {
+	try {
+		Codec				encoder, decoder0, decoder1;
+		bool				update = false;
+		vector<unsigned char>		encbuf;
+		vector<vector<unsigned char> >	decbuf;
+		unsigned			lastframe = 0;
+		
+		while (working) {
+			unsigned curframe = capframe;
+			if (curframe <= lastframe) {
+				boost::this_thread::sleep(boost::posix_time::milliseconds(10));
+				continue;
+			}
+			lastframe = curframe;
+
+			UILock(), encode(*img, encbuf);
+			//UILock(), encoder.encode(*img, encbuf, update);
+			update = network.broadcast(encbuf, decbuf, maxlatency);
 
 			for (unsigned i = 0; i < decbuf.size(); i++) {
 				bool show = i + 1 >= decbuf.size() || decbuf[i][0] != decbuf[i + 1][0];
 				decode(decbuf[i], decbuf[i][0] == left? *limg: *rimg);
 				//(decbuf[i][0] == 0? decoder0: decoder1).decode(decbuf[i], decbuf[i][0] == left? *limg: *rimg, show);
-				if (show)
+				if (show) {
+					UILock lock;
 					(decbuf[i][0] == left? ui.leftimage: ui.rightimage)->redraw();
+					Fl::awake();
+				}
 			}
 
-			/*decode(encbuf, *limg);
+			/*//UILock lock;
+			decode(encbuf, *limg);
 			ui.leftimage->set(CPLib::ss(encbuf.size()));
 			encoder.encode(*img, encbuf, true);
 			decoder0.decode(encbuf, *rimg, false);
 			ui.rightimage->set(CPLib::ss(encbuf.size()));
-			decoder1.decode(encbuf, *limg, true);*/
-//fastNlMeansDenoising(*rimg, *limg, 3, 5, 11);
-//fastNlMeansDenoising(*rimg, *rimg, 4.f, 3, 5);
+			decoder1.decode(encbuf, *rimg, true);
+			//fastNlMeansDenoising(*rimg, *limg, 3, 5, 11);
+			//fastNlMeansDenoising(*rimg, *rimg, 4.f, 3, 5);
+			Fl::awake();*/
 
-			Fl::awake();
 		}
-
-		cout << "video capture stopped" << endl;
 
 	} catch (std::exception& e) {
 		cout << "video failure: " << e.what() << endl;
