@@ -381,8 +381,8 @@ void Video::Codec::decode(const vector<unsigned char>& enc, Mat& img, bool show)
 	for (unsigned f = 1; f < 4; f++)
 		rearrange(mask, tmpY, data, minsize + ((f - 1) * 64 + 72) * mask.size(), 0, f, 4.f * q, false);
 
-	//if (!show)
-	//	return;
+	if (!show)
+		return;
 
 	Y = tmpY, U = tmpU, V = tmpV;
 	for (unsigned w = imagewidth / 8, h = imageheight / 8, l = 8; w <= imagewidth; w *= 2, h *= 2, l /= 2) {
@@ -398,8 +398,9 @@ void Video::Codec::decode(const vector<unsigned char>& enc, Mat& img, bool show)
 		}
 	}
 
-if(show)	denoise(Y, 5.f, 3, 3);
+	denoise(Y, 5.f, 3, 3);
 
+	UILock lock;
 	for (unsigned i = 0; i < Y.size(); i++)
 		img.at<Vec3b>(i / imagewidth, i % imagewidth) = Vec3f(Y[i] - V[i], Y[i] + 0.6f * U[i] + 0.4f * V[i], Y[i] - U[i]);
 }
@@ -409,9 +410,12 @@ Video::Video(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 	left = 0;
 	right = 1;
 
+	img = boost::shared_ptr<Mat>(new Mat(imageheight, imagewidth, CV_8UC3, Scalar()));
+	limg = boost::shared_ptr<Mat>(new Mat(imageheight, imagewidth, CV_8UC3, Scalar()));
+	rimg = boost::shared_ptr<Mat>(new Mat(imageheight, imagewidth, CV_8UC3, Scalar()));
+
 	capture = boost::shared_ptr<VideoCapture>(new VideoCapture(0));
 
-	capframe = 0;
 	working = true;
 	videothread = boost::thread(boost::bind(&Video::worker, this));
 	codecthread = boost::thread(boost::bind(&Video::coder, this));
@@ -422,6 +426,10 @@ Video::Video(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 		cout << "open webcam failed" << endl;
 
 	network.add_handler(boost::bind(&Video::handle_command, this, _1, _2, _3));
+
+	ui.midimage->set(img.get());
+	ui.leftimage->set(limg.get());
+	ui.rightimage->set(rimg.get());
 }
 
 
@@ -711,18 +719,11 @@ void Video::decode(const vector<unsigned char>& enc, Mat& img) {
 #include "Convenience.h"
 void Video::worker() {
 	try {
-		Codec				encoder, decoder0, decoder1;
-		bool				update = false;
-		Mat				cap(imageheight, imagewidth, CV_8UC3);
-		Mat				still(imageheight, imagewidth, CV_8UC3, Scalar());
-		vector<unsigned char>		encbuf;
-		vector<vector<unsigned char> >	decbuf;
-		img = boost::shared_ptr<Mat>(new Mat(imageheight, imagewidth, CV_8UC3, Scalar()));
-		limg = boost::shared_ptr<Mat>(new Mat(imageheight, imagewidth, CV_8UC3, Scalar()));
-		rimg = boost::shared_ptr<Mat>(new Mat(imageheight, imagewidth, CV_8UC3, Scalar()));
+		Mat cap(imageheight, imagewidth, CV_8UC3);
+		Mat still(imageheight, imagewidth, CV_8UC3, Scalar());
 		
 		unsigned secret = 0;
-		UILock(), ui.midimage->set(img.get()), ui.leftimage->set(limg.get()), ui.rightimage->set(rimg.get()), string(ui.secret->value()).copy((char*)&secret, sizeof(unsigned));
+		UILock(), string(ui.secret->value()).copy((char*)&secret, sizeof(unsigned));
 		srand(secret ^ (unsigned)time(0));
 		circle(still, Point(imagewidth / 2, imageheight * 19 / 16), imageheight / 2, Scalar(20 + rand() % 150, 20 + rand() % 150, 20 + rand() % 150), -1, 16);
 		circle(still, Point(imagewidth / 2, imageheight / 2), imageheight / 4, Scalar(20 + rand() % 150, 20 + rand() % 150, 20 + rand() % 150), -1, 16);
@@ -730,7 +731,7 @@ void Video::worker() {
 		boost::posix_time::ptime t = boost::posix_time::microsec_clock::local_time();
 		while (working) {
 			do {
-				boost::this_thread::sleep(boost::posix_time::milliseconds(5));
+				boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 				if (UILock(), ui.mainwnd->visible())
 					*capture >> cap;
 			} while ((boost::posix_time::microsec_clock::local_time() - t).total_milliseconds() < 40);
@@ -753,14 +754,12 @@ void Video::worker() {
 			resize(cap(Rect((cap.cols - arcols) / 2, (cap.rows - arrows) / 2, arcols, arrows)), *img, img->size());
 			ui.midimage->redraw();
 			Fl::awake();
-
-			capframe++;
 		}
 
 		cout << "video capture stopped" << endl;
 
 	} catch (std::exception& e) {
-		cout << "video failure: " << e.what() << endl;
+		cout << "video capture failure: " << e.what() << endl;
 	}
 }
 
@@ -771,30 +770,27 @@ void Video::coder() {
 		bool				update = false;
 		vector<unsigned char>		encbuf;
 		vector<vector<unsigned char> >	decbuf;
-		unsigned			lastframe = 0;
 		
 		while (working) {
-			unsigned curframe = capframe;
-			if (curframe <= lastframe) {
-				boost::this_thread::sleep(boost::posix_time::milliseconds(10));
-				continue;
-			}
-			lastframe = curframe;
+			boost::posix_time::ptime t = boost::posix_time::microsec_clock::local_time();
 
-			UILock(), encode(*img, encbuf);
-			//UILock(), encoder.encode(*img, encbuf, update);
+			//UILock(), encode(*img, encbuf);
+			UILock(), encoder.encode(*img, encbuf, update);
 			update = network.broadcast(encbuf, decbuf, maxlatency);
 
 			for (unsigned i = 0; i < decbuf.size(); i++) {
 				bool show = i + 1 >= decbuf.size() || decbuf[i][0] != decbuf[i + 1][0];
-				decode(decbuf[i], decbuf[i][0] == left? *limg: *rimg);
-				//(decbuf[i][0] == 0? decoder0: decoder1).decode(decbuf[i], decbuf[i][0] == left? *limg: *rimg, show);
+				//UILock(), decode(decbuf[i], decbuf[i][0] == left? *limg: *rimg);
+				(decbuf[i][0] == 0? decoder0: decoder1).decode(decbuf[i], decbuf[i][0] == left? *limg: *rimg, show);
 				if (show) {
 					UILock lock;
 					(decbuf[i][0] == left? ui.leftimage: ui.rightimage)->redraw();
 					Fl::awake();
 				}
 			}
+
+			unsigned d = (boost::posix_time::microsec_clock::local_time() - t).total_milliseconds();
+			boost::this_thread::sleep(boost::posix_time::milliseconds(d > 500? 500: d < 20? 40 - d: d));
 
 			/*//UILock lock;
 			decode(encbuf, *limg);
@@ -809,7 +805,9 @@ void Video::coder() {
 
 		}
 
+		cout << "video codec stopped" << endl;
+
 	} catch (std::exception& e) {
-		cout << "video failure: " << e.what() << endl;
+		cout << "video codec failure: " << e.what() << endl;
 	}
 }

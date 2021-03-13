@@ -77,7 +77,6 @@ class Video {
 	unsigned				left;
 	unsigned				right;
 	boost::atomic<bool>			working;
-	boost::atomic<unsigned>			capframe;
 	UserInterface&				ui;
 	Network&				network;
 
