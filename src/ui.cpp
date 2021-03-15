@@ -679,20 +679,21 @@ UserInterface::UserInterface():prefs(Fl_Preferences::USER, "cpaproth", "sk") {
         o->end();
       } // Fl_Group* o
       { Fl_Group* o = new Fl_Group(0, 25, 960, 675, "System");
+        o->box(FL_PLASTIC_UP_BOX);
         o->labelsize(11);
         o->hide();
-        { Fl_Group* o = new Fl_Group(630, 110, 220, 140, "Audio");
-          o->box(FL_DOWN_BOX);
-          o->labeltype(FL_ENGRAVED_LABEL);
-          o->labelsize(11);
-          o->align(Fl_Align(33));
-          { Fl_Button* o = new Fl_Button(665, 150, 150, 25, "Restart Audio Stream");
+        { Fl_Group* o = new Fl_Group(610, 95, 225, 145, "Audio");
+          o->box(FL_PLASTIC_DOWN_BOX);
+          o->labelfont(1);
+          o->labelsize(15);
+          o->align(Fl_Align(33|FL_ALIGN_INSIDE));
+          { Fl_Button* o = new Fl_Button(645, 135, 150, 25, "Restart Audio Stream");
             o->tooltip("Restart the audio stream and print the current CPU load of the audio stream i\
 nto the log window.");
             o->labelsize(11);
             o->callback((Fl_Callback*)cb_Restart);
           } // Fl_Button* o
-          { Fl_Check_Button* o = new Fl_Check_Button(665, 200, 150, 25, "Playback Microphone");
+          { Fl_Check_Button* o = new Fl_Check_Button(645, 185, 150, 25, "Playback Microphone");
             o->tooltip("When activated, the microphone recording will not be broadcasted but directly\
  played back. Use this to adjust your mixer settings, e.g. to reduce echoes.");
             o->down_box(FL_DOWN_BOX);
@@ -701,12 +702,12 @@ nto the log window.");
           } // Fl_Check_Button* o
           o->end();
         } // Fl_Group* o
-        { Fl_Group* o = new Fl_Group(65, 70, 355, 290, "Network");
-          o->box(FL_DOWN_BOX);
-          o->labeltype(FL_ENGRAVED_LABEL);
-          o->labelsize(11);
-          o->align(Fl_Align(33));
-          { address = new Fl_Input(200, 110, 195, 25, "IP Address");
+        { Fl_Group* o = new Fl_Group(125, 95, 360, 295, "Network");
+          o->box(FL_PLASTIC_DOWN_BOX);
+          o->labelfont(1);
+          o->labelsize(15);
+          o->align(Fl_Align(33|FL_ALIGN_INSIDE));
+          { address = new Fl_Input(260, 135, 195, 25, "IP Address");
             address->tooltip("The IP address or hostname of the server you want to connect to. If you want \
 to be the server (one of the peers has to be the server), tick the Server chec\
 kbox and click Connect. Then tell the other peers your publicly reachable IP a\
@@ -716,7 +717,7 @@ ddress or hostname, and UDP port.");
             address->callback((Fl_Callback*)cb_address);
             char* c; prefs.get("ipaddress", c, ""); address->value(c); delete[] c;
           } // Fl_Input* address
-          { port = new Fl_Value_Input(200, 160, 195, 25, "UDP Port");
+          { port = new Fl_Value_Input(260, 185, 195, 25, "UDP Port");
             port->tooltip("The UDP port of the server.");
             port->color((Fl_Color)-256);
             port->labelsize(11);
@@ -727,7 +728,7 @@ ddress or hostname, and UDP port.");
             port->when(FL_WHEN_RELEASE);
             double d; prefs.get("udpport", d, 34588); port->value(d < 0? 0: d > 65535? 65535: d);
           } // Fl_Value_Input* port
-          { bandwidth = new Fl_Value_Input(200, 210, 195, 25, "Upload Bandwidth");
+          { bandwidth = new Fl_Value_Input(260, 235, 195, 25, "Upload Bandwidth");
             bandwidth->tooltip("Maximal bandwidth for the upload in bytes per second. This value shouldn\'t b\
 e greater than the upload speed of your internet connection. The bandwidth is \
 distributed among the connnected peers, the audio stream always needs 2500 byt\
@@ -742,19 +743,19 @@ es per second per peer.");
             bandwidth->when(FL_WHEN_RELEASE);
             double d; prefs.get("bandwidth", d, 16000); bandwidth->value(d < 8000? 8000: d);
           } // Fl_Value_Input* bandwidth
-          { Fl_Button* o = new Fl_Button(200, 260, 195, 25, "Connect");
+          { Fl_Button* o = new Fl_Button(260, 285, 195, 25, "Connect");
             o->tooltip("Connect to the server or run the server. If a connection can be established, \
 the videoconferencing starts. If 3 peers are connected with each other, the ga\
 me starts.");
             o->labelsize(11);
             o->callback((Fl_Callback*)cb_Connect);
           } // Fl_Button* o
-          { Fl_Button* o = new Fl_Button(200, 310, 195, 25, "Stats");
+          { Fl_Button* o = new Fl_Button(260, 335, 195, 25, "Stats");
             o->tooltip("Print some stats on the connected peers into the log window.");
             o->labelsize(11);
             o->callback((Fl_Callback*)cb_Stats);
           } // Fl_Button* o
-          { server = new Fl_Check_Button(115, 260, 85, 25, "Server");
+          { server = new Fl_Check_Button(175, 285, 85, 25, "Server");
             server->tooltip("When activated, the program will run as the server after the Connect button w\
 as pressed.");
             server->down_box(FL_DOWN_BOX);
@@ -764,19 +765,19 @@ as pressed.");
           } // Fl_Check_Button* server
           o->end();
         } // Fl_Group* o
-        { Fl_Group* o = new Fl_Group(525, 320, 245, 175, "Player");
-          o->box(FL_DOWN_BOX);
-          o->labeltype(FL_ENGRAVED_LABEL);
-          o->labelsize(11);
-          o->align(Fl_Align(33));
-          { name = new Fl_Input(580, 360, 165, 25, "Name");
+        { Fl_Group* o = new Fl_Group(590, 455, 245, 175, "Player");
+          o->box(FL_PLASTIC_DOWN_BOX);
+          o->labelfont(1);
+          o->labelsize(15);
+          o->align(Fl_Align(33|FL_ALIGN_INSIDE));
+          { name = new Fl_Input(645, 495, 165, 25, "Name");
             name->tooltip("Your name during the game.");
             name->labelsize(11);
             name->textsize(11);
             name->callback((Fl_Callback*)cb_name);
             char* c; prefs.get("username", c, "nobody"); name->value(c); delete[] c;
           } // Fl_Input* name
-          { secret = new Fl_Input(580, 405, 165, 25, "Secret");
+          { secret = new Fl_Input(645, 540, 165, 25, "Secret");
             secret->tooltip("The secret and the time are used to initialize your random number generator a\
 t program start.");
             secret->labelsize(11);
@@ -784,7 +785,7 @@ t program start.");
             secret->callback((Fl_Callback*)cb_secret);
             char* c; prefs.get("secret", c, ""); secret->value(c); delete[] c;
           } // Fl_Input* secret
-          { bgcolor = new Fl_Button(580, 450, 165, 25, "Color");
+          { bgcolor = new Fl_Button(645, 585, 165, 25, "Color");
             bgcolor->tooltip("Choose the color of the table background.");
             bgcolor->labelsize(11);
             bgcolor->callback((Fl_Callback*)cb_bgcolor);
@@ -793,18 +794,18 @@ t program start.");
           } // Fl_Button* bgcolor
           o->end();
         } // Fl_Group* o
-        { Fl_Group* o = new Fl_Group(170, 425, 275, 175, "Sonderregeln (SR)");
+        { Fl_Group* o = new Fl_Group(125, 455, 275, 175, "Sonderregeln (SR)");
           o->tooltip("Es gelten die Regeln der internationalen Skatordnung. Es sind nur die Sonderr\
 egeln wirksam, die bei allen Spielern aktiviert sind. Ramsch wird ohne Schiebe\
 n und Grand Hand gespielt. Der Spieler mit den wenigsten Augen gewinnt das Ram\
 sch-Spiel mit 23 Punkten, macht er gar keinen Stich (Jungfrau), gewinnt er mit\
  46 Punkten, au\303\237""er einem Spieler gelingt es alle Stiche zu bekommen (\
 Durchmarsch), dann gewinnt dieser mit 120 Punkten.");
-          o->box(FL_DOWN_BOX);
-          o->labeltype(FL_ENGRAVED_LABEL);
-          o->labelsize(11);
-          o->align(Fl_Align(33));
-          { foldrule = new Fl_Check_Button(195, 465, 210, 25, "Ramschen statt Einpassen (E)");
+          o->box(FL_PLASTIC_DOWN_BOX);
+          o->labelfont(1);
+          o->labelsize(15);
+          o->align(Fl_Align(33|FL_ALIGN_INSIDE));
+          { foldrule = new Fl_Check_Button(150, 495, 210, 25, "Ramschen statt Einpassen (E)");
             foldrule->tooltip("Wenn alle Spieler passen, wird mit der Hand Ramsch ohne Schieben gespielt. De\
 r Spieler mit den wenigsten Augen bekommt ein gewonnenes Nullspiel gutgeschrie\
 ben.");
@@ -813,7 +814,7 @@ ben.");
             foldrule->callback((Fl_Callback*)cb_foldrule);
             int i; prefs.get("rulefold", i, 0); foldrule->value(i != 0);
           } // Fl_Check_Button* foldrule
-          { contrarerule = new Fl_Check_Button(195, 495, 135, 25, "Kontra und Re (K)");
+          { contrarerule = new Fl_Check_Button(150, 525, 135, 25, "Kontra und Re (K)");
             contrarerule->tooltip("Gegenspieler, die nicht bei 18 gepasst haben, d\303\274rfen bis zur 4. ausges\
 pielten Karte Kontra sagen. Der Alleinspieler darf daraufhin bis zur 7. ausges\
 pielten Karte Re sagen. Kontra und Re verdoppeln jeweils die Punktzahl des Spi\
@@ -823,7 +824,7 @@ els.");
             contrarerule->callback((Fl_Callback*)cb_contrarerule);
             int i; prefs.get("rulecontrare", i, 0); contrarerule->value(i != 0);
           } // Fl_Check_Button* contrarerule
-          { bockrule = new Fl_Check_Button(195, 525, 115, 25, "Bockrunde (B)");
+          { bockrule = new Fl_Check_Button(150, 555, 115, 25, "Bockrunde (B)");
             bockrule->tooltip("In einer Bockrunde werden die Punkte jedes Spiels verdoppelt. Eine Bockrunde \
 wird gespielt nach verlorenem Kontra-Spiel, Kontra-Re-Spiel, Spiel mit 60 zu 6\
 0 Augen oder gewonnenem Spiel mit wenigstens 100 Punkten Grundwert.");
@@ -832,7 +833,7 @@ wird gespielt nach verlorenem Kontra-Spiel, Kontra-Re-Spiel, Spiel mit 60 zu 6\
             bockrule->callback((Fl_Callback*)cb_bockrule);
             int i; prefs.get("rulebock", i, 0); bockrule->value(i != 0);
           } // Fl_Check_Button* bockrule
-          { junkrule = new Fl_Check_Button(195, 555, 135, 25, "Ramschrunde (R)");
+          { junkrule = new Fl_Check_Button(150, 585, 135, 25, "Ramschrunde (R)");
             junkrule->tooltip("Eine Ramschrunde wird unter den gleichen Bedingungen wie eine Bockrunde ausge\
 l\303\266st. Auch hier werden die Punkte der Spiele verdoppelt, allerdings ist\
  jedes Spiel Ramsch. Wenn Bock- und Ramschrunde gespielt werden soll, dann fol\

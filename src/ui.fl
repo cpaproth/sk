@@ -40,8 +40,8 @@ class UserInterface {open
   } {
     Fl_Window mainwnd {
       label {Skat-Konferenz}
-      callback {mainwnd->hide();} open selected
-      xywh {265 88 960 700} type Double labelsize 11 align 80 resizable
+      callback {mainwnd->hide();} open
+      xywh {542 24 960 700} type Double labelsize 11 align 80 resizable
       code0 {\#include <map>}
       code1 {\#include <string>}
       code2 {\#include <boost/function/function0.hpp>} size_range {960 700 0 0} visible
@@ -50,7 +50,7 @@ class UserInterface {open
         xywh {0 0 960 700} labelsize 11
       } {
         Fl_Group {} {
-          label Skat open
+          label Skat open selected
           xywh {0 25 960 675} labelsize 11
         } {
           Fl_Box table {
@@ -217,31 +217,31 @@ f["game select"]();}
         }
         Fl_Group {} {
           label System open
-          xywh {0 25 960 675} labelsize 11 hide
+          xywh {0 25 960 675} box PLASTIC_UP_BOX labelsize 11 hide
         } {
           Fl_Group {} {
             label Audio open
-            xywh {630 110 220 140} box DOWN_BOX labeltype ENGRAVED_LABEL labelsize 11 align 33
+            xywh {610 95 225 145} box PLASTIC_DOWN_BOX labelfont 1 labelsize 15 align 49
           } {
             Fl_Button {} {
               label {Restart Audio Stream}
               callback {f["audio restart"]();}
-              private tooltip {Restart the audio stream and print the current CPU load of the audio stream into the log window.} xywh {665 150 150 25} labelsize 11
+              private tooltip {Restart the audio stream and print the current CPU load of the audio stream into the log window.} xywh {645 135 150 25} labelsize 11
             }
             Fl_Check_Button {} {
               label {Playback Microphone}
               callback {f["audio toggle"]();}
-              tooltip {When activated, the microphone recording will not be broadcasted but directly played back. Use this to adjust your mixer settings, e.g. to reduce echoes.} xywh {665 200 150 25} down_box DOWN_BOX labelsize 11
+              tooltip {When activated, the microphone recording will not be broadcasted but directly played back. Use this to adjust your mixer settings, e.g. to reduce echoes.} xywh {645 185 150 25} down_box DOWN_BOX labelsize 11
             }
           }
           Fl_Group {} {
             label Network open
-            xywh {65 70 355 290} box DOWN_BOX labeltype ENGRAVED_LABEL labelsize 11 align 33
+            xywh {125 95 360 295} box PLASTIC_DOWN_BOX labelfont 1 labelsize 15 align 49
           } {
             Fl_Input address {
               label {IP Address}
               callback {prefs.set("ipaddress", address->value());}
-              tooltip {The IP address or hostname of the server you want to connect to. If you want to be the server (one of the peers has to be the server), tick the Server checkbox and click Connect. Then tell the other peers your publicly reachable IP address or hostname, and UDP port.} xywh {200 110 195 25} labelsize 11 textsize 11
+              tooltip {The IP address or hostname of the server you want to connect to. If you want to be the server (one of the peers has to be the server), tick the Server checkbox and click Connect. Then tell the other peers your publicly reachable IP address or hostname, and UDP port.} xywh {260 135 195 25} labelsize 11 textsize 11
               code0 {char* c; prefs.get("ipaddress", c, ""); address->value(c); delete[] c;}
             }
             Fl_Value_Input port {
@@ -251,7 +251,7 @@ f["game select"]();}
 if (port->value() > 65535)
   port->value(65535);
 prefs.set("udpport", port->value());}
-              tooltip {The UDP port of the server.} xywh {200 160 195 25} color -256 labelsize 11 when 4 maximum 65535 step 1 textsize 11
+              tooltip {The UDP port of the server.} xywh {260 185 195 25} color -256 labelsize 11 when 4 maximum 65535 step 1 textsize 11
               code0 {double d; prefs.get("udpport", d, 34588); port->value(d < 0? 0: d > 65535? 65535: d);}
             }
             Fl_Value_Input bandwidth {
@@ -259,41 +259,41 @@ prefs.set("udpport", port->value());}
               callback {if (bandwidth->value() < 8000)
   bandwidth->value(8000);
 prefs.set("bandwidth", bandwidth->value());}
-              tooltip {Maximal bandwidth for the upload in bytes per second. This value shouldn't be greater than the upload speed of your internet connection. The bandwidth is distributed among the connnected peers, the audio stream always needs 2500 bytes per second per peer.} xywh {200 210 195 25} color -256 labelsize 11 when 4 minimum 8000 maximum 1e+09 step 1000 textsize 11
+              tooltip {Maximal bandwidth for the upload in bytes per second. This value shouldn't be greater than the upload speed of your internet connection. The bandwidth is distributed among the connnected peers, the audio stream always needs 2500 bytes per second per peer.} xywh {260 235 195 25} color -256 labelsize 11 when 4 minimum 8000 maximum 1e+09 step 1000 textsize 11
               code0 {double d; prefs.get("bandwidth", d, 16000); bandwidth->value(d < 8000? 8000: d);}
             }
             Fl_Button {} {
               label Connect
               callback {f["network connect"]();}
-              tooltip {Connect to the server or run the server. If a connection can be established, the videoconferencing starts. If 3 peers are connected with each other, the game starts.} xywh {200 260 195 25} labelsize 11
+              tooltip {Connect to the server or run the server. If a connection can be established, the videoconferencing starts. If 3 peers are connected with each other, the game starts.} xywh {260 285 195 25} labelsize 11
             }
             Fl_Button {} {
               label Stats
               callback {f["network stats"]();}
-              tooltip {Print some stats on the connected peers into the log window.} xywh {200 310 195 25} labelsize 11
+              tooltip {Print some stats on the connected peers into the log window.} xywh {260 335 195 25} labelsize 11
             }
             Fl_Check_Button server {
               label Server
               callback {prefs.set("server", server->value());}
-              tooltip {When activated, the program will run as the server after the Connect button was pressed.} xywh {115 260 85 25} down_box DOWN_BOX labelsize 11
+              tooltip {When activated, the program will run as the server after the Connect button was pressed.} xywh {175 285 85 25} down_box DOWN_BOX labelsize 11
               code0 {int i; prefs.get("server", i, 0); server->value(i != 0);}
             }
           }
           Fl_Group {} {
             label Player open
-            xywh {525 320 245 175} box DOWN_BOX labeltype ENGRAVED_LABEL labelsize 11 align 33
+            xywh {590 455 245 175} box PLASTIC_DOWN_BOX labelfont 1 labelsize 15 align 49
           } {
             Fl_Input name {
               label Name
               callback {prefs.set("username", name->value());
 f["name change"]();}
-              tooltip {Your name during the game.} xywh {580 360 165 25} labelsize 11 textsize 11
+              tooltip {Your name during the game.} xywh {645 495 165 25} labelsize 11 textsize 11
               code0 {char* c; prefs.get("username", c, "nobody"); name->value(c); delete[] c;}
             }
             Fl_Input secret {
               label Secret
               callback {prefs.set("secret", secret->value());}
-              tooltip {The secret and the time are used to initialize your random number generator at program start.} xywh {580 405 165 25} labelsize 11 textsize 11
+              tooltip {The secret and the time are used to initialize your random number generator at program start.} xywh {645 540 165 25} labelsize 11 textsize 11
               code0 {char* c; prefs.get("secret", c, ""); secret->value(c); delete[] c;}
             }
             Fl_Button bgcolor {
@@ -307,41 +307,41 @@ bgcolor->color(color);
 bgcolor->redraw();
 table->set_bgcolor(color);
 prefs.set("bgcolor", (int)color);}
-              tooltip {Choose the color of the table background.} xywh {580 450 165 25} labelsize 11 align 4
+              tooltip {Choose the color of the table background.} xywh {645 585 165 25} labelsize 11 align 4
               code0 {\#include <FL/Fl_Color_Chooser.H>}
               code1 {int i; prefs.get("bgcolor", i, (int)FL_GRAY); bgcolor->color(i); table->set_bgcolor(i);}
             }
           }
           Fl_Group {} {
             label {Sonderregeln (SR)} open
-            tooltip {Es gelten die Regeln der internationalen Skatordnung. Es sind nur die Sonderregeln wirksam, die bei allen Spielern aktiviert sind. Ramsch wird ohne Schieben und Grand Hand gespielt. Der Spieler mit den wenigsten Augen gewinnt das Ramsch-Spiel mit 23 Punkten, macht er gar keinen Stich (Jungfrau), gewinnt er mit 46 Punkten, außer einem Spieler gelingt es alle Stiche zu bekommen (Durchmarsch), dann gewinnt dieser mit 120 Punkten.} xywh {170 425 275 175} box DOWN_BOX labeltype ENGRAVED_LABEL labelsize 11 align 33
+            tooltip {Es gelten die Regeln der internationalen Skatordnung. Es sind nur die Sonderregeln wirksam, die bei allen Spielern aktiviert sind. Ramsch wird ohne Schieben und Grand Hand gespielt. Der Spieler mit den wenigsten Augen gewinnt das Ramsch-Spiel mit 23 Punkten, macht er gar keinen Stich (Jungfrau), gewinnt er mit 46 Punkten, außer einem Spieler gelingt es alle Stiche zu bekommen (Durchmarsch), dann gewinnt dieser mit 120 Punkten.} xywh {125 455 275 175} box PLASTIC_DOWN_BOX labelfont 1 labelsize 15 align 49
           } {
             Fl_Check_Button foldrule {
               label {Ramschen statt Einpassen (E)}
               callback {prefs.set("rulefold", foldrule->value());
 f["rule change"]();}
-              tooltip {Wenn alle Spieler passen, wird mit der Hand Ramsch ohne Schieben gespielt. Der Spieler mit den wenigsten Augen bekommt ein gewonnenes Nullspiel gutgeschrieben.} xywh {195 465 210 25} down_box DOWN_BOX labelsize 11
+              tooltip {Wenn alle Spieler passen, wird mit der Hand Ramsch ohne Schieben gespielt. Der Spieler mit den wenigsten Augen bekommt ein gewonnenes Nullspiel gutgeschrieben.} xywh {150 495 210 25} down_box DOWN_BOX labelsize 11
               code0 {int i; prefs.get("rulefold", i, 0); foldrule->value(i != 0);}
             }
             Fl_Check_Button contrarerule {
               label {Kontra und Re (K)}
               callback {prefs.set("rulecontrare", contrarerule->value());
 f["rule change"]();}
-              tooltip {Gegenspieler, die nicht bei 18 gepasst haben, dürfen bis zur 4. ausgespielten Karte Kontra sagen. Der Alleinspieler darf daraufhin bis zur 7. ausgespielten Karte Re sagen. Kontra und Re verdoppeln jeweils die Punktzahl des Spiels.} xywh {195 495 135 25} down_box DOWN_BOX labelsize 11
+              tooltip {Gegenspieler, die nicht bei 18 gepasst haben, dürfen bis zur 4. ausgespielten Karte Kontra sagen. Der Alleinspieler darf daraufhin bis zur 7. ausgespielten Karte Re sagen. Kontra und Re verdoppeln jeweils die Punktzahl des Spiels.} xywh {150 525 135 25} down_box DOWN_BOX labelsize 11
               code0 {int i; prefs.get("rulecontrare", i, 0); contrarerule->value(i != 0);}
             }
             Fl_Check_Button bockrule {
               label {Bockrunde (B)}
               callback {prefs.set("rulebock", bockrule->value());
 f["rule change"]();}
-              tooltip {In einer Bockrunde werden die Punkte jedes Spiels verdoppelt. Eine Bockrunde wird gespielt nach verlorenem Kontra-Spiel, Kontra-Re-Spiel, Spiel mit 60 zu 60 Augen oder gewonnenem Spiel mit wenigstens 100 Punkten Grundwert.} xywh {195 525 115 25} down_box DOWN_BOX labelsize 11
+              tooltip {In einer Bockrunde werden die Punkte jedes Spiels verdoppelt. Eine Bockrunde wird gespielt nach verlorenem Kontra-Spiel, Kontra-Re-Spiel, Spiel mit 60 zu 60 Augen oder gewonnenem Spiel mit wenigstens 100 Punkten Grundwert.} xywh {150 555 115 25} down_box DOWN_BOX labelsize 11
               code0 {int i; prefs.get("rulebock", i, 0); bockrule->value(i != 0);}
             }
             Fl_Check_Button junkrule {
               label {Ramschrunde (R)}
               callback {prefs.set("rulejunk", junkrule->value());
 f["rule change"]();}
-              tooltip {Eine Ramschrunde wird unter den gleichen Bedingungen wie eine Bockrunde ausgelöst. Auch hier werden die Punkte der Spiele verdoppelt, allerdings ist jedes Spiel Ramsch. Wenn Bock- und Ramschrunde gespielt werden soll, dann folgt die Ramsch- auf die Bockrunde.} xywh {195 555 135 25} down_box DOWN_BOX labelsize 11
+              tooltip {Eine Ramschrunde wird unter den gleichen Bedingungen wie eine Bockrunde ausgelöst. Auch hier werden die Punkte der Spiele verdoppelt, allerdings ist jedes Spiel Ramsch. Wenn Bock- und Ramschrunde gespielt werden soll, dann folgt die Ramsch- auf die Bockrunde.} xywh {150 585 135 25} down_box DOWN_BOX labelsize 11
               code0 {int i; prefs.get("rulejunk", i, 0); junkrule->value(i != 0);}
             }
           }
