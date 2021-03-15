@@ -80,6 +80,14 @@ Audio::Audio(Network& nw) : trafo(framesize), bits(8 * encsize), encbuf(encsize 
 	stream = 0;
 	playmic = false;
 	mute = false;
+	frame = 0;
+	rnd = 11113;
+	threshold = INT_MAX;
+
+	enctmp.resize(framesize, 0.f);
+	dectmp.resize(framesize, 0.f);
+	a.resize(framesize);
+	v.resize(framesize);
 
 	initerror = Pa_Initialize() != paNoError;
 	if (initerror)
@@ -110,6 +118,7 @@ void Audio::restart() {
 		if (Pa_StopStream(stream) == paNoError)
 			cout << "audio stream stopped" << endl;
 	}
+	threshold = INT_MAX;
 	if (Pa_StartStream(stream) == paNoError)
 		cout << "audio stream started" << endl;
 	else
@@ -128,15 +137,15 @@ void Audio::mute_mic(bool m) {
 
 
 void Audio::encode(const short* in) {
-	static unsigned frame = 0;
-	static float tmp[framesize];
-	static vector<pair<float, unsigned> > a(framesize);
-	static vector<pair<unsigned char, int> > v(framesize);
+	int amp = *max_element(in, in + framesize) - *min_element(in, in + framesize);
+	if (amp > 0 && amp < threshold)
+		threshold = amp;
 
-	float scale = mute && !playmic? 0.f: 1.f / 32768.f;
+	//float scale = (mute && !playmic) || amp / 4 < threshold? 0.f: 1.f / 32768.f;
+	float scale = mute && !playmic? 0.f: 1.f / 32768.f * (amp / 8 < threshold? (amp - threshold) / 7.f / threshold: 1.f);
 	for (unsigned i = 0; i < framesize; i++) {
-		trafo.t(i) = tmp[i];
-		tmp[i] = trafo.t(i + framesize) = in[i] * scale;
+		trafo.t(i) = enctmp[i];
+		enctmp[i] = trafo.t(i + framesize) = in[i] * scale;
 	}
 	trafo.mdct();
 
@@ -168,9 +177,6 @@ void Audio::encode(const short* in) {
 
 
 void Audio::decode(short* out) {
-	static float tmp[framesize];
-	static unsigned r = 11113;
-
 	fill(&trafo.f(0), &trafo.f(0) + framesize, 0.f);
 	for (unsigned i = 0; i < decbuf.size(); i++) {
 		if (decbuf[i].size() != encbuf.size())
@@ -184,7 +190,7 @@ void Audio::decode(short* out) {
 
 		for (unsigned j = 0, b = 128, o = 0; j < framesize; j++) {
 			if (bits.test(b++))
-				trafo.f(j) += (((r = r * 75 % 65537) & 8) != 0? -1.f: 1.f) * pow(2.f, -m / 8.f - 3.f) * framesize / sqrt(2.f);
+				trafo.f(j) += (((rnd = rnd * 75 % 65537) & 8) != 0? -1.f: 1.f) * pow(2.f, -m / 8.f - 3.f) * framesize / sqrt(2.f);
 			else if (bits.test(b++))
 				trafo.f(j) += (bits.test(b++)? -1.f: 1.f) * pow(2.f, -m / 8.f) * framesize / sqrt(2.f);
 			else
@@ -194,9 +200,9 @@ void Audio::decode(short* out) {
 
 	trafo.imdct();
 	for (unsigned i = 0; i < framesize; i++) {
-		trafo.t(i) += tmp[i];
+		trafo.t(i) += dectmp[i];
 		out[i] = trafo.t(i) < -128.f? -32768: trafo.t(i) > 127.f? 32767: (short)(trafo.t(i) * framesize);
-		tmp[i] = trafo.t(i + framesize);
+		dectmp[i] = trafo.t(i + framesize);
 	}
 }
 

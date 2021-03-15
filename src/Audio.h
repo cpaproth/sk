@@ -72,6 +72,14 @@ class Audio {
 	bool					initerror;
 	boost::atomic<bool>			playmic;
 	boost::atomic<bool>			mute;
+	unsigned				frame;
+	unsigned				rnd;
+	int					threshold;
+	vector<float>				enctmp;
+	vector<float>				dectmp;
+	vector<pair<float, unsigned> >		a;
+	vector<pair<unsigned char, int> >	v;
+
 
 	void encode(const short*);
 	void decode(short*);
