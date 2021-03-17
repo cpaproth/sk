@@ -328,7 +328,7 @@ void Video::Codec::decode(const vector<unsigned char>& enc, Mat& img, bool show)
 	vector<int> dec, data;
 	unsigned low = 0, range = UINT_MAX;
 	unsigned code = (enc[p] << 24) | (enc[p + 1] << 16) | (enc[p + 2] << 8) | enc[p + 3];
-	for (p += 4; dec.size() < size && range >= 400000;) {
+	for (p += 4; dec.size() < size && range >= 400000 && range >= size;) {
 		range /= size;
 		dec.push_back(ranges.upper_bound((code - low) / range % size)->second);
 		low += range * starts[dec.back()];

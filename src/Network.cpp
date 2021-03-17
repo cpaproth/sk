@@ -259,14 +259,13 @@ void Network::process_message(unsigned i, const string& message) {
 		string str, type;
 		unsigned v = 0;
 		ss(data) >> str >> str >> type >> str >> v >> ws >> peers[i].altendpoint;
-		if (v != version) {
+		if (v == version)
+			peers[i].connected = true;
+		else
 			cout << "peer " << i << " incompatible version " << v << endl;
-			peers.erase(peers.begin() + i);
-			return;
-		}
 
-		peers[i].connected = true;
 		if (type == "server") {
+			peers[i].connections = 0;
 			peers.resize(1, Peer(udpendpoint()));
 		} else if (server && type == "peer") {
 			for (unsigned j = 0; j < peers.size(); j++) {
@@ -282,6 +281,7 @@ void Network::process_message(unsigned i, const string& message) {
 	} else if (command == "holepunching") {
 		peers.push_back(Peer(udpendpoint()));
 		ss(data) >> peers.back().endpoint >> ws >> peers.back().altendpoint;
+		peers.back().connections = 0;
 		if (peers.size() > maxpeers)
 			peers.erase(peers.begin() + 1);
 	} else if (command == "peerconnected") {

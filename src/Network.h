@@ -39,7 +39,7 @@ using namespace std;
 
 
 class Network {
-	static const unsigned	version = 0;
+	static const unsigned	version = 1;
 	static const size_t	maxpeers = 2;
 	static const size_t	fifomax = 10;
 	static const size_t	recvsize = 60000;
@@ -68,7 +68,7 @@ class Network {
 		unsigned	lastmsgid;
 		unsigned	bucket;
 		unsigned	connections;
-		Peer(const udpendpoint& ep) : endpoint(ep), connected(false), weakport(false), idle(0), fifoempty(0), fifofull(0), lastmsgid(0), bucket(0), connections(0) {}
+		Peer(const udpendpoint& ep) : endpoint(ep), connected(false), weakport(false), idle(0), fifoempty(0), fifofull(0), lastmsgid(0), bucket(0), connections(-1) {}
 	};
 	
 	bool				server;

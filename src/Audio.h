@@ -75,6 +75,7 @@ class Audio {
 	unsigned				frame;
 	unsigned				rnd;
 	int					threshold;
+	unsigned				noisecount;
 	vector<float>				enctmp;
 	vector<float>				dectmp;
 	vector<pair<float, unsigned> >		a;

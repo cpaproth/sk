@@ -83,6 +83,7 @@ Audio::Audio(Network& nw) : trafo(framesize), bits(8 * encsize), encbuf(encsize 
 	frame = 0;
 	rnd = 11113;
 	threshold = INT_MAX;
+	noisecount = 0;
 
 	enctmp.resize(framesize, 0.f);
 	dectmp.resize(framesize, 0.f);
@@ -119,6 +120,7 @@ void Audio::restart() {
 			cout << "audio stream stopped" << endl;
 	}
 	threshold = INT_MAX;
+	noisecount = 0;
 	if (Pa_StartStream(stream) == paNoError)
 		cout << "audio stream started" << endl;
 	else
@@ -138,11 +140,12 @@ void Audio::mute_mic(bool m) {
 
 void Audio::encode(const short* in) {
 	int amp = *max_element(in, in + framesize) - *min_element(in, in + framesize);
+	threshold *= noisecount > 30? 2: 1;
+	noisecount = amp / 2 < threshold || noisecount > 30? 0: noisecount + 1;
 	if (amp > 0 && amp < threshold)
 		threshold = amp;
 
-	//float scale = (mute && !playmic) || amp / 4 < threshold? 0.f: 1.f / 32768.f;
-	float scale = mute && !playmic? 0.f: 1.f / 32768.f * (amp / 8 < threshold? (amp - threshold) / 7.f / threshold: 1.f);
+	float scale = mute && !playmic? 0.f: (amp / 8 < threshold? (amp - threshold) / 7.f / threshold: 1.f) / 32768.f;
 	for (unsigned i = 0; i < framesize; i++) {
 		trafo.t(i) = enctmp[i];
 		enctmp[i] = trafo.t(i + framesize) = in[i] * scale;
