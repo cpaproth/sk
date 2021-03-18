@@ -30,7 +30,7 @@ using namespace cv;
 
 Video::Codec::Codec() : a1(-1.586134342f), a2(-0.05298011854f), a3(0.8829110762f), a4(0.4435068522f), k1(0.81289306611596146f), k2(0.61508705245700002f) {
 	Y = U = V = tmpY = tmpU = tmpV = vector<float>(imagewidth * imageheight, 0.f);
-	frame = rndnext = 0;
+	frame = rndpos = rndsteps = 0;
 	while (rndmask.size() < minsize)
 		rndmask.push_back(rndmask.size());
 	random_shuffle(rndmask.begin(), rndmask.end());
@@ -154,7 +154,7 @@ void Video::Codec::denoise(vector<float>& C, float h, const unsigned P, const un
 }
 
 
-void Video::Codec::encode(const Mat& img, vector<unsigned char>& enc, bool update) {
+void Video::Codec::encode(const Mat& img, vector<unsigned char>& enc, bool update, unsigned cover) {
 	if (update) {
 		for (set<unsigned>::const_iterator it = mask.begin(); it != mask.end(); it++) {
 			for (unsigned y = *it / w * l; y < *it / w * l + l; y++) {
@@ -166,7 +166,10 @@ void Video::Codec::encode(const Mat& img, vector<unsigned char>& enc, bool updat
 			}
 		}
 		frame++;
+		rndpos += rndsteps;
 	}
+	if (cover == 0)
+		tmpY = tmpU = tmpV = vector<float>(imagewidth * imageheight, 0.f);
 
 	if (img.cols != (int)imagewidth || img.rows != (int)imageheight || img.elemSize() != 3)
 		return;
@@ -214,8 +217,8 @@ void Video::Codec::encode(const Mat& img, vector<unsigned char>& enc, bool updat
 			}
 		}
 	}
-	for (unsigned r = 0; r < 23; r++)
-		mask.insert(rndmask[rndnext++ % minsize]);
+	for (unsigned r = rndpos; r < rndpos + (rndsteps = minsize * cover / 100) && mask.size() < minsize; r++)
+		mask.insert(rndmask[r % minsize]);
 //cout<<mask.size()<<endl;
 
 
@@ -295,7 +298,7 @@ void Video::Codec::encode(const Mat& img, vector<unsigned char>& enc, bool updat
 }
 
 
-void Video::Codec::decode(const vector<unsigned char>& enc, Mat& img, bool show) {
+void Video::Codec::decode(const vector<unsigned char>& enc, Mat& img, bool show, unsigned quality) {
 	if (img.cols != (int)imagewidth || img.rows != (int)imageheight || img.elemSize() != 3 || enc.size() < 6)
 		return;
 
@@ -398,7 +401,7 @@ void Video::Codec::decode(const vector<unsigned char>& enc, Mat& img, bool show)
 		}
 	}
 
-	denoise(Y, 5.f, 3, 3);
+	denoise(Y, 5.f, 3, quality);
 
 	UILock lock;
 	for (unsigned i = 0; i < Y.size(); i++)
@@ -416,6 +419,7 @@ Video::Video(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 
 	capture = boost::shared_ptr<VideoCapture>(new VideoCapture(0));
 
+	reset = false;
 	working = true;
 	videothread = boost::thread(boost::bind(&Video::worker, this));
 	codecthread = boost::thread(boost::bind(&Video::coder, this));
@@ -469,6 +473,8 @@ bool Video::handle_command(unsigned i, const string& command, const string& data
 		right = data == "right"? 1: 0;
 	} else if (command == "chat") {
 		(i == left? ui.leftimage: ui.rightimage)->set(data);
+	} else if (command == "newpeer") {
+		reset = true;
 	} else
 		return false;
 	return true;
@@ -775,13 +781,14 @@ void Video::coder() {
 			boost::posix_time::ptime t = boost::posix_time::microsec_clock::local_time();
 
 			//UILock(), encode(*img, encbuf);
-			UILock(), encoder.encode(*img, encbuf, update);
+			UILock(), encoder.encode(*img, encbuf, update, reset.exchange(false)? 0: 4);
+
 			update = network.broadcast(encbuf, decbuf, maxlatency);
 
 			for (unsigned i = 0; i < decbuf.size(); i++) {
 				bool show = i + 1 >= decbuf.size() || decbuf[i][0] != decbuf[i + 1][0];
 				//UILock(), decode(decbuf[i], decbuf[i][0] == left? *limg: *rimg);
-				(decbuf[i][0] == 0? decoder0: decoder1).decode(decbuf[i], decbuf[i][0] == left? *limg: *rimg, show);
+				(decbuf[i][0] == 0? decoder0: decoder1).decode(decbuf[i], decbuf[i][0] == left? *limg: *rimg, show, 3);
 				if (show) {
 					UILock lock;
 					(decbuf[i][0] == left? ui.leftimage: ui.rightimage)->redraw();

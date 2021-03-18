@@ -55,7 +55,7 @@ class Video {
 		vector<float>		Y, U, V, tmpY, tmpU, tmpV;
 		set<unsigned>		mask;
 		vector<unsigned>	rndmask;
-		unsigned		frame, rndnext, w, h, l;
+		unsigned		frame, rndpos, rndsteps, w, h, l;
 
 		void fcdf97(vector<float>&, unsigned, unsigned, unsigned);
 		void icdf97(vector<float>&, unsigned, unsigned, unsigned);
@@ -63,8 +63,8 @@ class Video {
 		void denoise(vector<float>&, float, unsigned, unsigned);
 	public:
 		Codec();
-		void encode(const cv::Mat&, vector<unsigned char>&, bool);
-		void decode(const vector<unsigned char>&, cv::Mat&, bool);
+		void encode(const cv::Mat&, vector<unsigned char>&, bool, unsigned);
+		void decode(const vector<unsigned char>&, cv::Mat&, bool, unsigned);
 	};
 
 
@@ -77,6 +77,7 @@ class Video {
 	unsigned				left;
 	unsigned				right;
 	boost::atomic<bool>			working;
+	boost::atomic<bool>			reset;
 	UserInterface&				ui;
 	Network&				network;
 

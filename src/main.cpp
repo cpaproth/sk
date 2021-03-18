@@ -40,7 +40,7 @@ void connect_network(UserInterface& ui, Network& network) {
 }
 
 
-int main() {
+int main(int argc, char** argv) {
 	try {
 		UILock		lock;
 		UserInterface	ui;
@@ -61,6 +61,9 @@ int main() {
 		ui.f["chat message"] = boost::bind(&Video::send_chat, &video);
 		ui.f["network stats"] = boost::bind(&Network::stats, &network);
 		ui.f["network connect"] = boost::bind(&connect_network, boost::ref(ui), boost::ref(network));
+
+		if (argc > 1)
+			ui.address->value(argv[1]);
 
 		try {
 			audio.restart();

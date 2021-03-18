@@ -259,10 +259,12 @@ void Network::process_message(unsigned i, const string& message) {
 		string str, type;
 		unsigned v = 0;
 		ss(data) >> str >> str >> type >> str >> v >> ws >> peers[i].altendpoint;
-		if (v == version)
+		if (v == version) {
 			peers[i].connected = true;
-		else
+			strand.post(boost::bind(&Network::handle_command, this, i, "newpeer", ""));
+		} else {
 			cout << "peer " << i << " incompatible version " << v << endl;
+		}
 
 		if (type == "server") {
 			peers[i].connections = 0;
