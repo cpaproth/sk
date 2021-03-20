@@ -119,7 +119,7 @@ void Audio::restart() {
 		if (Pa_StopStream(stream) == paNoError)
 			cout << "audio stream stopped" << endl;
 	}
-	threshold = INT_MAX;
+	threshold = threshold > 0? INT_MAX: 0;
 	noisecount = 0;
 	if (Pa_StartStream(stream) == paNoError)
 		cout << "audio stream started" << endl;
@@ -130,6 +130,10 @@ void Audio::restart() {
 
 void Audio::toggle_playmic() {
 	playmic = !playmic;
+}
+
+void Audio::toggle_noisegate() {
+	//threshold = threshold > 0? 0: INT_MAX;
 }
 
 

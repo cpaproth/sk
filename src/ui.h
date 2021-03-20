@@ -40,6 +40,7 @@ public:
 #include <FL/Fl_Check_Button.H>
 #include <FL/Fl_Value_Input.H>
 #include <FL/Fl_Color_Chooser.H>
+#include <FL/Fl_Slider.H>
 #include "LogDisplay.h"
 #include <FL/Fl_Browser.H>
 
@@ -166,6 +167,8 @@ private:
   static void cb_Restart(Fl_Button*, void*);
   inline void cb_Playback_i(Fl_Check_Button*, void*);
   static void cb_Playback(Fl_Check_Button*, void*);
+  inline void cb_Noise_i(Fl_Check_Button*, void*);
+  static void cb_Noise(Fl_Check_Button*, void*);
 public:
   Fl_Input *address;
 private:
@@ -225,6 +228,11 @@ public:
 private:
   inline void cb_junkrule_i(Fl_Check_Button*, void*);
   static void cb_junkrule(Fl_Check_Button*, void*);
+public:
+  Fl_Slider *quality;
+private:
+  inline void cb_quality_i(Fl_Slider*, void*);
+  static void cb_quality(Fl_Slider*, void*);
 public:
   Fl_Browser *listing;
   ~UserInterface();

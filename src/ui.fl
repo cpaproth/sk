@@ -41,7 +41,7 @@ class UserInterface {open
     Fl_Window mainwnd {
       label {Skat-Konferenz}
       callback {mainwnd->hide();} open
-      xywh {542 24 960 700} type Double labelsize 11 align 80 resizable
+      xywh {564 231 960 700} type Double labelsize 11 align 80 resizable
       code0 {\#include <map>}
       code1 {\#include <string>}
       code2 {\#include <boost/function/function0.hpp>} size_range {960 700 0 0} visible
@@ -216,22 +216,27 @@ f["game select"]();}
           }
         }
         Fl_Group {} {
-          label System open
+          label Options open
           xywh {0 25 960 675} box PLASTIC_UP_BOX labelsize 11 hide
         } {
           Fl_Group {} {
             label Audio open
-            xywh {610 95 225 145} box PLASTIC_DOWN_BOX labelfont 1 labelsize 15 align 49
+            xywh {625 95 210 165} box PLASTIC_DOWN_BOX labelfont 1 labelsize 15 align 49
           } {
             Fl_Button {} {
               label {Restart Audio Stream}
               callback {f["audio restart"]();}
-              private tooltip {Restart the audio stream and print the current CPU load of the audio stream into the log window.} xywh {645 135 150 25} labelsize 11
+              private tooltip {Restart the audio stream and print the current CPU load of the audio stream into the log window.} xywh {655 135 150 25} labelsize 11
             }
             Fl_Check_Button {} {
               label {Playback Microphone}
               callback {f["audio toggle"]();}
-              tooltip {When activated, the microphone recording will not be broadcasted but directly played back. Use this to adjust your mixer settings, e.g. to reduce echoes.} xywh {645 185 150 25} down_box DOWN_BOX labelsize 11
+              tooltip {When activated, the microphone recording will not be broadcasted but directly played back. Use this to adjust your mixer settings, e.g. to reduce echoes.} xywh {655 180 150 25} down_box DOWN_BOX labelsize 11
+            }
+            Fl_Check_Button {} {
+              label {Noise Gate}
+              callback {f["audio noise"]();}
+              tooltip {Activate the noise gate to reduce the volume of background noises. Deactivate the noise gate, if the background noise is actual signal, e.g. music.} xywh {655 215 145 25} down_box DOWN_BOX value 1 labelsize 11
             }
           }
           Fl_Group {} {
@@ -251,7 +256,7 @@ f["game select"]();}
 if (port->value() > 65535)
   port->value(65535);
 prefs.set("udpport", port->value());}
-              tooltip {The UDP port of the server.} xywh {260 185 195 25} color -256 labelsize 11 when 4 maximum 65535 step 1 textsize 11
+              tooltip {The UDP port of the server. The peers randomly choose ports. Traffic from and to these ports has to be allowed by the firewall/NAT.} xywh {260 185 195 25} color -256 labelsize 11 when 4 maximum 65535 step 1 textsize 11
               code0 {double d; prefs.get("udpport", d, 34588); port->value(d < 0? 0: d > 65535? 65535: d);}
             }
             Fl_Value_Input bandwidth {
@@ -275,7 +280,7 @@ prefs.set("bandwidth", bandwidth->value());}
             Fl_Check_Button server {
               label Server
               callback {prefs.set("server", server->value());}
-              tooltip {When activated, the program will run as the server after the Connect button was pressed.} xywh {175 285 85 25} down_box DOWN_BOX labelsize 11
+              tooltip {When activated, the program will run as the server after the Connect button has been pressed.} xywh {175 285 85 25} down_box DOWN_BOX labelsize 11
               code0 {int i; prefs.get("server", i, 0); server->value(i != 0);}
             }
           }
@@ -314,35 +319,46 @@ prefs.set("bgcolor", (int)color);}
           }
           Fl_Group {} {
             label {Sonderregeln (SR)} open
-            tooltip {Es gelten die Regeln der internationalen Skatordnung. Es sind nur die Sonderregeln wirksam, die bei allen Spielern aktiviert sind. Ramsch wird ohne Schieben und Grand Hand gespielt. Der Spieler mit den wenigsten Augen gewinnt das Ramsch-Spiel mit 23 Punkten, macht er gar keinen Stich (Jungfrau), gewinnt er mit 46 Punkten, außer einem Spieler gelingt es alle Stiche zu bekommen (Durchmarsch), dann gewinnt dieser mit 120 Punkten.} xywh {125 455 275 175} box PLASTIC_DOWN_BOX labelfont 1 labelsize 15 align 49
+            tooltip {Es gelten die Regeln der internationalen Skatordnung. Es sind nur die Sonderregeln wirksam, die bei allen Spielern aktiviert sind. Ramsch wird ohne Schieben und Grand Hand gespielt. Der Spieler mit den wenigsten Augen gewinnt das Ramsch-Spiel mit 23 Punkten, macht er gar keinen Stich (Jungfrau), gewinnt er mit 46 Punkten, außer einem Spieler gelingt es alle Stiche zu bekommen (Durchmarsch), dann gewinnt dieser mit 120 Punkten.} xywh {130 455 255 175} box PLASTIC_DOWN_BOX labelfont 1 labelsize 15 align 49
           } {
             Fl_Check_Button foldrule {
               label {Ramschen statt Einpassen (E)}
               callback {prefs.set("rulefold", foldrule->value());
 f["rule change"]();}
-              tooltip {Wenn alle Spieler passen, wird mit der Hand Ramsch ohne Schieben gespielt. Der Spieler mit den wenigsten Augen bekommt ein gewonnenes Nullspiel gutgeschrieben.} xywh {150 495 210 25} down_box DOWN_BOX labelsize 11
+              tooltip {Wenn alle Spieler passen, wird mit der Hand Ramsch ohne Schieben gespielt. Der Spieler mit den wenigsten Augen bekommt ein gewonnenes Nullspiel gutgeschrieben.} xywh {155 495 210 25} down_box DOWN_BOX labelsize 11
               code0 {int i; prefs.get("rulefold", i, 0); foldrule->value(i != 0);}
             }
             Fl_Check_Button contrarerule {
               label {Kontra und Re (K)}
               callback {prefs.set("rulecontrare", contrarerule->value());
 f["rule change"]();}
-              tooltip {Gegenspieler, die nicht bei 18 gepasst haben, dürfen bis zur 4. ausgespielten Karte Kontra sagen. Der Alleinspieler darf daraufhin bis zur 7. ausgespielten Karte Re sagen. Kontra und Re verdoppeln jeweils die Punktzahl des Spiels.} xywh {150 525 135 25} down_box DOWN_BOX labelsize 11
+              tooltip {Gegenspieler, die nicht bei 18 gepasst haben, dürfen bis zur 4. ausgespielten Karte Kontra sagen. Der Alleinspieler darf daraufhin bis zur 7. ausgespielten Karte Re sagen. Kontra und Re verdoppeln jeweils die Punktzahl des Spiels.} xywh {155 525 135 25} down_box DOWN_BOX labelsize 11
               code0 {int i; prefs.get("rulecontrare", i, 0); contrarerule->value(i != 0);}
             }
             Fl_Check_Button bockrule {
               label {Bockrunde (B)}
               callback {prefs.set("rulebock", bockrule->value());
 f["rule change"]();}
-              tooltip {In einer Bockrunde werden die Punkte jedes Spiels verdoppelt. Eine Bockrunde wird gespielt nach verlorenem Kontra-Spiel, Kontra-Re-Spiel, Spiel mit 60 zu 60 Augen oder gewonnenem Spiel mit wenigstens 100 Punkten Grundwert.} xywh {150 555 115 25} down_box DOWN_BOX labelsize 11
+              tooltip {In einer Bockrunde werden die Punkte jedes Spiels verdoppelt. Eine Bockrunde wird gespielt nach verlorenem Kontra-Spiel, Kontra-Re-Spiel, Spiel mit 60 zu 60 Augen oder gewonnenem Spiel mit wenigstens 100 Punkten Grundwert.} xywh {155 555 115 25} down_box DOWN_BOX labelsize 11
               code0 {int i; prefs.get("rulebock", i, 0); bockrule->value(i != 0);}
             }
             Fl_Check_Button junkrule {
               label {Ramschrunde (R)}
               callback {prefs.set("rulejunk", junkrule->value());
 f["rule change"]();}
-              tooltip {Eine Ramschrunde wird unter den gleichen Bedingungen wie eine Bockrunde ausgelöst. Auch hier werden die Punkte der Spiele verdoppelt, allerdings ist jedes Spiel Ramsch. Wenn Bock- und Ramschrunde gespielt werden soll, dann folgt die Ramsch- auf die Bockrunde.} xywh {150 585 135 25} down_box DOWN_BOX labelsize 11
+              tooltip {Eine Ramschrunde wird unter den gleichen Bedingungen wie eine Bockrunde ausgelöst. Auch hier werden die Punkte der Spiele verdoppelt, allerdings ist jedes Spiel Ramsch. Wenn Bock- und Ramschrunde gespielt werden soll, dann folgt die Ramsch- auf die Bockrunde.} xywh {155 585 135 25} down_box DOWN_BOX labelsize 11
               code0 {int i; prefs.get("rulejunk", i, 0); junkrule->value(i != 0);}
+            }
+          }
+          Fl_Group {} {
+            label Video open
+            xywh {590 315 245 85} box PLASTIC_DOWN_BOX labelfont 1 labelsize 15 align 17
+          } {
+            Fl_Slider quality {
+              label Denoising
+              callback {prefs.set("videoquality", quality->value());}
+              tooltip {Quality of the denoising of the received video signals. Higher quality uses more CPU cycles and thus is slower.} xywh {675 355 135 25} type {Horz Knob} labelsize 11 align 4 maximum 10 step 1 value 3
+              code0 {int v; prefs.get("videoquality", v, 3); quality->value(v < 0? 0: v > 10? 10: v);}
             }
           }
         }

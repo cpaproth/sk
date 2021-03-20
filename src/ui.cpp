@@ -338,6 +338,13 @@ void UserInterface::cb_Playback(Fl_Check_Button* o, void* v) {
   ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_Playback_i(o,v);
 }
 
+void UserInterface::cb_Noise_i(Fl_Check_Button*, void*) {
+  f["audio noise"]();
+}
+void UserInterface::cb_Noise(Fl_Check_Button* o, void* v) {
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_Noise_i(o,v);
+}
+
 void UserInterface::cb_address_i(Fl_Input*, void*) {
   prefs.set("ipaddress", address->value());
 }
@@ -446,6 +453,13 @@ f["rule change"]();
 }
 void UserInterface::cb_junkrule(Fl_Check_Button* o, void* v) {
   ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_junkrule_i(o,v);
+}
+
+void UserInterface::cb_quality_i(Fl_Slider*, void*) {
+  prefs.set("videoquality", quality->value());
+}
+void UserInterface::cb_quality(Fl_Slider* o, void* v) {
+  ((UserInterface*)(o->parent()->parent()->parent()->parent()->user_data()))->cb_quality_i(o,v);
 }
 
 UserInterface::UserInterface():prefs(Fl_Preferences::USER, "cpaproth", "sk") {
@@ -678,27 +692,35 @@ UserInterface::UserInterface():prefs(Fl_Preferences::USER, "cpaproth", "sk") {
         } // Fl_Input* chat
         o->end();
       } // Fl_Group* o
-      { Fl_Group* o = new Fl_Group(0, 25, 960, 675, "System");
+      { Fl_Group* o = new Fl_Group(0, 25, 960, 675, "Options");
         o->box(FL_PLASTIC_UP_BOX);
         o->labelsize(11);
         o->hide();
-        { Fl_Group* o = new Fl_Group(610, 95, 225, 145, "Audio");
+        { Fl_Group* o = new Fl_Group(625, 95, 210, 165, "Audio");
           o->box(FL_PLASTIC_DOWN_BOX);
           o->labelfont(1);
           o->labelsize(15);
           o->align(Fl_Align(33|FL_ALIGN_INSIDE));
-          { Fl_Button* o = new Fl_Button(645, 135, 150, 25, "Restart Audio Stream");
+          { Fl_Button* o = new Fl_Button(655, 135, 150, 25, "Restart Audio Stream");
             o->tooltip("Restart the audio stream and print the current CPU load of the audio stream i\
 nto the log window.");
             o->labelsize(11);
             o->callback((Fl_Callback*)cb_Restart);
           } // Fl_Button* o
-          { Fl_Check_Button* o = new Fl_Check_Button(645, 185, 150, 25, "Playback Microphone");
+          { Fl_Check_Button* o = new Fl_Check_Button(655, 180, 150, 25, "Playback Microphone");
             o->tooltip("When activated, the microphone recording will not be broadcasted but directly\
  played back. Use this to adjust your mixer settings, e.g. to reduce echoes.");
             o->down_box(FL_DOWN_BOX);
             o->labelsize(11);
             o->callback((Fl_Callback*)cb_Playback);
+          } // Fl_Check_Button* o
+          { Fl_Check_Button* o = new Fl_Check_Button(655, 215, 145, 25, "Noise Gate");
+            o->tooltip("Activate the noise gate to reduce the volume of background noises. Deactivate\
+ the noise gate, if the background noise is actual signal, e.g. music.");
+            o->down_box(FL_DOWN_BOX);
+            o->value(1);
+            o->labelsize(11);
+            o->callback((Fl_Callback*)cb_Noise);
           } // Fl_Check_Button* o
           o->end();
         } // Fl_Group* o
@@ -718,7 +740,8 @@ ddress or hostname, and UDP port.");
             char* c; prefs.get("ipaddress", c, ""); address->value(c); delete[] c;
           } // Fl_Input* address
           { port = new Fl_Value_Input(260, 185, 195, 25, "UDP Port");
-            port->tooltip("The UDP port of the server.");
+            port->tooltip("The UDP port of the server. The peers randomly choose ports. Traffic from and\
+ to these ports has to be allowed by the firewall/NAT.");
             port->color((Fl_Color)-256);
             port->labelsize(11);
             port->maximum(65535);
@@ -756,8 +779,8 @@ me starts.");
             o->callback((Fl_Callback*)cb_Stats);
           } // Fl_Button* o
           { server = new Fl_Check_Button(175, 285, 85, 25, "Server");
-            server->tooltip("When activated, the program will run as the server after the Connect button w\
-as pressed.");
+            server->tooltip("When activated, the program will run as the server after the Connect button h\
+as been pressed.");
             server->down_box(FL_DOWN_BOX);
             server->labelsize(11);
             server->callback((Fl_Callback*)cb_server);
@@ -794,7 +817,7 @@ t program start.");
           } // Fl_Button* bgcolor
           o->end();
         } // Fl_Group* o
-        { Fl_Group* o = new Fl_Group(125, 455, 275, 175, "Sonderregeln (SR)");
+        { Fl_Group* o = new Fl_Group(130, 455, 255, 175, "Sonderregeln (SR)");
           o->tooltip("Es gelten die Regeln der internationalen Skatordnung. Es sind nur die Sonderr\
 egeln wirksam, die bei allen Spielern aktiviert sind. Ramsch wird ohne Schiebe\
 n und Grand Hand gespielt. Der Spieler mit den wenigsten Augen gewinnt das Ram\
@@ -805,7 +828,7 @@ Durchmarsch), dann gewinnt dieser mit 120 Punkten.");
           o->labelfont(1);
           o->labelsize(15);
           o->align(Fl_Align(33|FL_ALIGN_INSIDE));
-          { foldrule = new Fl_Check_Button(150, 495, 210, 25, "Ramschen statt Einpassen (E)");
+          { foldrule = new Fl_Check_Button(155, 495, 210, 25, "Ramschen statt Einpassen (E)");
             foldrule->tooltip("Wenn alle Spieler passen, wird mit der Hand Ramsch ohne Schieben gespielt. De\
 r Spieler mit den wenigsten Augen bekommt ein gewonnenes Nullspiel gutgeschrie\
 ben.");
@@ -814,7 +837,7 @@ ben.");
             foldrule->callback((Fl_Callback*)cb_foldrule);
             int i; prefs.get("rulefold", i, 0); foldrule->value(i != 0);
           } // Fl_Check_Button* foldrule
-          { contrarerule = new Fl_Check_Button(150, 525, 135, 25, "Kontra und Re (K)");
+          { contrarerule = new Fl_Check_Button(155, 525, 135, 25, "Kontra und Re (K)");
             contrarerule->tooltip("Gegenspieler, die nicht bei 18 gepasst haben, d\303\274rfen bis zur 4. ausges\
 pielten Karte Kontra sagen. Der Alleinspieler darf daraufhin bis zur 7. ausges\
 pielten Karte Re sagen. Kontra und Re verdoppeln jeweils die Punktzahl des Spi\
@@ -824,7 +847,7 @@ els.");
             contrarerule->callback((Fl_Callback*)cb_contrarerule);
             int i; prefs.get("rulecontrare", i, 0); contrarerule->value(i != 0);
           } // Fl_Check_Button* contrarerule
-          { bockrule = new Fl_Check_Button(150, 555, 115, 25, "Bockrunde (B)");
+          { bockrule = new Fl_Check_Button(155, 555, 115, 25, "Bockrunde (B)");
             bockrule->tooltip("In einer Bockrunde werden die Punkte jedes Spiels verdoppelt. Eine Bockrunde \
 wird gespielt nach verlorenem Kontra-Spiel, Kontra-Re-Spiel, Spiel mit 60 zu 6\
 0 Augen oder gewonnenem Spiel mit wenigstens 100 Punkten Grundwert.");
@@ -833,7 +856,7 @@ wird gespielt nach verlorenem Kontra-Spiel, Kontra-Re-Spiel, Spiel mit 60 zu 6\
             bockrule->callback((Fl_Callback*)cb_bockrule);
             int i; prefs.get("rulebock", i, 0); bockrule->value(i != 0);
           } // Fl_Check_Button* bockrule
-          { junkrule = new Fl_Check_Button(150, 585, 135, 25, "Ramschrunde (R)");
+          { junkrule = new Fl_Check_Button(155, 585, 135, 25, "Ramschrunde (R)");
             junkrule->tooltip("Eine Ramschrunde wird unter den gleichen Bedingungen wie eine Bockrunde ausge\
 l\303\266st. Auch hier werden die Punkte der Spiele verdoppelt, allerdings ist\
  jedes Spiel Ramsch. Wenn Bock- und Ramschrunde gespielt werden soll, dann fol\
@@ -843,6 +866,25 @@ gt die Ramsch- auf die Bockrunde.");
             junkrule->callback((Fl_Callback*)cb_junkrule);
             int i; prefs.get("rulejunk", i, 0); junkrule->value(i != 0);
           } // Fl_Check_Button* junkrule
+          o->end();
+        } // Fl_Group* o
+        { Fl_Group* o = new Fl_Group(590, 315, 245, 85, "Video");
+          o->box(FL_PLASTIC_DOWN_BOX);
+          o->labelfont(1);
+          o->labelsize(15);
+          o->align(Fl_Align(FL_ALIGN_TOP|FL_ALIGN_INSIDE));
+          { quality = new Fl_Slider(675, 355, 135, 25, "Denoising");
+            quality->tooltip("Quality of the denoising of the received video signals. Higher quality uses m\
+ore CPU cycles and thus is slower.");
+            quality->type(5);
+            quality->labelsize(11);
+            quality->maximum(10);
+            quality->step(1);
+            quality->value(3);
+            quality->callback((Fl_Callback*)cb_quality);
+            quality->align(Fl_Align(FL_ALIGN_LEFT));
+            int v; prefs.get("videoquality", v, 3); quality->value(v < 0? 0: v > 10? 10: v);
+          } // Fl_Slider* quality
           o->end();
         } // Fl_Group* o
         o->end();

@@ -60,7 +60,7 @@ The following steps illustrate how to install all dependencies and build *sk* on
 ## Usage
 
 First of all, you need a webcam, a microphone, headphones and two other players.
-Skat is a card game played by three people. One player has to be the server. If you want to be the one, start *sk*, go to the system tab, tick the *Server* checkbox, and click *Connect*. Then tell the other two players your publicly reachable IP address or hostname, and UDP port per e-mail, telephone, or whatever.
-Now, the other two can start *sk* and connect to this disclosed address and UDP port. If a connection can be established, the videoconferencing starts.
+Skat is a card game played by three people. One player has to be the server. If you want to be the one, start *sk*, go to the *Options* tab, tick the *Server* checkbox, and click *Connect*. Then tell the other two players your publicly reachable IP address or hostname, and UDP port per e-mail, telephone, or whatever.
+Now, the other two can start *sk* and connect to this disclosed address and UDP port. Any firewalls/NATs inbetween should be configured to allow this connection. If a connection can be established, the videoconferencing starts.
 If two peers are connected to the server, the server initiates UDP hole punching between these two peers and if successful, the game starts.
 The game consists of secure dealing out, bidding, choosing the Skat cards, announcing the game, playing the hand, and especially small talk: Hinten ist die Ente fett!

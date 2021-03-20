@@ -168,7 +168,7 @@ void Video::Codec::encode(const Mat& img, vector<unsigned char>& enc, bool updat
 		frame++;
 		rndpos += rndsteps;
 	}
-	if (cover == 0)
+	if (cover >= 100)
 		tmpY = tmpU = tmpV = vector<float>(imagewidth * imageheight, 0.f);
 
 	if (img.cols != (int)imagewidth || img.rows != (int)imageheight || img.elemSize() != 3)
@@ -772,23 +772,37 @@ void Video::worker() {
 
 void Video::coder() {
 	try {
-		Codec				encoder, decoder0, decoder1;
-		bool				update = false;
-		vector<unsigned char>		encbuf;
-		vector<vector<unsigned char> >	decbuf;
+		Codec encoder, decoder0, decoder1;
+		bool update = false;
+		vector<unsigned char> encbuf;
+		vector<vector<unsigned char> > decbuf;
+		boost::posix_time::ptime ft = boost::posix_time::microsec_clock::local_time();
 		
 		while (working) {
 			boost::posix_time::ptime t = boost::posix_time::microsec_clock::local_time();
 
+			unsigned cover = 50 * (t - ft).total_milliseconds() / 1000;
+			if (reset) {
+				cover = 100;
+				if ((t - ft).total_milliseconds() > 2000)
+					reset = false;
+			} else if (update) {
+				ft = t;
+			}
+
+			unsigned quality = (UILock(), ui.quality->value());
+
+
 			//UILock(), encode(*img, encbuf);
-			UILock(), encoder.encode(*img, encbuf, update, reset.exchange(false)? 0: 4);
+			//UILock(), encoder.encode(*img, encbuf, update, reset.exchange(false)? 0: 4);
+			UILock(), encoder.encode(*img, encbuf, update, cover);
 
 			update = network.broadcast(encbuf, decbuf, maxlatency);
 
 			for (unsigned i = 0; i < decbuf.size(); i++) {
 				bool show = i + 1 >= decbuf.size() || decbuf[i][0] != decbuf[i + 1][0];
 				//UILock(), decode(decbuf[i], decbuf[i][0] == left? *limg: *rimg);
-				(decbuf[i][0] == 0? decoder0: decoder1).decode(decbuf[i], decbuf[i][0] == left? *limg: *rimg, show, 3);
+				(decbuf[i][0] == 0? decoder0: decoder1).decode(decbuf[i], decbuf[i][0] == left? *limg: *rimg, show, quality);
 				if (show) {
 					UILock lock;
 					(decbuf[i][0] == left? ui.leftimage: ui.rightimage)->redraw();

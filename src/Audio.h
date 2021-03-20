@@ -95,6 +95,7 @@ public:
 	
 	void restart();
 	void toggle_playmic();
+	void toggle_noisegate();
 	void mute_mic(bool);
 };
 

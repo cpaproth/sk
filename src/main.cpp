@@ -57,13 +57,17 @@ int main(int argc, char** argv) {
 
 		ui.f["audio restart"] = boost::bind(&Audio::restart, &audio);
 		ui.f["audio toggle"] = boost::bind(&Audio::toggle_playmic, &audio);
+		ui.f["audio noise"] = boost::bind(&Audio::toggle_noisegate, &audio);
 		ui.f["audio mute"] = boost::bind(&mute_audio, boost::ref(ui), boost::ref(audio));
 		ui.f["chat message"] = boost::bind(&Video::send_chat, &video);
 		ui.f["network stats"] = boost::bind(&Network::stats, &network);
 		ui.f["network connect"] = boost::bind(&connect_network, boost::ref(ui), boost::ref(network));
 
-		if (argc > 1)
+		if (argc > 1) {
 			ui.address->value(argv[1]);
+			ui.port->value(34588);
+			ui.server->value(0);
+		}
 
 		try {
 			audio.restart();
