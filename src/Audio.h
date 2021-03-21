@@ -71,6 +71,7 @@ class Audio {
 	Network&				network;
 	bool					initerror;
 	boost::atomic<bool>			playmic;
+	boost::atomic<bool>			noisegate;
 	boost::atomic<bool>			mute;
 	unsigned				frame;
 	unsigned				rnd;

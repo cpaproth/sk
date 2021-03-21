@@ -79,6 +79,7 @@ void Transform::imdct() {
 Audio::Audio(Network& nw) : trafo(framesize), bits(8 * encsize), encbuf(encsize + 1), network(nw) {
 	stream = 0;
 	playmic = false;
+	noisegate = true;
 	mute = false;
 	frame = 0;
 	rnd = 11113;
@@ -119,7 +120,7 @@ void Audio::restart() {
 		if (Pa_StopStream(stream) == paNoError)
 			cout << "audio stream stopped" << endl;
 	}
-	threshold = threshold > 0? INT_MAX: 0;
+	threshold = INT_MAX;
 	noisecount = 0;
 	if (Pa_StartStream(stream) == paNoError)
 		cout << "audio stream started" << endl;
@@ -133,7 +134,7 @@ void Audio::toggle_playmic() {
 }
 
 void Audio::toggle_noisegate() {
-	//threshold = threshold > 0? 0: INT_MAX;
+	noisegate = !noisegate;
 }
 
 
@@ -149,7 +150,7 @@ void Audio::encode(const short* in) {
 	if (amp > 0 && amp < threshold)
 		threshold = amp;
 
-	float scale = mute && !playmic? 0.f: (amp / 8 < threshold? (amp - threshold) / 7.f / threshold: 1.f) / 32768.f;
+	float scale = mute && !playmic? 0.f: (noisegate && amp / 8 < threshold? (amp - threshold) / 7.f / threshold: 1.f) / 32768.f;
 	for (unsigned i = 0; i < framesize; i++) {
 		trafo.t(i) = enctmp[i];
 		enctmp[i] = trafo.t(i + framesize) = in[i] * scale;
