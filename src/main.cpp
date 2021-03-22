@@ -69,6 +69,7 @@ int main(int argc, char** argv) {
 			ui.server->value(0);
 		}
 
+		Fl::wait(0.1);
 		try {
 			audio.restart();
 			connect_network(ui, network);

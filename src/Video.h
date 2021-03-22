@@ -81,9 +81,6 @@ class Video {
 	UserInterface&				ui;
 	Network&				network;
 
-	void encode(const cv::Mat&, vector<unsigned char>&);
-	void decode(const vector<unsigned char>&, cv::Mat&);
-
 	void worker();
 	void coder();
 

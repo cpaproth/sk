@@ -166,15 +166,12 @@ bool Network::broadcast(const ucharbuf& send, vector<ucharbuf>& recv, unsigned l
 			socket.async_send_to(buffer(*buf), peers[i].endpoint, boost::bind(&Network::sender, this, buf, _1, _2));
 			sent = true;
 		} else if ((send[0] & 192) == 128) {
-			while (peers[i].buffer2.size() > 0) {
-				recv.push_back(peers[i].buffer2.front());
+			while (peers[i].buffer.size() > 0) {
+				recv.push_back(peers[i].buffer.front());
 				recv.back()[0] = i;
-				peers[i].buffer2.pop_front();
+				peers[i].buffer.pop_front();
 			}
 
-			//recv.push_back(peers[i].buffer);
-			peers[i].buffer.clear();
-			//if (peers[i].bucket >= buf->size()) {
 			if (minbucket >= buf->size()) {
 				socket.async_send_to(buffer(*buf), peers[i].endpoint, boost::bind(&Network::sender, this, buf, _1, _2));
 				peers[i].bucket -= buf->size();
@@ -312,6 +309,9 @@ void Network::receiver(const errorcode& e, size_t n) {
 		return;
 	boost::lock_guard<boost::timed_mutex> lock(netmutex);
 
+	if (endpoint == localendpoint)
+		return socket.async_receive_from(buffer(recvbuf), endpoint, boost::bind(&Network::receiver, this, _1, _2));
+
 
 	vector<Peer>::iterator peer = find_if(peers.begin(), peers.end(), boost::bind(&Peer::endpoint, _1) == endpoint);
 	if (!e && peer == peers.end() && (!server || n > 1)) {
@@ -360,7 +360,6 @@ void Network::receiver(const errorcode& e, size_t n) {
 		process_message(peer - peers.begin(), string(recvbuf.begin(), recvbuf.begin() + n));
 	} else if (n > 1 && (recvbuf[0] & 192) == 64) {
 		list<ucharbuf>::iterator it = lower_bound(peer->fifo.begin(), peer->fifo.end(), recvbuf, ring_cmp);
-		//if (peer->fifo.size() == 0 || it != peer->fifo.begin())
 		if (it == peer->fifo.end() || (it != peer->fifo.begin() && ring_cmp(recvbuf, *it)))
 			peer->fifo.insert(it, ucharbuf(recvbuf.begin(), recvbuf.begin() + n));
 		if (peer->fifo.size() > fifomax) {
@@ -369,13 +368,11 @@ void Network::receiver(const errorcode& e, size_t n) {
 				peer->fifo.pop_front();
 		}
 	} else if (n > 1 && (recvbuf[0] & 192) == 128) {
-		peer->buffer.assign(recvbuf.begin(), recvbuf.begin() + n);
-
-		list<ucharbuf>::iterator it = lower_bound(peer->buffer2.begin(), peer->buffer2.end(), recvbuf, ring_cmp);
-		if (it == peer->buffer2.end() || ring_cmp(recvbuf, *it))
-			peer->buffer2.insert(it, ucharbuf(recvbuf.begin(), recvbuf.begin() + n));
-		while (peer->buffer2.size() > fifomax)
-			peer->buffer2.pop_front();
+		list<ucharbuf>::iterator it = lower_bound(peer->buffer.begin(), peer->buffer.end(), recvbuf, ring_cmp);
+		if (it == peer->buffer.end() || ring_cmp(recvbuf, *it))
+			peer->buffer.insert(it, ucharbuf(recvbuf.begin(), recvbuf.begin() + n));
+		while (peer->buffer.size() > fifomax)
+			peer->buffer.pop_front();
 	}
 
 	socket.async_receive_from(buffer(recvbuf), endpoint, boost::bind(&Network::receiver, this, _1, _2));

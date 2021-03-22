@@ -57,10 +57,10 @@ class Network {
 		udpendpoint	endpoint;
 		udpendpoint	altendpoint;
 		list<ucharbuf>	fifo;
-		list<ucharbuf>	buffer2;
-		ucharbuf	buffer;
+		list<ucharbuf>	buffer;
 		deque<string>	messages;
 		bool		connected;
+		bool		relay;
 		bool		weakport;
 		unsigned	idle;
 		unsigned	fifoempty;
@@ -68,7 +68,7 @@ class Network {
 		unsigned	lastmsgid;
 		unsigned	bucket;
 		unsigned	connections;
-		Peer(const udpendpoint& ep) : endpoint(ep), connected(false), weakport(false), idle(0), fifoempty(0), fifofull(0), lastmsgid(0), bucket(0), connections(-1) {}
+		Peer(const udpendpoint& ep) : endpoint(ep), connected(false), relay(false), weakport(false), idle(0), fifoempty(0), fifofull(0), lastmsgid(0), bucket(0), connections(-1) {}
 	};
 	
 	bool				server;
