@@ -1,4 +1,4 @@
-/*Copyright (C) 2012-2014 Carsten Paproth
+/*Copyright (C) 2012-2014, 2021 Carsten Paproth
 
 This file is part of Skat-Konferenz.
 
@@ -22,6 +22,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 #include <vector>
 #include <boost/random/mersenne_twister.hpp>
+#include <boost/multiprecision/cpp_int.hpp>
 
 
 class UserInterface;
@@ -34,6 +35,9 @@ using namespace std;
 
 
 class Network;
+
+
+typedef boost::multiprecision::uint512_t key_t;
 
 
 class Game {
@@ -53,6 +57,12 @@ class Game {
 	vector<uchar>		lefthand;
 	vector<uchar>		righthand;
 	
+	key_t			p;
+	key_t			g;
+	key_t			seckey;
+	key_t			leftkey;
+	key_t			rightkey;
+
 	vector<uchar>		secretdeck;
 	vector<uchar>		secretcards;
 	vector<uchar>		dealtcards;
@@ -92,6 +102,8 @@ class Game {
 	void shuffle();
 	string cards_string(const vector<uchar>&);
 	vector<uchar> string_cards(const string&);
+	string encrypt(const string&, unsigned);
+	string decrypt(const string&);
 
 	void reset_game(unsigned);
 	void reset_round();

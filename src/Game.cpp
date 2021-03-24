@@ -23,10 +23,48 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #include <iostream>
 #include <set>
 #include <boost/random/uniform_01.hpp>
+#include <boost/random/uniform_int.hpp>
 
 
 using namespace SK;
 using namespace CPLib;
+
+
+static key_t modexp(key_t b, key_t e, const key_t& m) {
+	if (m == 1)
+		return 0;
+	key_t r(1);
+	b %= m;
+	while (e > 0) {
+		if ((e & 1) == 1)
+			r = (r * b) % m;
+		e >>= 1;
+		b = (b * b) % m;
+	}
+	return r;
+}
+
+
+static string to_base94(key_t v, char o = 33) {
+	string r;
+	if (v == 0)
+		return string(1, o);
+	while (v > 0) {
+		r.append(1, char(v % 94 + o));
+		v /= 94;
+	}
+	return r;
+}
+
+
+static key_t from_base94(const string& v, char o = 33) {
+	key_t r = 0, b = 1;
+	for (unsigned i = 0; i < v.length(); i++) {
+		r += b * (v[i] - o);
+		b *= 94;
+	}
+	return r;
+}
 
 
 Game::Game(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
@@ -59,6 +97,10 @@ Game::Game(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 	string(ui.secret->value()).copy((char*)&secret, sizeof(unsigned));
 	rangen.seed(secret ^ (unsigned)time(0));
 	shuffle();
+
+	p = key_t("110649179406060405769669636260824550432278345760244835380580314415376085982993");
+	g = 3;
+	seckey = boost::uniform_int<key_t>(1, p - 2)(rangen);
 
 	reset_game(myself);
 
@@ -100,6 +142,18 @@ vector<uchar> Game::string_cards(const string& str) {
 	for (unsigned i = 0; i < c.size(); i++)
 		c[i] -= 33;
 	return c;
+}
+
+
+string Game::encrypt(const string& m, unsigned i) {
+	key_t k = boost::uniform_int<key_t>(1, p - 2)(rangen);
+	return to_base94(modexp(g, k, p)) + " " + to_base94(((from_base94(m, 32) + 1) * modexp(i == left? leftkey: rightkey, k, p) % p));
+}
+
+
+string Game::decrypt(const string& c) {
+	string c1, c2 = ss(c) >> c1 >> ws;
+	return to_base94((from_base94(c2) * modexp(from_base94(c1), p - seckey - 1, p)) % p - 1, 32);
 }
 
 
@@ -271,8 +325,8 @@ void Game::check_rules() {
 
 void Game::send_rules() {
 	check_rules();
-	network.command(left, "rules", ss(rules));
-	network.command(right, "rules", ss(rules));
+	network.command(left, "rules", ss(rules) << ' ' << to_base94(modexp(g, seckey, p)));
+	network.command(right, "rules", ss(rules) << ' ' << to_base94(modexp(g, seckey, p)));
 }
 
 
@@ -782,7 +836,7 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 		ui.dealout->activate();
 
 	} else if (command == "rules") {
-		ss(data) >> (i == left? leftrules: rightrules);
+		(i == left? leftkey: rightkey) = from_base94(ss(data) >> (i == left? leftrules: rightrules) >> ws);
 		check_rules();
 
 	} else if (command == "name") {
