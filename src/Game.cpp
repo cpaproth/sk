@@ -22,6 +22,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "Convenience.h"
 #include <iostream>
 #include <set>
+#include <boost/multiprecision/random.hpp>
 #include <boost/random/uniform_01.hpp>
 #include <boost/random/uniform_int.hpp>
 
@@ -30,10 +31,10 @@ using namespace SK;
 using namespace CPLib;
 
 
-static key_t modexp(key_t b, key_t e, const key_t& m) {
+static crypto_t modexp(crypto_t b, crypto_t e, const crypto_t& m) {
 	if (m == 1)
 		return 0;
-	key_t r(1);
+	crypto_t r(1);
 	b %= m;
 	while (e > 0) {
 		if ((e & 1) == 1)
@@ -45,20 +46,20 @@ static key_t modexp(key_t b, key_t e, const key_t& m) {
 }
 
 
-static string to_base94(key_t v, char o = 33) {
+static string to_base94(crypto_t v, char o = 33) {
 	string r;
 	if (v == 0)
 		return string(1, o);
 	while (v > 0) {
-		r.append(1, char(v % 94 + o));
+		r.append(1, (v % 94).convert_to<char>() + o);
 		v /= 94;
 	}
 	return r;
 }
 
 
-static key_t from_base94(const string& v, char o = 33) {
-	key_t r = 0, b = 1;
+static crypto_t from_base94(const string& v, char o = 33) {
+	crypto_t r = 0, b = 1;
 	for (unsigned i = 0; i < v.length(); i++) {
 		r += b * (v[i] - o);
 		b *= 94;
@@ -98,9 +99,9 @@ Game::Game(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 	rangen.seed(secret ^ (unsigned)time(0));
 	shuffle();
 
-	p = key_t("110649179406060405769669636260824550432278345760244835380580314415376085982993");
+	p = crypto_t("110649179406060405769669636260824550432278345760244835380580314415376085982993");
 	g = 3;
-	seckey = boost::uniform_int<key_t>(1, p - 2)(rangen);
+	seckey = boost::uniform_int<crypto_t>(1, p - 2)(rangen);
 
 	reset_game(myself);
 
@@ -140,14 +141,14 @@ string Game::cards_string(const vector<uchar>& c) {
 vector<uchar> Game::string_cards(const string& str) {
 	vector<uchar> c(str.begin(), str.end());
 	for (unsigned i = 0; i < c.size(); i++)
-		c[i] -= 33;
+		c[i] = (c[i] - 33) & 31;
 	return c;
 }
 
 
-string Game::encrypt(const string& m, unsigned i) {
-	key_t k = boost::uniform_int<key_t>(1, p - 2)(rangen);
-	return to_base94(modexp(g, k, p)) + " " + to_base94(((from_base94(m, 32) + 1) * modexp(i == left? leftkey: rightkey, k, p) % p));
+string Game::encrypt(const string& m, const crypto_t& pubkey) {
+	crypto_t k = boost::uniform_int<crypto_t>(1, p - 2)(rangen);
+	return to_base94(modexp(g, k, p)) + " " + to_base94(((from_base94(m, 32) + 1) * modexp(pubkey, k, p) % p));
 }
 
 
@@ -277,9 +278,9 @@ void Game::sort_hand() {
 			suits[hand[i] & 24].insert((hand[i] & 7) * 2);
 	}
 
-	size_t size = hand.size();
+	size_t size = jacks.size() + suits[0].size() + suits[8].size() + suits[16].size() + suits[24].size();
 	hand.assign(jacks.begin(), jacks.end());
-	
+
 	uchar nextsuit = suits[0].size() > 0 && suits[8].size() > 0? 0: 16;
 	uchar trumpsuit = ui.diamonds->value()? 24: ui.hearts->value()? 16: ui.spades->value()? 8: ui.clubs->value()? 0: 32;
 	if (trumpsuit != 32) {
@@ -785,7 +786,7 @@ void Game::deal_cards(unsigned n, bool cipher) {
 	shuffle();
 
 	dealtcards.clear();
-	for (unsigned i = 0; dealtcards.size() != n && drawncards.size() < 32; i++) {
+	for (unsigned i = 0; dealtcards.size() != n && drawncards.size() < deck.size() && i < deck.size(); i++) {
 		if (find(drawncards.begin(), drawncards.end(), cards[deck[i]]) == drawncards.end()) {
 			dealtcards.push_back(cipher? deck[i]: cards[deck[i]]);
 			drawncards.push_back(cards[deck[i]]);
@@ -798,25 +799,25 @@ void Game::decipher_cards() {
 	if (secretdeck.size() == 0 || secretcards.size() == 0)
 		return;
 
-	for (unsigned i = 0; i < secretcards.size(); i++)
+	for (unsigned i = 0; i < secretcards.size() && secretcards[i] < secretdeck.size(); i++)
 		(secretcards.size() == 2? skat: hand).push_back(secretdeck[secretcards[i]]);
 
 	sort_hand();
 	ui.table->show_cards(hand, skat);
-	
+
 	secretdeck.clear();
 	secretcards.clear();
 
 	if (drawncards.size() == 10) {
 		shuffle();
-		network.command(right, "cipherdeck", cards_string(deck));
+		network.command(right, "cipherdeck", encrypt(cards_string(deck), rightkey));
 		deal_cards(10, true);
-		network.command(left, "secretcards", cards_string(dealtcards) + " " + cards_string(drawncards));
+		network.command(left, "secretcards", encrypt(cards_string(dealtcards) + " " + cards_string(drawncards), leftkey));
 
 	} else if (drawncards.size() == 20) {
 		deal_cards(10, false);
-		network.command(left, "secretcards", cards_string(dealtcards));
-		network.command(right, "drawncards", cards_string(drawncards));
+		network.command(left, "secretcards", encrypt(cards_string(dealtcards), leftkey));
+		network.command(right, "drawncards", encrypt(cards_string(drawncards), rightkey));
 
 	} else if (drawncards.size() == 0) {
 		secretdeck = deck;
@@ -856,28 +857,28 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 	} else if (command == "cutdeck") {
 		reset_game(left);
 		shuffle();
-		network.command(left, "cipherdeck", cards_string(deck));
+		network.command(left, "cipherdeck", encrypt(cards_string(deck), leftkey));
 		deal_cards(10, true);
-		network.command(right, "secretcards", cards_string(dealtcards) + " " + cards_string(drawncards));
+		network.command(right, "secretcards", encrypt(cards_string(dealtcards) + " " + cards_string(drawncards), rightkey));
 
 	} else if (command == "cipherdeck") {
-		vector<uchar> cards(string_cards(data));
+		vector<uchar> cards(string_cards(decrypt(data)));
 		for (unsigned j = 0; j < cards.size(); j++)
 			cards[j] = deck[cards[j]];
-		network.command(i? 0: 1, "secretdeck", cards_string(cards));
+		network.command(i? 0: 1, "secretdeck", encrypt(cards_string(cards), i == left? rightkey: leftkey));
 
 	} else if (command == "secretdeck" && i == dealer) {
-		secretdeck = string_cards(data);
+		secretdeck = string_cards(decrypt(data));
 		decipher_cards();
 
 	} else if (command == "secretcards" && i != dealer) {
 		string secret;
-		drawncards = string_cards(ss(data) >> secret >> ws);
+		drawncards = string_cards(ss(decrypt(data)) >> secret >> ws);
 		secretcards = string_cards(secret);
 		decipher_cards();
 
 	} else if (command == "drawncards" && i != dealer) {
-		drawncards = string_cards(data);
+		drawncards = string_cards(decrypt(data));
 		if (drawncards.size() == 30 && rounds.size() > 0 && rounds[0] == 1) {
 			network.command(left, "nobid", "junk");
 			network.command(right, "nobid", "junk");
@@ -890,13 +891,13 @@ bool Game::handle_command(unsigned i, const string& command, const string& data)
 	} else if (command == "dealskat" && drawncards.size() == 30 && !playing) {
 		if (i == dealer) {
 			deal_cards(2, false);
-			network.command(i, "secretcards", cards_string(dealtcards));
-			network.command(i? 0: 1, "drawncards", cards_string(drawncards));
+			network.command(i, "secretcards", encrypt(cards_string(dealtcards), i == left? leftkey: rightkey));
+			network.command(i? 0: 1, "drawncards", encrypt(cards_string(drawncards), i == left? rightkey: leftkey));
 		} else {
 			shuffle();
-			network.command(dealer, "cipherdeck", cards_string(deck));
+			network.command(dealer, "cipherdeck", encrypt(cards_string(deck), dealer == left? leftkey: rightkey));
 			deal_cards(2, true);
-			network.command(i, "secretcards", cards_string(dealtcards) + " " + cards_string(drawncards));
+			network.command(i, "secretcards", encrypt(cards_string(dealtcards) + " " + cards_string(drawncards), i == left? leftkey: rightkey));
 		}
 
 

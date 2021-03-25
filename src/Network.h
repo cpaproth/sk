@@ -60,7 +60,7 @@ class Network {
 		list<ucharbuf>	buffer;
 		deque<string>	messages;
 		bool		connected;
-		bool		relay;
+		bool		relayed;
 		bool		weakport;
 		unsigned	idle;
 		unsigned	fifoempty;
@@ -68,7 +68,7 @@ class Network {
 		unsigned	lastmsgid;
 		unsigned	bucket;
 		unsigned	connections;
-		Peer(const udpendpoint& ep) : endpoint(ep), connected(false), relay(false), weakport(false), idle(0), fifoempty(0), fifofull(0), lastmsgid(0), bucket(0), connections(-1) {}
+		Peer(const udpendpoint& ep) : endpoint(ep), connected(false), relayed(false), weakport(false), idle(0), fifoempty(0), fifofull(0), lastmsgid(0), bucket(0), connections(-1) {}
 	};
 	
 	bool				server;
@@ -94,6 +94,7 @@ class Network {
 
 
 	void handle_command(unsigned, const string&, const string&);
+	void relay_buffer(bool, boost::shared_ptr<ucharbuf>);
 	void process_message(unsigned, const string&);
 
 	void worker(size_t);

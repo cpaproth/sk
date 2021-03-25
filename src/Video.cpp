@@ -500,6 +500,8 @@ void Video::worker() {
 			} while ((boost::posix_time::microsec_clock::local_time() - t).total_milliseconds() < 40);
 			t = boost::posix_time::microsec_clock::local_time();
 
+			if (cap.size().area() == 0) capture->open("webcam.avi"), *capture >> cap;
+
 			bool pause = (UILock(), ui.midimage->get());
 			if (cap.size().area() == 0 || pause) {
 				still.copyTo(cap);
