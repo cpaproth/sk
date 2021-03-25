@@ -139,6 +139,17 @@ void Network::connect(const string& address, unsigned short port, bool s, unsign
 }
 
 
+void Network::send_buffer(unsigned i, boost::shared_ptr<ucharbuf> buf) {
+	if (server || !peers[i].relayed) {
+		socket.async_send_to(buffer(*buf), peers[i].endpoint, boost::bind(&Network::sender, this, buf, _1, _2));
+	} else if ((buf->at(0) & 192) == 0) {
+		buf->push_back(buf->at(0));
+		buf->at(0) = 192;
+		socket.async_send_to(buffer(*buf), peers.front().endpoint, boost::bind(&Network::sender, this, buf, _1, _2));
+	}
+}
+
+
 bool Network::broadcast(const ucharbuf& send, vector<ucharbuf>& recv, unsigned latency) {
 	recv.clear();
 
@@ -163,7 +174,7 @@ bool Network::broadcast(const ucharbuf& send, vector<ucharbuf>& recv, unsigned l
 			} else {
 				peers[i].fifoempty++;
 			}
-			socket.async_send_to(buffer(*buf), peers[i].endpoint, boost::bind(&Network::sender, this, buf, _1, _2));
+			send_buffer(i, buf);
 			sent = true;
 		} else if ((send[0] & 192) == 128) {
 			while (peers[i].buffer.size() > 0) {
@@ -173,8 +184,8 @@ bool Network::broadcast(const ucharbuf& send, vector<ucharbuf>& recv, unsigned l
 			}
 
 			if (minbucket >= buf->size()) {
-				socket.async_send_to(buffer(*buf), peers[i].endpoint, boost::bind(&Network::sender, this, buf, _1, _2));
 				peers[i].bucket -= buf->size();
+				send_buffer(i, buf);
 				sent = true;
 			}
 		}
@@ -193,7 +204,7 @@ void Network::command(unsigned i, const string& command, const string& data) {
 	
 	if (peers[i].messages.size() == 1) {
 		boost::shared_ptr<ucharbuf> buf(new ucharbuf(peers[i].messages[0].begin(), peers[i].messages[0].end()));
-		socket.async_send_to(buffer(*buf), peers[i].endpoint, boost::bind(&Network::sender, this, buf, _1, _2));
+		send_buffer(i, buf);
 	}
 }
 
@@ -218,16 +229,6 @@ void Network::handle_command(unsigned i, const string& command, const string& da
 }
 
 
-void Network::relay_buffer(bool r, boost::shared_ptr<ucharbuf> b) {
-	if (server || !r)
-		return;
-	boost::shared_ptr<ucharbuf> buf(new ucharbuf(*b));
-	buf->push_back(buf->at(0));
-	buf->at(0) = 192;
-	socket.async_send_to(buffer(*buf), peers.front().endpoint, boost::bind(&Network::sender, this, buf, _1, _2));
-}
-
-
 void Network::process_message(unsigned i, const string& message) {
 	string id, command, data;
 	data = ss(message) >> id >> command >> ws;
@@ -248,8 +249,7 @@ void Network::process_message(unsigned i, const string& message) {
 	} else {
 		string reply = id + " reply";
 		boost::shared_ptr<ucharbuf> buf(new ucharbuf(reply.begin(), reply.end()));
-		socket.async_send_to(buffer(*buf), endpoint, boost::bind(&Network::sender, this, buf, _1, _2));
-		relay_buffer(peers[i].relayed, buf);
+		send_buffer(i, buf);
 	}
 
 	unsigned curmsgid;
@@ -336,7 +336,7 @@ void Network::receiver(const errorcode& e, size_t n) {
 		}
 	}
 	if (!e && peer == peers.end() && !server) {
-		//peer = find_if(peers.begin(), peers.end(), boost::bind(&Peer::idle, _1) > 2 * timerrate);
+		peer = find_if(peers.begin(), peers.end(), boost::bind(&Peer::idle, _1) > 2 * timerrate);
 		if (peer != peers.end()) {
 			if (peer->altendpoint != endpoint)
 				cout << "warning: peer " << peer - peers.begin() << " changed address" << endl;
@@ -399,7 +399,11 @@ void Network::receiver(const errorcode& e, size_t n) {
 		if ((recvbuf[0] & 192) != 192)
 			buf->push_back(buf->at(0));
 		buf->at(0) = 192;
-		socket.async_send_to(buffer(*buf), peers[peer == peers.begin()? 1: 0].endpoint, boost::bind(&Network::sender, this, buf, _1, _2));
+		unsigned p = peer == peers.begin()? 1: 0;
+		if ((buf->back() & 192) != 128 || peers[p].bucket >= buf->size()) {
+			peers[p].bucket -= min(peers[p].bucket, (unsigned)buf->size());
+			socket.async_send_to(buffer(*buf), peers[p].endpoint, boost::bind(&Network::sender, this, buf, _1, _2));
+		}
 	}
 
 
@@ -438,21 +442,19 @@ void Network::deadline(const errorcode& e) {
 			}
 		}
 
-		boost::shared_ptr<ucharbuf> beacon(new ucharbuf(1));
+		boost::shared_ptr<ucharbuf> beacon(new ucharbuf(1, 0));
 		if (!peer->connected || peer->bucket >= bandwidth)
-			socket.async_send_to(buffer(*beacon), peer->endpoint, boost::bind(&Network::sender, this, beacon, _1, _2));
-		relay_buffer(peer->relayed, beacon);
+			send_buffer(peer - peers.begin(), beacon);
 		if (!server && peer != peers.begin() && !peer->connected && peer->idle > 4 * timerrate) {
 			for (unsigned short p = 1; p < 100; p++)
-				socket.async_send_to(buffer(*beacon), udpendpoint(peer->endpoint.address(), peer->endpoint.port() + p), boost::bind(&Network::sender, this, beacon, _1, _2));
+				socket.async_send_to(buffer(*beacon, 1), udpendpoint(peer->endpoint.address(), peer->endpoint.port() + p), boost::bind(&Network::sender, this, beacon, _1, _2));
 			if (peer->altendpoint != udpendpoint())
-				socket.async_send_to(buffer(*beacon), peer->altendpoint, boost::bind(&Network::sender, this, beacon, _1, _2));
+				socket.async_send_to(buffer(*beacon, 1), peer->altendpoint, boost::bind(&Network::sender, this, beacon, _1, _2));
 		}
 
 		if (peer->messages.size() > 0) {
 			boost::shared_ptr<ucharbuf> buf(new ucharbuf(peer->messages[0].begin(), peer->messages[0].end()));
-			socket.async_send_to(buffer(*buf), peer->endpoint, boost::bind(&Network::sender, this, buf, _1, _2));
-			relay_buffer(peer->relayed, buf);
+			send_buffer(peer - peers.begin(), buf);
 		}
 		
 		peer->bucket += max(bandwidth / peers.size() - minbw, (size_t)500) / timerrate;

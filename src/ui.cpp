@@ -801,8 +801,8 @@ as been pressed.");
             char* c; prefs.get("username", c, "nobody"); name->value(c); delete[] c;
           } // Fl_Input* name
           { secret = new Fl_Input(645, 540, 165, 25, "Secret");
-            secret->tooltip("The secret and the time are used to initialize your random number generator a\
-t program start.");
+            secret->tooltip("The secret and the time are used to seed your random number generator at prog\
+ram start.");
             secret->labelsize(11);
             secret->textsize(11);
             secret->callback((Fl_Callback*)cb_secret);

@@ -93,8 +93,8 @@ class Network {
 	map<udpendpoint, unsigned>	ignoredpeers;
 
 
+	void send_buffer(unsigned, boost::shared_ptr<ucharbuf>);
 	void handle_command(unsigned, const string&, const string&);
-	void relay_buffer(bool, boost::shared_ptr<ucharbuf>);
 	void process_message(unsigned, const string&);
 
 	void worker(size_t);

@@ -298,7 +298,7 @@ f["name change"]();}
             Fl_Input secret {
               label Secret
               callback {prefs.set("secret", secret->value());}
-              tooltip {The secret and the time are used to initialize your random number generator at program start.} xywh {645 540 165 25} labelsize 11 textsize 11
+              tooltip {The secret and the time are used to seed your random number generator at program start.} xywh {645 540 165 25} labelsize 11 textsize 11
               code0 {char* c; prefs.get("secret", c, ""); secret->value(c); delete[] c;}
             }
             Fl_Button bgcolor {

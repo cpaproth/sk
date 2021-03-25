@@ -21,8 +21,12 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 
 #include <vector>
-#include <boost/random/mersenne_twister.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
+#if BOOST_VERSION < 106000
+	#include <boost/multiprecision/random.hpp>
+#else
+	#include <boost/random.hpp>
+#endif
 
 
 class UserInterface;

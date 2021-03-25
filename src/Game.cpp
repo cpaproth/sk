@@ -22,9 +22,6 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "Convenience.h"
 #include <iostream>
 #include <set>
-#include <boost/multiprecision/random.hpp>
-#include <boost/random/uniform_01.hpp>
-#include <boost/random/uniform_int.hpp>
 
 
 using namespace SK;

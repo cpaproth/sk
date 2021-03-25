@@ -14,6 +14,7 @@ it has been tested on Ubuntu (latest version 20.04) and MS Windows.
 ## History
 
 Currently, this software is in [beta phase](https://github.com/cpaproth/sk/tags) and needs some testing.
+* 1.4: CDF 9/7 wavelet based video codec, a noise gate for the microphone, and the server can act as a relay between the peers
 * 1.3: more robust network connections, pause broadcasting of the video and audio signal, and show the last trick
 * 1.2: MDCT-based audio codec, wavelet-based image codec with range encoding, and a more flexible network protocol
 * 1.1: ported from FLTK2.0 to FLTK1.3
@@ -61,6 +62,6 @@ The following steps illustrate how to install all dependencies and build *sk* on
 
 First of all, you need a webcam, a microphone, headphones and two other players.
 Skat is a card game played by three people. One player has to be the server. If you want to be the one, start *sk*, go to the *Options* tab, tick the *Server* checkbox, and click *Connect*. Then tell the other two players your publicly reachable IP address or hostname, and UDP port per e-mail, telephone, or whatever.
-Now, the other two can start *sk* and connect to this disclosed address and UDP port. Any firewalls/NATs inbetween should be configured to allow this connection. If a connection can be established, the videoconferencing starts.
-If two peers are connected to the server, the server initiates UDP hole punching between these two peers and if successful, the game starts.
+Now, the other two can start *sk* and connect to this disclosed address and UDP port. Any firewalls/NATs in between should be configured to allow this connection. If a connection can be established, the videoconferencing starts.
+If two peers are connected to the server, the server initiates UDP hole punching between these two peers and if not successful, the server acts as relay. After 3 players are connected with each other, the game starts.
 The game consists of secure dealing out, bidding, choosing the Skat cards, announcing the game, playing the hand, and especially small talk: Hinten ist die Ente fett!
