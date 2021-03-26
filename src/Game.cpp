@@ -145,7 +145,7 @@ vector<uchar> Game::string_cards(const string& str) {
 
 string Game::encrypt(const string& m, const crypto_t& pubkey) {
 	crypto_t k = boost::uniform_int<crypto_t>(1, p - 2)(rangen);
-	return to_base94(modexp(g, k, p)) + " " + to_base94(((from_base94(m, 32) + 1) * modexp(pubkey, k, p) % p));
+	return to_base94(modexp(g, k, p)) + " " + to_base94(((from_base94(m, 32) + 1) * modexp(pubkey, k, p)) % p);
 }
 
 

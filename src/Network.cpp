@@ -382,7 +382,7 @@ void Network::receiver(const errorcode& e, size_t n) {
 		list<ucharbuf>::iterator it = lower_bound(peer->buffer.begin(), peer->buffer.end(), recvbuf, ring_cmp);
 		if (it == peer->buffer.end() || ring_cmp(recvbuf, *it))
 			peer->buffer.insert(it, ucharbuf(recvbuf.begin(), recvbuf.begin() + n));
-		while (peer->buffer.size() > fifomax)
+		while (peer->buffer.size() > 3 * fifomax)
 			peer->buffer.pop_front();
 	} else if (n > 1 && (recvbuf[0] & 192) == 192 && server) {
 		peer->relayed = true;
