@@ -177,7 +177,7 @@ bool Network::broadcast(const ucharbuf& send, vector<ucharbuf>& recv, unsigned l
 			send_buffer(i, buf);
 			sent = true;
 		} else if ((send[0] & 192) == 128) {
-			while (peers[i].buffer.size() > 0) {
+			while (peers[i].buffer.size() > 0 && peers[i].buffer.front()[0] != peers[i].buffer.back()[0]) {
 				recv.push_back(peers[i].buffer.front());
 				recv.back()[0] = i;
 				peers[i].buffer.pop_front();
@@ -380,10 +380,7 @@ void Network::receiver(const errorcode& e, size_t n) {
 		}
 	} else if (n > 1 && (recvbuf[0] & 192) == 128) {
 		list<ucharbuf>::iterator it = lower_bound(peer->buffer.begin(), peer->buffer.end(), recvbuf, ring_cmp);
-		if (it == peer->buffer.end() || ring_cmp(recvbuf, *it))
-			peer->buffer.insert(it, ucharbuf(recvbuf.begin(), recvbuf.begin() + n));
-		while (peer->buffer.size() > 3 * fifomax)
-			peer->buffer.pop_front();
+		peer->buffer.insert(it, ucharbuf(recvbuf.begin(), recvbuf.begin() + n));
 	} else if (n > 1 && (recvbuf[0] & 192) == 192 && server) {
 		peer->relayed = true;
 	} else if (n > 1 && (recvbuf[0] & 192) == 192 && !server && peers.size() > 1) {

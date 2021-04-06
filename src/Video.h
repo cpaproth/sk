@@ -63,7 +63,7 @@ class Video {
 		void denoise(vector<float>&, float, unsigned, unsigned);
 	public:
 		Codec();
-		void encode(const cv::Mat&, vector<unsigned char>&, bool, unsigned);
+		bool encode(const cv::Mat&, vector<unsigned char>&, bool, unsigned);
 		void decode(const vector<unsigned char>&, cv::Mat&, bool, unsigned);
 	};
 
