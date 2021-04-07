@@ -30,7 +30,7 @@ using namespace cv;
 
 Video::Codec::Codec() : a1(-1.586134342f), a2(-0.05298011854f), a3(0.8829110762f), a4(0.4435068522f), k1(0.81289306611596146f), k2(0.61508705245700002f) {
 	Y = U = V = tmpY = tmpU = tmpV = vector<float>(imagewidth * imageheight, 0.f);
-	frame = rndpos = rndsteps = 0;
+	frame = rndpos = 0;
 	while (rndmask.size() < minsize)
 		rndmask.push_back(rndmask.size());
 	random_shuffle(rndmask.begin(), rndmask.end());
@@ -154,25 +154,12 @@ void Video::Codec::denoise(vector<float>& C, float h, const unsigned P, const un
 }
 
 
-bool Video::Codec::encode(const Mat& img, vector<unsigned char>& enc, bool update, unsigned cover) {
-	if (update) {
-		/*for (set<unsigned>::const_iterator it = mask.begin(); it != mask.end(); it++) {
-			for (unsigned y = *it / w * l; y < *it / w * l + l; y++) {
-				for (unsigned x = *it % w * l; x < *it % w * l + l; x++) {
-					tmpY[y * imagewidth + x] = Y[y * imagewidth + x];
-					tmpU[y * imagewidth + x] = U[y * imagewidth + x];
-					tmpV[y * imagewidth + x] = V[y * imagewidth + x];
-				}
-			}
-		}*/
-		//frame++;
-		rndpos += rndsteps;
-	}
-	if (cover >= 100)
-		tmpY = tmpU = tmpV = vector<float>(imagewidth * imageheight, 0.f);
+bool Video::Codec::encode(const Mat& img, vector<unsigned char>& enc, bool reset) {
+	if (reset)
+		tmpY = tmpU = tmpV = vector<float>(imagewidth * imageheight, 1000.f);
 
 	if (img.cols != (int)imagewidth || img.rows != (int)imageheight || img.elemSize() != 3)
-		return false;
+		return true;
 
 	Y.clear(), U.clear(), V.clear();
 	for (unsigned y = 0; y < imageheight; y++) {
@@ -197,30 +184,6 @@ bool Video::Codec::encode(const Mat& img, vector<unsigned char>& enc, bool updat
 	}
 
 
-/*	mask.clear();
-	for (unsigned py = 0; py < h; py++) {
-		for (unsigned px = 0; px < w; px++) {
-			float bright = 1.f + min(tmpY[py * l * imagewidth + px * l], Y[py * l * imagewidth + px * l]) / 120.f;
-			bool diff = false;
-			for (unsigned y = py * l; y < py * l + l; y++) {
-				for (unsigned x = px * l; x < px * l + l; x++) {
-					float th = bright * (y % 4 == 0 && x % 4 == 0? 2.f: 8.f);
-					diff |= fabs(tmpY[y * imagewidth + x] - Y[y * imagewidth + x]) > th;
-					diff |= fabs(tmpU[y * imagewidth + x] - U[y * imagewidth + x]) > 4.f * th;
-					diff |= fabs(tmpV[y * imagewidth + x] - V[y * imagewidth + x]) > 4.f * th;
-				}
-			}
-			if (diff) {
-				for (unsigned y = py > 0? py - 1: py; y <= py + 1 && y < h; y++)
-					for (unsigned x = px > 0? px - 1: px; x <= px + 1 && x < w; x++)
-						mask.insert(y * w + x);
-			}
-		}
-	}
-	for (unsigned r = rndpos; r < rndpos + (rndsteps = minsize * cover / 100) && mask.size() < minsize; r++)
-		mask.insert(rndmask[r % minsize]);
-*/
-
 	bool finish = false;
 	multimap<float, unsigned> diffs;
 	for (unsigned py = 0; py < h; py++) {
@@ -239,8 +202,10 @@ bool Video::Codec::encode(const Mat& img, vector<unsigned char>& enc, bool updat
 		}
 	}
 	mask.clear();
-	for (multimap<float, unsigned>::iterator it = diffs.begin(); mask.size() < 25; finish = it->first > -1.f, it++)
+	for (multimap<float, unsigned>::iterator it = diffs.begin(); mask.size() < 20; finish = it->first > -1.f, it++)
 		mask.insert(it->second);
+	while (mask.size() < 25)
+		mask.insert(rndmask[rndpos++ % minsize]);
 	for (set<unsigned>::const_iterator it = mask.begin(); it != mask.end(); it++) {
 		for (unsigned y = *it / w * l; y < *it / w * l + l; y++) {
 			for (unsigned x = *it % w * l; x < *it % w * l + l; x++) {
@@ -252,23 +217,21 @@ bool Video::Codec::encode(const Mat& img, vector<unsigned char>& enc, bool updat
 	}
 
 
-
 	vector<int> data(minsize + 264 * mask.size(), 0);
 	for (set<unsigned>::const_iterator it = mask.begin(); it != mask.end(); it++)
 		data[*it] = 1;
 
-	float q = 1.f;// + 3.f * (mask.size() > 50? (mask.size() - 50.f) / (minsize - 50.f): 0.f);
 	for (unsigned f = 0; f < 4; f++) {
-		rearrange(mask, Y, data, minsize + 3 * f * mask.size(), 3, f, 1.f * q, true);
+		rearrange(mask, Y, data, minsize + 3 * f * mask.size(), 3, f, 1.f, true);
 		rearrange(mask, U, data, minsize + (3 * f + 1) * mask.size(), 3, f, 4.f, true);
 		rearrange(mask, V, data, minsize + (3 * f + 2) * mask.size(), 3, f, 4.f, true);
 	}
 	for (unsigned f = 1; f < 4; f++)
-		rearrange(mask, Y, data, minsize + ((f - 1) * 4 + 12) * mask.size(), 2, f, 1.f * q, true);
+		rearrange(mask, Y, data, minsize + ((f - 1) * 4 + 12) * mask.size(), 2, f, 1.f, true);
 	for (unsigned f = 1; f < 4; f++)
-		rearrange(mask, Y, data, minsize + ((f - 1) * 16 + 24) * mask.size(), 1, f, 2.f * q, true);
+		rearrange(mask, Y, data, minsize + ((f - 1) * 16 + 24) * mask.size(), 1, f, 2.f, true);
 	for (unsigned f = 1; f < 4; f++)
-		rearrange(mask, Y, data, minsize + ((f - 1) * 64 + 72) * mask.size(), 0, f, 4.f * q, true);
+		rearrange(mask, Y, data, minsize + ((f - 1) * 64 + 72) * mask.size(), 0, f, 4.f, true);
 	for (unsigned i = minsize + 3 * mask.size() - 1; i > minsize; i--)
 		data[i] -= data[i - 1];
 
@@ -404,20 +367,19 @@ void Video::Codec::decode(const vector<unsigned char>& enc, Mat& img, bool show,
 	if (data.size() != minsize + 264 * mask.size())
 		return;
 
-	float q = 1.f;// + 3.f * (mask.size() > 50? (mask.size() - 50.f) / (minsize - 50.f): 0.f);
 	for (unsigned i = minsize + 1; i < minsize + 3 * mask.size(); i++)
 		data[i] += data[i - 1];
 	for (unsigned f = 0; f < 4; f++) {
-		rearrange(mask, tmpY, data, minsize + 3 * f * mask.size(), 3, f, 1.f * q, false);
+		rearrange(mask, tmpY, data, minsize + 3 * f * mask.size(), 3, f, 1.f, false);
 		rearrange(mask, tmpU, data, minsize + (3 * f + 1) * mask.size(), 3, f, 4.f, false);
 		rearrange(mask, tmpV, data, minsize + (3 * f + 2) * mask.size(), 3, f, 4.f, false);
 	}
 	for (unsigned f = 1; f < 4; f++)
-		rearrange(mask, tmpY, data, minsize + ((f - 1) * 4 + 12) * mask.size(), 2, f, 1.f * q, false);
+		rearrange(mask, tmpY, data, minsize + ((f - 1) * 4 + 12) * mask.size(), 2, f, 1.f, false);
 	for (unsigned f = 1; f < 4; f++)
-		rearrange(mask, tmpY, data, minsize + ((f - 1) * 16 + 24) * mask.size(), 1, f, 2.f * q, false);
+		rearrange(mask, tmpY, data, minsize + ((f - 1) * 16 + 24) * mask.size(), 1, f, 2.f, false);
 	for (unsigned f = 1; f < 4; f++)
-		rearrange(mask, tmpY, data, minsize + ((f - 1) * 64 + 72) * mask.size(), 0, f, 4.f * q, false);
+		rearrange(mask, tmpY, data, minsize + ((f - 1) * 64 + 72) * mask.size(), 0, f, 4.f, false);
 
 	if (!show)
 		return;
@@ -567,27 +529,22 @@ void Video::coder() {
 	try {
 		Mat frame(imageheight, imagewidth, CV_8UC3, Scalar());
 		Codec encoder, decoder0, decoder1;
-		bool update = true, finish = true;
+		bool update = true;
 		vector<unsigned char> encbuf;
 		vector<vector<unsigned char> > decbuf;
-		boost::posix_time::ptime ft = boost::posix_time::microsec_clock::local_time();
+		UILock(), img->copyTo(frame);
 		
 		while (working) {
-			boost::posix_time::ptime t = boost::posix_time::microsec_clock::local_time();
 			unsigned quality = (UILock(), ui.quality->value());
-			unsigned cover = 0*50 * (t - ft).total_milliseconds() / 1000;
 
-			if (reset.exchange(false))
-				cover = 100;
-			if (update)
-			//if (finish)
-				ft = t;
+			if(update && encoder.encode(frame, encbuf, reset.exchange(false))) {
+				UILock lock;
+				if (norm(*img, frame, 1) == 0.)
+					reset = true;
+				else
+					img->copyTo(frame);
+			}
 
-			if(update && (finish = encoder.encode(frame, encbuf, update, cover)))
-				UILock(), img->copyTo(frame);
-
-			//UILock(), encoder.encode(*img, encbuf, update, cover);
-if (update)cout<<encbuf.size()<<endl;
 			update = network.broadcast(encbuf, decbuf, maxlatency);
 
 			for (unsigned i = 0; i < decbuf.size(); i++) {
@@ -600,11 +557,10 @@ if (update)cout<<encbuf.size()<<endl;
 				}
 			}
 
-			unsigned d = (boost::posix_time::microsec_clock::local_time() - ft).total_milliseconds();
-			//if (!finish)
+			if (!update)
+				boost::this_thread::sleep(boost::posix_time::milliseconds(10));
+			else
 				boost::this_thread::yield();
-			//else
-			//	boost::this_thread::sleep(boost::posix_time::milliseconds(d > 500? 500: d < 20? 40 - d: d));
 		}
 
 		cout << "video codec stopped" << endl;
