@@ -133,6 +133,7 @@ void Audio::toggle_playmic() {
 	playmic = !playmic;
 }
 
+
 void Audio::toggle_noisegate() {
 	noisegate = !noisegate;
 }

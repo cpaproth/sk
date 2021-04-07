@@ -39,7 +39,7 @@ using namespace std;
 
 
 class Network {
-	static const unsigned	version = 1;
+	static const unsigned	version = 2;
 	static const size_t	maxpeers = 2;
 	static const size_t	fifomax = 10;
 	static const size_t	recvsize = 60000;

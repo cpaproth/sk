@@ -156,7 +156,7 @@ void Video::Codec::denoise(vector<float>& C, float h, const unsigned P, const un
 
 bool Video::Codec::encode(const Mat& img, vector<unsigned char>& enc, bool update, unsigned cover) {
 	if (update) {
-		for (set<unsigned>::const_iterator it = mask.begin(); it != mask.end(); it++) {
+		/*for (set<unsigned>::const_iterator it = mask.begin(); it != mask.end(); it++) {
 			for (unsigned y = *it / w * l; y < *it / w * l + l; y++) {
 				for (unsigned x = *it % w * l; x < *it % w * l + l; x++) {
 					tmpY[y * imagewidth + x] = Y[y * imagewidth + x];
@@ -164,7 +164,7 @@ bool Video::Codec::encode(const Mat& img, vector<unsigned char>& enc, bool updat
 					tmpV[y * imagewidth + x] = V[y * imagewidth + x];
 				}
 			}
-		}
+		}*/
 		//frame++;
 		rndpos += rndsteps;
 	}
@@ -241,6 +241,15 @@ bool Video::Codec::encode(const Mat& img, vector<unsigned char>& enc, bool updat
 	mask.clear();
 	for (multimap<float, unsigned>::iterator it = diffs.begin(); mask.size() < 25; finish = it->first > -1.f, it++)
 		mask.insert(it->second);
+	for (set<unsigned>::const_iterator it = mask.begin(); it != mask.end(); it++) {
+		for (unsigned y = *it / w * l; y < *it / w * l + l; y++) {
+			for (unsigned x = *it % w * l; x < *it % w * l + l; x++) {
+				tmpY[y * imagewidth + x] = Y[y * imagewidth + x];
+				tmpU[y * imagewidth + x] = U[y * imagewidth + x];
+				tmpV[y * imagewidth + x] = V[y * imagewidth + x];
+			}
+		}
+	}
 
 
 
@@ -527,7 +536,7 @@ void Video::worker() {
 			} while ((boost::posix_time::microsec_clock::local_time() - t).total_milliseconds() < 40);
 			t = boost::posix_time::microsec_clock::local_time();
 
-			if (cap.size().area() == 0) capture->open("webcam.avi"), *capture >> cap;
+			//if (cap.size().area() == 0) capture->open("webcam.avi"), *capture >> cap;
 
 			bool pause = (UILock(), ui.midimage->get());
 			if (cap.size().area() == 0 || pause) {
@@ -566,12 +575,12 @@ void Video::coder() {
 		while (working) {
 			boost::posix_time::ptime t = boost::posix_time::microsec_clock::local_time();
 			unsigned quality = (UILock(), ui.quality->value());
-			unsigned cover = 50 * (t - ft).total_milliseconds() / 1000;
+			unsigned cover = 0*50 * (t - ft).total_milliseconds() / 1000;
 
 			if (reset.exchange(false))
 				cover = 100;
-			//if (update)
-			if (finish)
+			if (update)
+			//if (finish)
 				ft = t;
 
 			if(update && (finish = encoder.encode(frame, encbuf, update, cover)))
@@ -592,10 +601,10 @@ if (update)cout<<encbuf.size()<<endl;
 			}
 
 			unsigned d = (boost::posix_time::microsec_clock::local_time() - ft).total_milliseconds();
-			if (!finish)
+			//if (!finish)
 				boost::this_thread::yield();
-			else
-				boost::this_thread::sleep(boost::posix_time::milliseconds(d > 500? 500: d < 20? 40 - d: d));
+			//else
+			//	boost::this_thread::sleep(boost::posix_time::milliseconds(d > 500? 500: d < 20? 40 - d: d));
 		}
 
 		cout << "video codec stopped" << endl;
