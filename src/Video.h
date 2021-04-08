@@ -64,7 +64,8 @@ class Video {
 	public:
 		Codec();
 		bool encode(const cv::Mat&, vector<unsigned char>&, bool);
-		void decode(const vector<unsigned char>&, cv::Mat&, bool, unsigned);
+		void decode(const vector<unsigned char>&);
+		void show(cv::Mat&, unsigned);
 	};
 
 
