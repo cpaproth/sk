@@ -56,6 +56,8 @@ void GlImage::draw() {
 		ortho();
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glClearColor(0.f, 0.f, 0.f, 1.f);
+		glClear(GL_COLOR_BUFFER_BIT);
 	}
 
 	glPixelZoom(1.f, -1.f);
@@ -66,7 +68,7 @@ void GlImage::draw() {
 		} else {
 			cv::Mat res(h() * 4 / 3 < w()? w() * 3 / 4: h(), w() * 3 / 4 < h()? h() * 4 / 3: w(), CV_8UC3);
 			cv::resize(*img, res, res.size());
-			glBitmap(0, 0, 0.f, 0.f, -0.5f * (res.cols - w()), 0.5f * (res.rows - h()), 0); 
+			glBitmap(0, 0, 0.f, 0.f, -0.5f * (res.cols - w()), 0.5f * (res.rows - h()), 0);
 			glDrawPixels(res.cols, res.rows, GL_BGR_EXT, GL_UNSIGNED_BYTE, res.data);
 		}
 	} else {
