@@ -379,6 +379,8 @@ void Network::receiver(const errorcode& e, size_t n) {
 				peer->fifo.pop_front();
 		}
 	} else if (n > 1 && (recvbuf[0] & 192) == 128) {
+		while (peer->buffer.size() > 0 && ring_cmp(recvbuf, peer->buffer.front()) && !ring_cmp(recvbuf, peer->buffer.back()))
+			peer->buffer.pop_front();
 		list<ucharbuf>::iterator it = lower_bound(peer->buffer.begin(), peer->buffer.end(), recvbuf, ring_cmp);
 		peer->buffer.insert(it, ucharbuf(recvbuf.begin(), recvbuf.begin() + n));
 	} else if (n > 1 && (recvbuf[0] & 192) == 192 && server) {
