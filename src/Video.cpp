@@ -206,7 +206,7 @@ bool Video::Codec::encode(const Mat& img, vector<unsigned char>& enc, bool reset
 	}
 	for (unsigned i = 0; i < ldiffs.size(); i++)
 		if (ldiffs[i] > 1.f || (ldiffs[i] > 0.25f && ndiffs[i] > 1.f))
-			diffs.insert(make_pair(-(ldiffs[i] > 1.f? ldiffs[i]: ndiffs[i] * 1.01f), i));
+			diffs.insert(make_pair(-(ldiffs[i] > 1.f? ldiffs[i]: ldiffs[i] + ndiffs[i]), i));
 
 	mask.clear();
 	for (multimap<float, unsigned>::iterator it = diffs.begin(); !(finish = it == diffs.end()) && mask.size() < (diffs.size() > 50? 60: 50); it++)
@@ -547,13 +547,22 @@ void Video::coder() {
 		set<unsigned> show;
 		vector<unsigned char> encbuf;
 		vector<vector<unsigned char> > decbuf;
-		UILock(), img->copyTo(frame);
 		
+		boost::posix_time::ptime t = boost::posix_time::microsec_clock::local_time();
 		while (working) {
 			unsigned quality = (UILock(), ui.quality->value());
 
-			if(update && (finish = encoder.encode(frame, encbuf, reset.exchange(false))))
-				UILock(), img->copyTo(frame);
+			if (finish) {
+				unsigned d = (boost::posix_time::microsec_clock::local_time() - t).total_milliseconds();
+				boost::this_thread::sleep(boost::posix_time::milliseconds(d < 30? 40 - d: 10));
+				t = boost::posix_time::microsec_clock::local_time();
+				UILock lock;
+				img->copyTo(frame);
+				finish = false;
+			}
+
+			if (update || reset)
+				finish = encoder.encode(frame, encbuf, reset.exchange(false));
 
 			update = network.broadcast(encbuf, decbuf, maxlatency);
 
@@ -568,7 +577,6 @@ void Video::coder() {
 				(*show.begin() == left? ui.leftimage: ui.rightimage)->redraw();
 				Fl::awake();
 				show.erase(show.begin());
-				finish = show.size() > 0? finish: false;
 			}
 
 			if (!update)
