@@ -209,7 +209,7 @@ bool Video::Codec::encode(const Mat& img, vector<unsigned char>& enc, bool reset
 			diffs.insert(make_pair(-(ldiffs[i] > 1.f? ldiffs[i]: ldiffs[i] + ndiffs[i]), i));
 
 	mask.clear();
-	for (multimap<float, unsigned>::iterator it = diffs.begin(); !(finish = it == diffs.end()) && mask.size() < (diffs.size() > 50? 60: 50); it++)
+	for (multimap<float, unsigned>::iterator it = diffs.begin(); !(finish = it == diffs.end()) && mask.size() < 75; it++)
 		mask.insert(it->second);
 	while (mask.size() < 25)
 		mask.insert(rndmask[rndpos++ % minsize]);
@@ -552,7 +552,7 @@ void Video::coder() {
 		while (working) {
 			unsigned quality = (UILock(), ui.quality->value());
 
-			if (finish) {
+			if (finish && update) {
 				unsigned d = (boost::posix_time::microsec_clock::local_time() - t).total_milliseconds();
 				boost::this_thread::sleep(boost::posix_time::milliseconds(d < 30? 40 - d: 10));
 				t = boost::posix_time::microsec_clock::local_time();
