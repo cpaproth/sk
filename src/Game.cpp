@@ -83,6 +83,7 @@ Game::Game(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 
 	left = 0;
 	right = 1;
+	row = 0;
 
 	leftrules = rightrules = 0;
 	check_rules();
@@ -201,6 +202,8 @@ void Game::reset_game(unsigned d) {
 
 void Game::reset_round() {
 	scores = leftscores = rightscores = 0;
+	won = leftwon = rightwon = 0;
+	lost = leftlost = rightlost = 0;
 	rounds.clear();
 	header.clear();
 	reset_game(myself);
@@ -391,6 +394,7 @@ bool Game::permit_card(uchar card) {
 
 void Game::game_over() {
 	int score;
+	string result = "";
 	unsigned ptricks = player == myself? tricks.size(): player == left? lefttricks.size(): righttricks.size();
 	unsigned otricks = tricks.size() + lefttricks.size() + righttricks.size() - ptricks;
 	uchar values[] = {11, 4, 3, 2, 10, 0, 0, 0};
@@ -486,17 +490,18 @@ void Game::game_over() {
 		if (gextra == 15)
 			score++;
 
-		string result = gextra < 7 && (otricks == 0 || ptricks == 0)? " Schwarz!": gextra < 3 && (psum >= 90 || psum <= 30)? " Schneider!": "!";
+		result = gextra < 7 && (otricks == 0 || ptricks == 0)? " Schwarz": gextra < 3 && (psum >= 90 || psum <= 30)? " Schneider": "";
 		uchar gvalue = gname == 0? 12: gname == 8? 11: gname == 16? 10: gname == 24? 9: 24;
 		if ((int)bid > score * gvalue) {
 			score = ((bid - 1) / gvalue + 1) * gvalue * -2;
-			show_info((player == myself? "Überreizt": (player == left? leftname: rightname) + " überreizt") + result);
+			show_info(player == myself? "Überreizt!": (player == left? leftname: rightname) + " überreizt!");
+			result = " Überreizt";
 		} else if ((gextra >= 7 && otricks > 0) || (gextra >= 3 && psum < 90) || psum <= 60) {
 			score *= gvalue * -2;
-			show_info((player == myself? "Verloren": (player == left? leftname: rightname) + " verliert") + result);
+			show_info((player == myself? "Verloren": (player == left? leftname: rightname) + " verliert") + result + "!");
 		} else {
 			score *= gvalue;
-			show_info((player == myself? "Gewonnen": (player == left? leftname: rightname) + " gewinnt") + result);
+			show_info((player == myself? "Gewonnen": (player == left? leftname: rightname) + " gewinnt") + result + "!");
 		}
 		show_gameinfo(ss(game_name(false)) << ", " << psum << " Augen" << (contrare == 4? ", Re": contrare == 2? ", Kontra": ""));
 		bock = score >= 100 || psum == 60;
@@ -505,6 +510,9 @@ void Game::game_over() {
 		return;
 	}
 	bock |= (score < 0 && contrare == 2) || contrare == 4;
+
+	for (unsigned i = 0; i < 6 && row > 0; i++)
+		ui.listing->remove(ui.listing->size());
 	
 	string h = ss("\t\t@b@c") << ui.name->value() << "\t@b@c" << leftname << "\t@b@c" << rightname << "\t@b@c" << (rule(1)? "E": "") << (rule(2)? "K": "") << (rule(4)? "B": "") << (rule(8)? "R": "");
 	if (h != header) {
@@ -533,17 +541,26 @@ void Game::game_over() {
 	if (!playing) {
 		ui.listing->add(ss("Eingepasst\t@c-\t@c-\t@c-\t@c-\t@c") << s | c_str);
 	} else if (gextra == 31) {
-		string m = tricks.size() == 30 || (lefttricks.size() != 30 && righttricks.size() != 30 && sum <= lsum && sum <= rsum)? ss(scores += score): ss("-");
-		string l = lefttricks.size() == 30 || (tricks.size() != 30 && righttricks.size() != 30 && lsum <= sum && lsum <= rsum)? ss(leftscores += score): ss("-");
-		string r = righttricks.size() == 30 || (lefttricks.size() != 30 && tricks.size() != 30 && rsum <= sum && rsum <= lsum)? ss(rightscores += score): ss("-");
+		string m = tricks.size() == 30 || (lefttricks.size() != 30 && righttricks.size() != 30 && sum <= lsum && sum <= rsum)? won++, ss(scores += score): ss("-");
+		string l = lefttricks.size() == 30 || (tricks.size() != 30 && righttricks.size() != 30 && lsum <= sum && lsum <= rsum)? leftwon++, ss(leftscores += score): ss("-");
+		string r = righttricks.size() == 30 || (lefttricks.size() != 30 && tricks.size() != 30 && rsum <= sum && rsum <= lsum)? rightwon++, ss(rightscores += score): ss("-");
 		ui.listing->add(ss("Ramsch\t@c") << score << "\t@c" << m << "\t@c" << l << "\t@c" << r << "\t@c" << s | c_str);
 	} else {
-		string m = player == myself? ss(scores += score): ss("-");
-		string l = player == left? ss(leftscores += score): ss("-");
-		string r = player == right? ss(rightscores += score): ss("-");
-		ui.listing->add(ss(game_name(false)) << "\t@c" << score << "\t@c" << m << "\t@c" << l << "\t@c" << r << "\t@c" << s | c_str);
+		string m = player == myself? (score > 0? won: lost)++, ss(scores += score): ss("-");
+		string l = player == left? (score > 0? leftwon: leftlost)++, ss(leftscores += score): ss("-");
+		string r = player == right? (score > 0? rightwon: rightlost)++, ss(rightscores += score): ss("-");
+		ui.listing->add(ss(game_name(false) + result) << "\t@c" << score << "\t@c" << m << "\t@c" << l << "\t@c" << r << "\t@c" << s | c_str);
 	}
-	ui.listing->select(ui.listing->size());
+
+	int mw = (won - lost) * 50, lw = (leftwon - leftlost) * 50, rw = (rightwon - rightlost) * 50, ml = (leftlost + rightlost) * 40, ll = (lost + rightlost) * 40, rl = (lost + leftlost) * 40;
+	ui.listing->add("@-");
+	ui.listing->add(ss("Gewonnen/Verloren\t\t@c") << won << "/" << lost << "\t@c" << leftwon << "/" << leftlost << "\t@c" << rightwon << "/" << rightlost << "\t" | c_str);
+	ui.listing->add(ss("(Gewonnen-Verloren)x50\t\t@c") << mw << "\t@c" << lw << "\t@c" << rw << "\t" | c_str);
+	ui.listing->add(ss("(Gegner Verloren)x40\t\t@c") << ml << "\t@c" << ll << "\t@c" << rl << "\t" | c_str);
+	ui.listing->add("@-");
+	ui.listing->add(ss("@bGesamt\t\t@b@c") << scores + mw + ml << "\t@b@c" << leftscores + lw + ll << "\t@b@c" << rightscores + rw + rl << "\t" | c_str);
+
+	ui.listing->select(ui.listing->size() - 6);
 	
 	playing = false;
 	ui.contrare->deactivate();

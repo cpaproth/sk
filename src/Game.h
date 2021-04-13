@@ -93,6 +93,12 @@ class Game {
 	int			scores;
 	int			leftscores;
 	int			rightscores;
+	int			won;
+	int			leftwon;
+	int			rightwon;
+	int			lost;
+	int			leftlost;
+	int			rightlost;
 
 	string			leftname;
 	string			rightname;

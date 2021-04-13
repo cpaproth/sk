@@ -209,91 +209,91 @@ bool Video::Codec::encode(const Mat& img, vector<unsigned char>& enc, bool reset
 			diffs.insert(make_pair(-(ldiffs[i] > 1.f? ldiffs[i]: ldiffs[i] + ndiffs[i]), i));
 
 
-unsigned blocks = (diffs.size() & ~1) + (diffs.size() > 50? 2: 9);
-do {
+	unsigned blocks = (diffs.size() & ~1) + (diffs.size() > 50? 2: 9);
+	do {
 
-	mask.clear();
-	for (multimap<float, unsigned>::iterator it = diffs.begin(); !(finish = it == diffs.end()) && mask.size() < blocks; it++)
-		mask.insert(it->second);
-	while (mask.size() < min(9u, blocks) || mask.size() % 2 != blocks % 2)
-		mask.insert(rndmask[rndpos++ % minsize]);
-
-
-	vector<int> data(minsize + 264 * mask.size(), 0);
-	for (set<unsigned>::const_iterator it = mask.begin(); it != mask.end(); it++)
-		data[*it] = 1;
-
-	float q = mask.size() % 2 == 0? 2.f: 1.f;
-	for (unsigned f = 0; f < 4; f++) {
-		rearrange(mask, Y, data, minsize + 3 * f * mask.size(), 3, f, 1.f, true);
-		rearrange(mask, U, data, minsize + (3 * f + 1) * mask.size(), 3, f, 4.f, true);
-		rearrange(mask, V, data, minsize + (3 * f + 2) * mask.size(), 3, f, 4.f, true);
-	}
-	for (unsigned f = 1; f < 4; f++)
-		rearrange(mask, Y, data, minsize + ((f - 1) * 4 + 12) * mask.size(), 2, f, 1.f * q, true);
-	for (unsigned f = 1; f < 4; f++)
-		rearrange(mask, Y, data, minsize + ((f - 1) * 16 + 24) * mask.size(), 1, f, 2.f * q, true);
-	for (unsigned f = 1; f < 4; f++)
-		rearrange(mask, Y, data, minsize + ((f - 1) * 64 + 72) * mask.size(), 0, f, 4.f * q, true);
-	for (unsigned i = minsize + 3 * mask.size() - 1; i > minsize; i--)
-		data[i] -= data[i - 1];
+		mask.clear();
+		for (multimap<float, unsigned>::iterator it = diffs.begin(); !(finish = it == diffs.end()) && mask.size() < blocks; it++)
+			mask.insert(it->second);
+		while (mask.size() < min(9u, blocks) || mask.size() % 2 != blocks % 2)
+			mask.insert(rndmask[rndpos++ % minsize]);
 
 
-	unsigned size = 0;
-	for (unsigned i = 0; i < data.size(); i++) {
-		if (data[i] == 0) {
-			int z = 2;
-			for (; i + 1 < data.size() && data[i + 1] == 0; i++)
-				z++;
-			for (; z >= 2; z >>= 1)
-				data[size++] = z & 1;
-		} else {
-			data[size++] = data[i] < 0? data[i] * -2: data[i] * 2 + 1;
+		vector<int> data(minsize + 264 * mask.size(), 0);
+		for (set<unsigned>::const_iterator it = mask.begin(); it != mask.end(); it++)
+			data[*it] = 1;
+
+		float q = mask.size() % 2 == 0? 2.f: 1.f;
+		for (unsigned f = 0; f < 4; f++) {
+			rearrange(mask, Y, data, minsize + 3 * f * mask.size(), 3, f, 1.f, true);
+			rearrange(mask, U, data, minsize + (3 * f + 1) * mask.size(), 3, f, 4.f, true);
+			rearrange(mask, V, data, minsize + (3 * f + 2) * mask.size(), 3, f, 4.f, true);
 		}
-	}
-	data.resize(size);
+		for (unsigned f = 1; f < 4; f++)
+			rearrange(mask, Y, data, minsize + ((f - 1) * 4 + 12) * mask.size(), 2, f, 1.f * q, true);
+		for (unsigned f = 1; f < 4; f++)
+			rearrange(mask, Y, data, minsize + ((f - 1) * 16 + 24) * mask.size(), 1, f, 2.f * q, true);
+		for (unsigned f = 1; f < 4; f++)
+			rearrange(mask, Y, data, minsize + ((f - 1) * 64 + 72) * mask.size(), 0, f, 4.f * q, true);
+		for (unsigned i = minsize + 3 * mask.size() - 1; i > minsize; i--)
+			data[i] -= data[i - 1];
 
 
-	vector<unsigned> freqs(*max_element(data.begin(), data.end()) + 1, 0), starts(freqs.size() + 1, 0);
-	for (unsigned i = 0; i < size; i++)
-		freqs[data[i]]++;
-	for (int i = 0; starts[i] < size; i++)
-		starts[i + 1] = starts[i] + freqs[i];
-
-	enc.assign(1, 128 | (frame & 63));
-	for (unsigned i = 0; i < freqs.size(); i++) {
-		if (freqs[i] == 0) {
-			enc.push_back(1);
-			for (; i + 1 < freqs.size() && freqs[i + 1] == 0 && enc.back() < 63; i++)
-				enc.back()++;
-		} else if (freqs[i] <= 128) {
-			enc.push_back((freqs[i] - 1) | 128);
-		} else {
-			unsigned freq = freqs[i] - 129;
-			enc.push_back((freq & 63) | 64);
-			for (freq >>= 6; freq > 0 || (enc.back() & 128) == 0; freq >>= 7)
-				enc.push_back((freq & 127) | (freq > 127? 0: 128));
+		unsigned size = 0;
+		for (unsigned i = 0; i < data.size(); i++) {
+			if (data[i] == 0) {
+				int z = 2;
+				for (; i + 1 < data.size() && data[i + 1] == 0; i++)
+					z++;
+				for (; z >= 2; z >>= 1)
+					data[size++] = z & 1;
+			} else {
+				data[size++] = data[i] < 0? data[i] * -2: data[i] * 2 + 1;
+			}
 		}
-	}
-	enc.push_back(0);
+		data.resize(size);
 
-	unsigned low = 0, range = UINT_MAX;
-	for (unsigned i = 0; i < size; i++) {
-		range /= size;
-		low += range * starts[data[i]];
-		range *= freqs[data[i]];
 
-		while (range < 400000) {
-			enc.push_back(low >> 24);
-			low <<= 8;
-			range <<= 8;
-			if (UINT_MAX - low < range)
-				range = UINT_MAX - low;
+		vector<unsigned> freqs(*max_element(data.begin(), data.end()) + 1, 0), starts(freqs.size() + 1, 0);
+		for (unsigned i = 0; i < size; i++)
+			freqs[data[i]]++;
+		for (int i = 0; starts[i] < size; i++)
+			starts[i + 1] = starts[i] + freqs[i];
+
+		enc.assign(1, 128 | (frame & 63));
+		for (unsigned i = 0; i < freqs.size(); i++) {
+			if (freqs[i] == 0) {
+				enc.push_back(1);
+				for (; i + 1 < freqs.size() && freqs[i + 1] == 0 && enc.back() < 63; i++)
+					enc.back()++;
+			} else if (freqs[i] <= 128) {
+				enc.push_back((freqs[i] - 1) | 128);
+			} else {
+				unsigned freq = freqs[i] - 129;
+				enc.push_back((freq & 63) | 64);
+				for (freq >>= 6; freq > 0 || (enc.back() & 128) == 0; freq >>= 7)
+					enc.push_back((freq & 127) | (freq > 127? 0: 128));
+			}
 		}
-	}
-	enc.push_back(low >> 24); enc.push_back((low >> 16) & 255); enc.push_back((low >> 8) & 255); enc.push_back(low & 255);
+		enc.push_back(0);
 
-} while (blocks -= max(2ul, enc.size() > 600? (enc.size() - 600) / 2 * mask.size() / enc.size() * 2: 2), blocks > 1 && enc.size() > 500);
+		unsigned low = 0, range = UINT_MAX;
+		for (unsigned i = 0; i < size; i++) {
+			range /= size;
+			low += range * starts[data[i]];
+			range *= freqs[data[i]];
+
+			while (range < 400000) {
+				enc.push_back(low >> 24);
+				low <<= 8;
+				range <<= 8;
+				if (UINT_MAX - low < range)
+					range = UINT_MAX - low;
+			}
+		}
+		enc.push_back(low >> 24); enc.push_back((low >> 16) & 255); enc.push_back((low >> 8) & 255); enc.push_back(low & 255);
+
+	} while (blocks -= max(2u, (unsigned)(enc.size() > 600? (enc.size() - 600) / 2 * mask.size() / enc.size() * 2: 2)), blocks > 1 && enc.size() > 500);
 
 
 	for (set<unsigned>::const_iterator it = mask.begin(); it != mask.end(); it++) {
