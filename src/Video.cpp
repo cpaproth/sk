@@ -208,28 +208,22 @@ bool Video::Codec::encode(const Mat& img, vector<unsigned char>& enc, bool reset
 		if (ldiffs[i] > 1.f || (ldiffs[i] > 0.25f && ndiffs[i] > 1.f))
 			diffs.insert(make_pair(-(ldiffs[i] > 1.f? ldiffs[i]: ldiffs[i] + ndiffs[i]), i));
 
-	mask.clear();
-	for (multimap<float, unsigned>::iterator it = diffs.begin(); !(finish = it == diffs.end()) && mask.size() < 75; it++)
-		mask.insert(it->second);
-	while (mask.size() < 25)
-		mask.insert(rndmask[rndpos++ % minsize]);
 
-	for (set<unsigned>::const_iterator it = mask.begin(); it != mask.end(); it++) {
-		for (unsigned y = *it / w * l; y < *it / w * l + l; y++) {
-			for (unsigned x = *it % w * l; x < *it % w * l + l; x++) {
-				tmpY[y * imagewidth + x] = Y[y * imagewidth + x];
-				tmpU[y * imagewidth + x] = U[y * imagewidth + x];
-				tmpV[y * imagewidth + x] = V[y * imagewidth + x];
-			}
-		}
-	}
+unsigned blocks = (diffs.size() & ~1) + (diffs.size() > 50? 2: 9);
+do {
+
+	mask.clear();
+	for (multimap<float, unsigned>::iterator it = diffs.begin(); !(finish = it == diffs.end()) && mask.size() < blocks; it++)
+		mask.insert(it->second);
+	while (mask.size() < min(9u, blocks) || mask.size() % 2 != blocks % 2)
+		mask.insert(rndmask[rndpos++ % minsize]);
 
 
 	vector<int> data(minsize + 264 * mask.size(), 0);
 	for (set<unsigned>::const_iterator it = mask.begin(); it != mask.end(); it++)
 		data[*it] = 1;
 
-	float q = mask.size() > 50? 2.f: 1.f;
+	float q = mask.size() % 2 == 0? 2.f: 1.f;
 	for (unsigned f = 0; f < 4; f++) {
 		rearrange(mask, Y, data, minsize + 3 * f * mask.size(), 3, f, 1.f, true);
 		rearrange(mask, U, data, minsize + (3 * f + 1) * mask.size(), 3, f, 4.f, true);
@@ -298,6 +292,19 @@ bool Video::Codec::encode(const Mat& img, vector<unsigned char>& enc, bool reset
 		}
 	}
 	enc.push_back(low >> 24); enc.push_back((low >> 16) & 255); enc.push_back((low >> 8) & 255); enc.push_back(low & 255);
+
+} while (blocks -= max(2ul, enc.size() > 600? (enc.size() - 600) / 2 * mask.size() / enc.size() * 2: 2), blocks > 1 && enc.size() > 500);
+
+
+	for (set<unsigned>::const_iterator it = mask.begin(); it != mask.end(); it++) {
+		for (unsigned y = *it / w * l; y < *it / w * l + l; y++) {
+			for (unsigned x = *it % w * l; x < *it % w * l + l; x++) {
+				tmpY[y * imagewidth + x] = Y[y * imagewidth + x];
+				tmpU[y * imagewidth + x] = U[y * imagewidth + x];
+				tmpV[y * imagewidth + x] = V[y * imagewidth + x];
+			}
+		}
+	}
 
 	if (finish)
 		frame++;
@@ -379,7 +386,7 @@ void Video::Codec::decode(const vector<unsigned char>& enc) {
 	for (unsigned i = minsize + 1; i < minsize + 3 * mask.size(); i++)
 		data[i] += data[i - 1];
 
-	float q = mask.size() > 50? 2.f: 1.f;
+	float q = mask.size() % 2 == 0? 2.f: 1.f;
 	for (unsigned f = 0; f < 4; f++) {
 		rearrange(mask, tmpY, data, minsize + 3 * f * mask.size(), 3, f, 1.f, false);
 		rearrange(mask, tmpU, data, minsize + (3 * f + 1) * mask.size(), 3, f, 4.f, false);

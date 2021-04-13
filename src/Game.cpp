@@ -126,7 +126,6 @@ void Game::shuffle() {
 }
 
 
-
 string Game::cards_string(const vector<uchar>& c) {
 	string str(c.size(), 0);
 	for (unsigned i = 0; i < c.size(); i++)
