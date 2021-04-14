@@ -293,7 +293,7 @@ bool Video::Codec::encode(const Mat& img, vector<unsigned char>& enc, bool reset
 		}
 		enc.push_back(low >> 24); enc.push_back((low >> 16) & 255); enc.push_back((low >> 8) & 255); enc.push_back(low & 255);
 
-	} while (blocks -= max(2u, (unsigned)(enc.size() > 600? (enc.size() - 600) / 2 * mask.size() / enc.size() * 2: 2)), blocks > 1 && enc.size() > 500);
+	} while (blocks -= max(2u, (unsigned)(enc.size() > maxpacket? (enc.size() - maxpacket) / 3 * mask.size() / enc.size() * 2: 2)), blocks > 1 && enc.size() > maxpacket);
 
 
 	for (set<unsigned>::const_iterator it = mask.begin(); it != mask.end(); it++) {
@@ -473,8 +473,9 @@ Video::~Video() {
 
 
 void Video::send_chat() {
-	network.command(left, "chat", ui.chat->value());
-	network.command(right, "chat", ui.chat->value());
+	string msg(ui.chat->value(), 0, maxpacket);
+	network.command(left, "chat", msg);
+	network.command(right, "chat", msg);
 	ui.chat->value("");
 	ui.leftimage->set("");
 	ui.rightimage->set("");

@@ -493,16 +493,14 @@ void Game::game_over() {
 		result = gextra < 7 && (otricks == 0 || ptricks == 0)? " Schwarz": gextra < 3 && (psum >= 90 || psum <= 30)? " Schneider": "";
 		uchar gvalue = gname == 0? 12: gname == 8? 11: gname == 16? 10: gname == 24? 9: 24;
 		if ((int)bid > score * gvalue) {
-			score = ((bid - 1) / gvalue + 1) * gvalue * -2;
-			show_info(player == myself? "Überreizt!": (player == left? leftname: rightname) + " überreizt!");
 			result = " Überreizt";
+			score = ((bid - 1) / gvalue + 1) * gvalue * -2;
 		} else if ((gextra >= 7 && otricks > 0) || (gextra >= 3 && psum < 90) || psum <= 60) {
 			score *= gvalue * -2;
-			show_info((player == myself? "Verloren": (player == left? leftname: rightname) + " verliert") + result + "!");
 		} else {
 			score *= gvalue;
-			show_info((player == myself? "Gewonnen": (player == left? leftname: rightname) + " gewinnt") + result + "!");
 		}
+		show_info((player == myself? (score < 0? "Verloren": "Gewonnen"): (player == left? leftname: rightname) + (score < 0? " verliert": " gewinnt")) + result + "!");
 		show_gameinfo(ss(game_name(false)) << ", " << psum << " Augen" << (contrare == 4? ", Re": contrare == 2? ", Kontra": ""));
 		bock = score >= 100 || psum == 60;
 

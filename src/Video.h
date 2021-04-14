@@ -47,6 +47,7 @@ class Video {
 	static const unsigned imagewidth = 320;
 	static const unsigned imageheight = 240;
 	static const unsigned minsize = 300;
+	static const unsigned maxpacket = 500;
 	static const unsigned maxlatency = 200;
 
 
