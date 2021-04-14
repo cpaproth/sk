@@ -20,7 +20,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #define SK_VIDEO_H
 
 
-#include <boost/thread/thread.hpp>
+#include <boost/thread.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/atomic.hpp>
 #include <vector>
@@ -74,8 +74,11 @@ class Video {
 	boost::shared_ptr<cv::Mat>		img;
 	boost::shared_ptr<cv::Mat>		limg;
 	boost::shared_ptr<cv::Mat>		rimg;
-	boost::thread				videothread;
-	boost::thread				codecthread;
+	boost::thread				capturethread;
+	boost::thread				encodethread;
+	boost::thread				decodethread;
+	boost::mutex				bufmutex;
+	vector<vector<unsigned char> >		buf;
 	unsigned				left;
 	unsigned				right;
 	boost::atomic<bool>			working;
@@ -83,8 +86,9 @@ class Video {
 	UserInterface&				ui;
 	Network&				network;
 
-	void worker();
-	void coder();
+	void captureworker();
+	void encodeworker();
+	void decodeworker();
 
 	bool handle_command(unsigned, const string&, const string&);
 

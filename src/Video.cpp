@@ -439,8 +439,9 @@ Video::Video(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 
 	reset = false;
 	working = true;
-	videothread = boost::thread(boost::bind(&Video::worker, this));
-	codecthread = boost::thread(boost::bind(&Video::coder, this));
+	capturethread = boost::thread(boost::bind(&Video::captureworker, this));
+	encodethread = boost::thread(boost::bind(&Video::encodeworker, this));
+	decodethread = boost::thread(boost::bind(&Video::decodeworker, this));
 
 	if (capture->isOpened())
 		cout << "video capture started" << endl;
@@ -463,9 +464,11 @@ Video::~Video() {
 		ui.rightimage->set(0);
 
 		working = false;
-		while (videothread.joinable() && !videothread.timed_join(boost::posix_time::milliseconds(100)))
+		while (capturethread.joinable() && !capturethread.timed_join(boost::posix_time::milliseconds(100)))
 			Fl::wait(0.1);
-		while (codecthread.joinable() && !codecthread.timed_join(boost::posix_time::milliseconds(100)))
+		while (encodethread.joinable() && !encodethread.timed_join(boost::posix_time::milliseconds(100)))
+			Fl::wait(0.1);
+		while (decodethread.joinable() && !decodethread.timed_join(boost::posix_time::milliseconds(100)))
 			Fl::wait(0.1);
 
 	} catch (...) {}
@@ -500,7 +503,7 @@ bool Video::handle_command(unsigned i, const string& command, const string& data
 }
 
 
-void Video::worker() {
+void Video::captureworker() {
 	try {
 		Mat cap(imageheight, imagewidth, CV_8UC3);
 		Mat still(imageheight, imagewidth, CV_8UC3, Scalar());
@@ -520,7 +523,7 @@ void Video::worker() {
 			} while ((boost::posix_time::microsec_clock::local_time() - t).total_milliseconds() < 40);
 			t = boost::posix_time::microsec_clock::local_time();
 
-			//if (cap.size().area() == 0) capture->open("webcam.avi"), *capture >> cap;
+			if (cap.size().area() == 0) capture->open("webcam.avi"), *capture >> cap;
 
 			bool pause = (UILock(), ui.midimage->get());
 			if (cap.size().area() == 0 || pause) {
@@ -547,19 +550,16 @@ void Video::worker() {
 }
 
 
-void Video::coder() {
+void Video::encodeworker() {
 	try {
 		Mat frame(imageheight, imagewidth, CV_8UC3, Scalar());
-		Codec encoder, decoder0, decoder1;
+		Codec encoder;
 		bool update = true, finish = true;
-		set<unsigned> show;
 		vector<unsigned char> encbuf;
 		vector<vector<unsigned char> > decbuf;
 		
 		boost::posix_time::ptime t = boost::posix_time::microsec_clock::local_time();
 		while (working) {
-			unsigned quality = (UILock(), ui.quality->value());
-
 			if (finish && update) {
 				unsigned d = (boost::posix_time::microsec_clock::local_time() - t).total_milliseconds();
 				boost::this_thread::sleep(boost::posix_time::milliseconds(d < 30? 40 - d: 10));
@@ -574,12 +574,42 @@ void Video::coder() {
 
 			update = network.broadcast(encbuf, decbuf, maxlatency);
 
+			if (!update && decbuf.size() == 0) {
+				boost::this_thread::sleep(boost::posix_time::milliseconds(10));
+				continue;
+			}
+
+			boost::lock_guard<boost::mutex> lock(bufmutex);
+			if (buf.size() == 0)
+				swap(decbuf, buf);
+			else
+				buf.insert(buf.end(), decbuf.begin(), decbuf.end());
+		}
+
+		cout << "video encode stopped" << endl;
+
+	} catch (std::exception& e) {
+		cout << "video encode failure: " << e.what() << endl;
+	}
+}
+
+
+void Video::decodeworker() {
+	try {
+		Codec decoder0, decoder1;
+		set<unsigned> show;
+		vector<vector<unsigned char> > decbuf;
+
+		boost::posix_time::ptime t = boost::posix_time::microsec_clock::local_time();
+		while (working) {
+			unsigned quality = (UILock(), ui.quality->value());
+
 			for (unsigned i = 0; i < decbuf.size(); i++) {
 				(decbuf[i][0] == 0? decoder0: decoder1).decode(decbuf[i]);
 				show.insert(decbuf[i][0]);
 			}
 
-			while (show.size() > 0 && (!update || finish)) {
+			while (show.size() > 0) {
 				(*show.begin() == 0? decoder0: decoder1).show(*show.begin() == left? *limg: *rimg, quality);
 				UILock lock;
 				(*show.begin() == left? ui.leftimage: ui.rightimage)->redraw();
@@ -587,15 +617,17 @@ void Video::coder() {
 				show.erase(show.begin());
 			}
 
-			if (!update)
+			if (decbuf.size() == 0)
 				boost::this_thread::sleep(boost::posix_time::milliseconds(10));
-			else
-				boost::this_thread::yield();
+
+			decbuf.clear();
+			boost::lock_guard<boost::mutex> lock(bufmutex);
+			swap(decbuf, buf);
 		}
 
-		cout << "video codec stopped" << endl;
+		cout << "video decode stopped" << endl;
 
 	} catch (std::exception& e) {
-		cout << "video codec failure: " << e.what() << endl;
+		cout << "video decode failure: " << e.what() << endl;
 	}
 }
