@@ -386,6 +386,7 @@ void Network::receiver(const errorcode& e, size_t n) {
 	} else if (n > 1 && (recvbuf[0] & 192) == 192 && server) {
 		peer->relayed = true;
 	} else if (n > 1 && (recvbuf[0] & 192) == 192 && !server && peers.size() > 1) {
+		bandwidth = peers.size() * maxpeers * minbw;
 		peers[1].relayed = true;
 		recvbuf[0] = recvbuf[n - 1];
 		endpoint = peers[1].endpoint;
@@ -399,10 +400,8 @@ void Network::receiver(const errorcode& e, size_t n) {
 			buf->push_back(buf->at(0));
 		buf->at(0) = 192;
 		unsigned p = peer == peers.begin()? 1: 0;
-		if ((buf->back() & 192) != 128 || peers[p].bucket >= buf->size()) {
-			peers[p].bucket -= min(peers[p].bucket, (unsigned)buf->size());
-			socket.async_send_to(buffer(*buf), peers[p].endpoint, boost::bind(&Network::sender, this, buf, _1, _2));
-		}
+		peers[p].bucket -= min(peers[p].bucket, (unsigned)buf->size());
+		socket.async_send_to(buffer(*buf), peers[p].endpoint, boost::bind(&Network::sender, this, buf, _1, _2));
 	}
 
 

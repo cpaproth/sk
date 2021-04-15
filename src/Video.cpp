@@ -523,7 +523,7 @@ void Video::captureworker() {
 			} while ((boost::posix_time::microsec_clock::local_time() - t).total_milliseconds() < 40);
 			t = boost::posix_time::microsec_clock::local_time();
 
-			if (cap.size().area() == 0) capture->open("webcam.avi"), *capture >> cap;
+			//if (cap.size().area() == 0) capture->open("webcam.avi"), *capture >> cap;
 
 			bool pause = (UILock(), ui.midimage->get());
 			if (cap.size().area() == 0 || pause) {
@@ -571,13 +571,10 @@ void Video::encodeworker() {
 
 			if (update || reset)
 				finish = encoder.encode(frame, encbuf, reset.exchange(false));
+			else
+				boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 
 			update = network.broadcast(encbuf, decbuf, maxlatency);
-
-			if (!update && decbuf.size() == 0) {
-				boost::this_thread::sleep(boost::posix_time::milliseconds(10));
-				continue;
-			}
 
 			boost::lock_guard<boost::mutex> lock(bufmutex);
 			if (buf.size() == 0)
@@ -600,7 +597,6 @@ void Video::decodeworker() {
 		set<unsigned> show;
 		vector<vector<unsigned char> > decbuf;
 
-		boost::posix_time::ptime t = boost::posix_time::microsec_clock::local_time();
 		while (working) {
 			unsigned quality = (UILock(), ui.quality->value());
 
@@ -617,8 +613,7 @@ void Video::decodeworker() {
 				show.erase(show.begin());
 			}
 
-			if (decbuf.size() == 0)
-				boost::this_thread::sleep(boost::posix_time::milliseconds(10));
+			boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 
 			decbuf.clear();
 			boost::lock_guard<boost::mutex> lock(bufmutex);
