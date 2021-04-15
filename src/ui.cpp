@@ -467,10 +467,10 @@ UserInterface::UserInterface():prefs(Fl_Preferences::USER, "cpaproth", "sk") {
     mainwnd->labelsize(11);
     mainwnd->callback((Fl_Callback*)cb_mainwnd, (void*)(this));
     mainwnd->align(Fl_Align(FL_ALIGN_CLIP|FL_ALIGN_INSIDE));
-    { Fl_Tabs* o = new Fl_Tabs(0, 0, 960, 700);
-      o->labelsize(11);
-      { Fl_Group* o = new Fl_Group(0, 25, 960, 675, "Skat");
-        o->labelsize(11);
+    { tabs = new Fl_Tabs(0, 0, 960, 700);
+      tabs->labelsize(11);
+      { skattab = new Fl_Group(0, 25, 960, 675, "Skat");
+        skattab->labelsize(11);
         { table = new SK::GlTable(0, 265, 640, 435);
           table->box(FL_FLAT_BOX);
           table->color((Fl_Color)1908830464);
@@ -690,8 +690,8 @@ UserInterface::UserInterface():prefs(Fl_Preferences::USER, "cpaproth", "sk") {
           chat->callback((Fl_Callback*)cb_chat);
           chat->when(FL_WHEN_ENTER_KEY);
         } // Fl_Input* chat
-        o->end();
-      } // Fl_Group* o
+        skattab->end();
+      } // Fl_Group* skattab
       { Fl_Group* o = new Fl_Group(0, 25, 960, 675, "Options");
         o->box(FL_PLASTIC_UP_BOX);
         o->labelsize(11);
@@ -889,10 +889,10 @@ ore CPU cycles and thus is slower.");
         } // Fl_Group* o
         o->end();
       } // Fl_Group* o
-      { Fl_Group* o = new Fl_Group(0, 25, 960, 675, "Log");
-        o->labelsize(11);
-        o->hide();
-        { SK::LogDisplay* o = new SK::LogDisplay(0, 25, 480, 675);
+      { logtab = new Fl_Group(0, 25, 960, 675, "Log");
+        logtab->labelsize(11);
+        logtab->hide();
+        { SK::LogDisplay* o = new SK::LogDisplay(0, 25, 460, 675);
           o->box(FL_DOWN_BOX);
           o->color((Fl_Color)55);
           o->selection_color(FL_SELECTION_COLOR);
@@ -905,18 +905,18 @@ ore CPU cycles and thus is slower.");
           o->when(FL_WHEN_RELEASE);
           Fl_Group::current()->resizable(o);
         } // SK::LogDisplay* o
-        { listing = new Fl_Browser(480, 25, 480, 675);
+        { listing = new Fl_Browser(460, 25, 500, 675);
           listing->selection_color((Fl_Color)215);
           listing->labelsize(11);
           listing->textsize(9);
-          static const int widths[] = {130, 50, 80, 80, 80, 60, 0}; listing->column_widths(widths);
+          static const int widths[] = {150, 50, 80, 80, 80, 60, 0}; listing->column_widths(widths);
           listing->add("@B49@cSpiel\t@B49@cPunkte\t@B49@cDu\t@B49@cLinks\t@B49@cRechts\t@B49@cSR");
         } // Fl_Browser* listing
-        o->end();
-        Fl_Group::current()->resizable(o);
-      } // Fl_Group* o
-      o->end();
-    } // Fl_Tabs* o
+        logtab->end();
+        Fl_Group::current()->resizable(logtab);
+      } // Fl_Group* logtab
+      tabs->end();
+    } // Fl_Tabs* tabs
     mainwnd->size_range(960, 700);
     mainwnd->end();
     mainwnd->resizable(mainwnd);

@@ -35,8 +35,15 @@ void mute_audio(UserInterface& ui, Audio& audio) {
 }
 
 
+void stats_network(UserInterface& ui, Network& network) {
+	network.stats();
+	ui.tabs->value(ui.logtab);
+}
+
+
 void connect_network(UserInterface& ui, Network& network) {
 	network.connect(ui.address->value(), (unsigned short)ui.port->value(), (bool)ui.server->value(), (unsigned)ui.bandwidth->value());
+	ui.tabs->value(ui.skattab);
 }
 
 
@@ -60,7 +67,7 @@ int main(int argc, char** argv) {
 		ui.f["audio noise"] = boost::bind(&Audio::toggle_noisegate, &audio);
 		ui.f["audio mute"] = boost::bind(&mute_audio, boost::ref(ui), boost::ref(audio));
 		ui.f["chat message"] = boost::bind(&Video::send_chat, &video);
-		ui.f["network stats"] = boost::bind(&Network::stats, &network);
+		ui.f["network stats"] = boost::bind(&stats_network, boost::ref(ui), boost::ref(network));
 		ui.f["network connect"] = boost::bind(&connect_network, boost::ref(ui), boost::ref(network));
 
 		if (argc > 1) {

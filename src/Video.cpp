@@ -209,7 +209,7 @@ bool Video::Codec::encode(const Mat& img, vector<unsigned char>& enc, bool reset
 			diffs.insert(make_pair(-(ldiffs[i] > 1.f? ldiffs[i]: ldiffs[i] + ndiffs[i]), i));
 
 
-	unsigned blocks = (diffs.size() & ~1) + (diffs.size() > 50? 2: 9);
+	unsigned blocks = diffs.size() > 50? 20: 9, lastblocks = blocks;
 	do {
 
 		mask.clear();
@@ -293,7 +293,9 @@ bool Video::Codec::encode(const Mat& img, vector<unsigned char>& enc, bool reset
 		}
 		enc.push_back(low >> 24); enc.push_back((low >> 16) & 255); enc.push_back((low >> 8) & 255); enc.push_back(low & 255);
 
-	} while (blocks -= max(2u, (unsigned)(enc.size() > maxpacket? (enc.size() - maxpacket) / 3 * mask.size() / enc.size() * 2: 2)), blocks > 1 && enc.size() > maxpacket);
+		if (enc.size() <= maxpacket && (finish || blocks + 2 == lastblocks))
+			break;
+	} while (lastblocks = blocks, blocks += enc.size() > maxpacket? -2: (maxpacket - enc.size()) * mask.size() / 2 / enc.size() * 2, enc.size() > maxpacket || blocks != lastblocks);
 
 
 	for (set<unsigned>::const_iterator it = mask.begin(); it != mask.end(); it++) {

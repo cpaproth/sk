@@ -552,9 +552,9 @@ void Game::game_over() {
 
 	int mw = (won - lost) * 50, lw = (leftwon - leftlost) * 50, rw = (rightwon - rightlost) * 50, ml = (leftlost + rightlost) * 40, ll = (lost + rightlost) * 40, rl = (lost + leftlost) * 40;
 	ui.listing->add("@-");
-	ui.listing->add(ss("Gewonnen/Verloren\t\t@c") << won << "/" << lost << "\t@c" << leftwon << "/" << leftlost << "\t@c" << rightwon << "/" << rightlost << "\t" | c_str);
-	ui.listing->add(ss("(Gewonnen-Verloren)x50\t\t@c") << mw << "\t@c" << lw << "\t@c" << rw << "\t" | c_str);
-	ui.listing->add(ss("(Gegner Verloren)x40\t\t@c") << ml << "\t@c" << ll << "\t@c" << rl << "\t" | c_str);
+	ui.listing->add(ss("Gewonnen / Verloren\t\t@c") << won << " / " << lost << "\t@c" << leftwon << " / " << leftlost << "\t@c" << rightwon << " / " << rightlost << "\t" | c_str);
+	ui.listing->add(ss("(Gewonnen - Verloren) x 50\t\t@c") << mw << "\t@c" << lw << "\t@c" << rw << "\t" | c_str);
+	ui.listing->add(ss("(Gegner Verloren) x 40\t\t@c") << ml << "\t@c" << ll << "\t@c" << rl << "\t" | c_str);
 	ui.listing->add("@-");
 	ui.listing->add(ss("@bGesamt\t\t@b@c") << scores + mw + ml << "\t@b@c" << leftscores + lw + ll << "\t@b@c" << rightscores + rw + rl << "\t" | c_str);
 

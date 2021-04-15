@@ -54,6 +54,8 @@ private:
   inline void cb_mainwnd_i(Fl_Double_Window*, void*);
   static void cb_mainwnd(Fl_Double_Window*, void*);
 public:
+  Fl_Tabs *tabs;
+  Fl_Group *skattab;
   SK::GlTable *table;
 private:
   inline void cb_table_i(SK::GlTable*, void*);
@@ -234,6 +236,7 @@ private:
   inline void cb_quality_i(Fl_Slider*, void*);
   static void cb_quality(Fl_Slider*, void*);
 public:
+  Fl_Group *logtab;
   Fl_Browser *listing;
   ~UserInterface();
 private:

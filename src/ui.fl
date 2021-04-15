@@ -46,11 +46,11 @@ class UserInterface {open
       code1 {\#include <string>}
       code2 {\#include <boost/function/function0.hpp>} size_range {960 700 0 0} visible
     } {
-      Fl_Tabs {} {open
+      Fl_Tabs tabs {open
         xywh {0 0 960 700} labelsize 11
       } {
-        Fl_Group {} {
-          label Skat open selected
+        Fl_Group skattab {
+          label Skat selected
           xywh {0 25 960 675} labelsize 11
         } {
           Fl_Box table {
@@ -216,7 +216,7 @@ f["game select"]();}
           }
         }
         Fl_Group {} {
-          label Options open
+          label Options
           xywh {0 25 960 675} box PLASTIC_UP_BOX labelsize 11 hide
         } {
           Fl_Group {} {
@@ -362,18 +362,18 @@ f["rule change"]();}
             }
           }
         }
-        Fl_Group {} {
+        Fl_Group logtab {
           label Log open
           xywh {0 25 960 675} labelsize 11 hide resizable
         } {
           Fl_Text_Display {} {
-            private xywh {0 25 480 675} box DOWN_BOX color 55 labelsize 11 textsize 11 resizable
+            private xywh {0 25 460 675} box DOWN_BOX color 55 labelsize 11 textsize 11 resizable
             code0 {\#include "LogDisplay.h"}
             class {SK::LogDisplay}
           }
           Fl_Browser listing {
-            xywh {480 25 480 675} selection_color 215 labelsize 11 textsize 9
-            code0 {static const int widths[] = {130, 50, 80, 80, 80, 60, 0}; listing->column_widths(widths);}
+            xywh {460 25 500 675} selection_color 215 labelsize 11 textsize 9
+            code0 {static const int widths[] = {150, 50, 80, 80, 80, 60, 0}; listing->column_widths(widths);}
             code1 {listing->add("@B49@cSpiel\\t@B49@cPunkte\\t@B49@cDu\\t@B49@cLinks\\t@B49@cRechts\\t@B49@cSR");}
           }
         }
