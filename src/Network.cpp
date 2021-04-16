@@ -384,7 +384,7 @@ void Network::receiver(const errorcode& e, size_t n) {
 		list<ucharbuf>::iterator it = lower_bound(peer->buffer.begin(), peer->buffer.end(), recvbuf, ring_cmp);
 		peer->buffer.insert(it, ucharbuf(recvbuf.begin(), recvbuf.begin() + n));
 	} else if (n > 1 && (recvbuf[0] & 192) == 192 && server) {
-		peer->relayed = true;
+		peer->relayed = peers.size() > 1 && find_if(peers.begin(), peers.end(), boost::bind(&Peer::idle, _1) > 2 * timerrate) == peers.end();
 	} else if (n > 1 && (recvbuf[0] & 192) == 192 && !server && peers.size() > 1) {
 		bandwidth = peers.size() * maxpeers * minbw;
 		peers[1].relayed = true;

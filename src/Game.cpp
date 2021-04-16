@@ -83,7 +83,6 @@ Game::Game(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 
 	left = 0;
 	right = 1;
-	row = 0;
 
 	leftrules = rightrules = 0;
 	check_rules();
@@ -204,6 +203,7 @@ void Game::reset_round() {
 	scores = leftscores = rightscores = 0;
 	won = leftwon = rightwon = 0;
 	lost = leftlost = rightlost = 0;
+	row = 0;
 	rounds.clear();
 	header.clear();
 	reset_game(myself);
@@ -511,7 +511,7 @@ void Game::game_over() {
 
 	for (unsigned i = 0; i < 6 && row > 0; i++)
 		ui.listing->remove(ui.listing->size());
-	
+
 	string h = ss("\t\t@b@c") << ui.name->value() << "\t@b@c" << leftname << "\t@b@c" << rightname << "\t@b@c" << (rule(1)? "E": "") << (rule(2)? "K": "") << (rule(4)? "B": "") << (rule(8)? "R": "");
 	if (h != header) {
 		header = h;
