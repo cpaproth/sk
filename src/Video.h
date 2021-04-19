@@ -25,6 +25,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #include <boost/atomic.hpp>
 #include <vector>
 #include <set>
+#include <map>
 
 
 namespace cv {
@@ -52,11 +53,12 @@ class Video {
 
 
 	class Codec {
-		const float		a1, a2, a3, a4, k1, k2;
-		vector<float>		Y, U, V, tmpY, tmpU, tmpV;
-		set<unsigned>		mask;
-		vector<unsigned>	rndmask;
-		unsigned		frame, rndpos, w, h, l;
+		const float			a1, a2, a3, a4, k1, k2;
+		vector<float>			Y, U, V, tmpY, tmpU, tmpV;
+		set<unsigned>			mask;
+		vector<unsigned>		rndmask;
+		multimap<float, unsigned>	diffs;
+		unsigned			frame, part, rndpos, w, h, l;
 
 		void fcdf97(vector<float>&, unsigned, unsigned, unsigned);
 		void icdf97(vector<float>&, unsigned, unsigned, unsigned);
@@ -64,9 +66,10 @@ class Video {
 		void denoise(vector<float>&, float, unsigned, unsigned);
 	public:
 		Codec();
-		bool encode(const cv::Mat&, vector<unsigned char>&, bool);
+		void nextframe(const cv::Mat&, bool);
+		bool encode(vector<unsigned char>&);
 		void decode(const vector<unsigned char>&);
-		void show(cv::Mat&, unsigned);
+		void showframe(cv::Mat&, unsigned);
 	};
 
 

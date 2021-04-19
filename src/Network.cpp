@@ -177,9 +177,27 @@ bool Network::broadcast(const ucharbuf& send, vector<ucharbuf>& recv, unsigned l
 			send_buffer(i, buf);
 			sent = true;
 		} else if ((send[0] & 192) == 128) {
-			while (peers[i].buffer.size() > 0 && ((peers[i].buffer.back()[0] - peers[i].buffer.front()[0]) & 63) > 0) {
-				recv.push_back(peers[i].buffer.front());
-				recv.back()[0] = i;
+			unsigned char f = 0, ff = 0, c = 0, p = -1;
+			for (list<ucharbuf>::iterator it = peers[i].buffer.begin(); it != peers[i].buffer.end(); it++) {
+				c = (*it)[0] != f? 1: c + 1;
+				p = it->size() == 2? (*it)[1]: (*it)[0] != f? -1: p;
+				f = (*it)[0];
+				ff = c >= p? f: ff;
+			}
+
+			unsigned count = 0, parts = -1;
+			for (list<ucharbuf>::reverse_iterator it = peers[i].buffer.rbegin(); it != peers[i].buffer.rend() && (*it)[0] == peers[i].buffer.back()[0]; count++, it++)
+				parts = it->size() == 2? (*it)[1]: parts;
+
+			//while (peers[i].buffer.size() > 0 && ((peers[i].buffer.back()[0] - peers[i].buffer.front()[0]) & 63) > 0) {
+			//while (peers[i].buffer.size() > 0 && (((peers[i].buffer.back()[0] - peers[i].buffer.front()[0]) & 63) > 2 || count >= parts)) {
+			//while (peers[i].buffer.size() > 0 && count >= parts) {
+			while (peers[i].buffer.size() > 0 && ff != 0 && ((ff - peers[i].buffer.front()[0]) & 63) < 32) {
+				if(peers[i].buffer.front().size() != 2){
+					recv.push_back(ucharbuf());
+					recv.back().swap(peers[i].buffer.front());
+					recv.back()[0] = i;
+				}
 				peers[i].buffer.pop_front();
 			}
 
@@ -382,6 +400,7 @@ void Network::receiver(const errorcode& e, size_t n) {
 		while (peer->buffer.size() > 0 && ring_cmp(recvbuf, peer->buffer.front()) && !ring_cmp(recvbuf, peer->buffer.back()))
 			peer->buffer.pop_front();
 		list<ucharbuf>::iterator it = lower_bound(peer->buffer.begin(), peer->buffer.end(), recvbuf, ring_cmp);
+//if(rand()%20!=0)
 		peer->buffer.insert(it, ucharbuf(recvbuf.begin(), recvbuf.begin() + n));
 	} else if (n > 1 && (recvbuf[0] & 192) == 192 && server) {
 		peer->relayed = peers.size() > 1 && find_if(peers.begin(), peers.end(), boost::bind(&Peer::idle, _1) > 2 * timerrate) == peers.end();
