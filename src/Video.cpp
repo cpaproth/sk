@@ -319,7 +319,7 @@ bool Video::Codec::encode(vector<unsigned char>& enc) {
 		}
 		enc.push_back(low >> 24); enc.push_back((low >> 16) & 255); enc.push_back((low >> 8) & 255); enc.push_back(low & 255);
 
-		if (enc.size() <= maxpacket && (diff == diffs.end() || blocks + 2 == lastblocks))
+		if (blocks < 3 || (enc.size() <= maxpacket && (diff == diffs.end() || blocks + 2 == lastblocks)))
 			break;
 	} while (lastblocks = blocks, blocks += enc.size() > maxpacket? -2: (maxpacket - enc.size()) * mask.size() / 2 / enc.size() * 2, enc.size() > maxpacket || blocks != lastblocks);
 
