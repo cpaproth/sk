@@ -34,6 +34,7 @@ Video::Codec::Codec() : a1(-1.586134342f), a2(-0.05298011854f), a3(0.8829110762f
 	while (rndmask.size() < minsize)
 		rndmask.push_back(rndmask.size());
 	random_shuffle(rndmask.begin(), rndmask.end());
+	refresh.resize(minsize, 0);
 	for (w = imagewidth, h = imageheight, l = 1; w * h > minsize; w /= 2, h /= 2, l *= 2);
 }
 
@@ -154,16 +155,15 @@ void Video::Codec::denoise(vector<float>& C, float h, const unsigned P, const un
 }
 
 
-void Video::Codec::nextframe(const Mat& img, bool reset) {
-	if (reset)
+void Video::Codec::nextframe(const Mat& img, unsigned time) {
+	if (time >= refreshtime)
 		tmpY = tmpU = tmpV = vector<float>(imagewidth * imageheight, 1000.f);
 
 	diffs.clear();
 	frame++;
 	part = 0;
-	static vector<unsigned> resend(minsize, 20000);
-	//for (unsigned i = 0; i < resend.size(); i++)
-	//	resend[i] += 500;
+	for (unsigned i = 0; i < refresh.size(); i++)
+		refresh[i] += rand() % 200 * time / 100 + 1;
 
 	if (img.cols != (int)imagewidth || img.rows != (int)imageheight || img.elemSize() != 3)
 		return;
@@ -209,16 +209,12 @@ void Video::Codec::nextframe(const Mat& img, bool reset) {
 		}
 	}
 
-	for (unsigned i = 0; i < ldiffs.size(); i++) {
-		if (ldiffs[i] > 1.f || (ldiffs[i] > 0.25f && ndiffs[i] > 1.f))
-			diffs.insert(make_pair(-(ldiffs[i] > 1.f? ldiffs[i]: ldiffs[i] + ndiffs[i]), i));
-		else if (resend[i] > 10000)
-			diffs.insert(make_pair(-1.f, i));
-	}
-
+	for (unsigned i = 0; i < ldiffs.size(); i++)
+		if (ldiffs[i] > 1.f || (ldiffs[i] > 0.25f && ndiffs[i] > 1.f) || refresh[i] > refreshtime)
+			diffs.insert(make_pair(-ldiffs[i], i));
 
 	for (multimap<float, unsigned>::const_iterator it = diffs.begin(); it != diffs.end(); it++) {
-		resend[it->second] = ldiffs[it->second] > 2.f? 10000: 0;
+		refresh[it->second] = ldiffs[it->second] > 2.f? refreshtime: 0;
 		for (unsigned y = it->second / w * l; y < it->second / w * l + l; y++) {
 			for (unsigned x = it->second % w * l; x < it->second % w * l + l; x++) {
 				tmpY[y * imagewidth + x] = Y[y * imagewidth + x];
@@ -253,7 +249,7 @@ bool Video::Codec::encode(vector<unsigned char>& enc) {
 		for (set<unsigned>::const_iterator it = mask.begin(); it != mask.end(); it++)
 			data[*it] = 1;
 
-		float q = mask.size() % 2 == 0? 2.f: 1.f;
+		float q = mask.size() % 2 == 0? 3.f: 1.f;
 		for (unsigned f = 0; f < 4; f++) {
 			rearrange(mask, Y, data, minsize + 3 * f * mask.size(), 3, f, 1.f, true);
 			rearrange(mask, U, data, minsize + (3 * f + 1) * mask.size(), 3, f, 4.f, true);
@@ -407,7 +403,7 @@ void Video::Codec::decode(const vector<unsigned char>& enc) {
 	for (unsigned i = minsize + 1; i < minsize + 3 * mask.size(); i++)
 		data[i] += data[i - 1];
 
-	float q = mask.size() % 2 == 0? 2.f: 1.f;
+	float q = mask.size() % 2 == 0? 3.f: 1.f;
 	for (unsigned f = 0; f < 4; f++) {
 		rearrange(mask, tmpY, data, minsize + 3 * f * mask.size(), 3, f, 1.f, false);
 		rearrange(mask, tmpU, data, minsize + (3 * f + 1) * mask.size(), 3, f, 4.f, false);
@@ -585,7 +581,7 @@ void Video::encodeworker() {
 				boost::this_thread::sleep(boost::posix_time::milliseconds(d < 30? 40 - d: 10));
 				t = boost::posix_time::microsec_clock::local_time();
 				UILock lock;
-				encoder.nextframe(*img, reset.exchange(false));
+				encoder.nextframe(*img, reset.exchange(false)? refreshtime: d + (d < 30? 40 - d: 10));
 				finish = false;
 			}
 

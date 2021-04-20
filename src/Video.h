@@ -48,6 +48,7 @@ class Video {
 	static const unsigned imagewidth = 320;
 	static const unsigned imageheight = 240;
 	static const unsigned minsize = 300;
+	static const unsigned refreshtime = 2000;
 	static const unsigned maxpacket = 500;
 	static const unsigned maxlatency = 20;
 
@@ -56,7 +57,7 @@ class Video {
 		const float			a1, a2, a3, a4, k1, k2;
 		vector<float>			Y, U, V, tmpY, tmpU, tmpV;
 		set<unsigned>			mask;
-		vector<unsigned>		rndmask;
+		vector<unsigned>		rndmask, refresh;
 		multimap<float, unsigned>	diffs;
 		unsigned			frame, part, rndpos, w, h, l;
 
@@ -66,7 +67,7 @@ class Video {
 		void denoise(vector<float>&, float, unsigned, unsigned);
 	public:
 		Codec();
-		void nextframe(const cv::Mat&, bool);
+		void nextframe(const cv::Mat&, unsigned);
 		bool encode(vector<unsigned char>&);
 		void decode(const vector<unsigned char>&);
 		void showframe(cv::Mat&, unsigned);
