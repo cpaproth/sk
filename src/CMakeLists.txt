@@ -4,6 +4,7 @@ project(sk)
 find_package(OpenCV REQUIRED)
 find_package(Boost REQUIRED system thread)
 find_package(FLTK REQUIRED)
+find_package(OpenGL REQUIRED)
 
 find_package(PkgConfig)
 if(PKG_CONFIG_FOUND)
@@ -41,4 +42,4 @@ add_executable(sk WIN32 main.cpp
 
 target_include_directories(sk PUBLIC ${PORTAUDIO_INCLUDE_DIRS} ${FLTK_INCLUDE_DIR} ${OpenCV_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 
-target_link_libraries(sk ${PORTAUDIO_LIBRARIES} ${FLTK_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} ${CMAKE_DL_LIBS})
+target_link_libraries(sk ${PORTAUDIO_LIBRARIES} ${FLTK_LIBRARIES} ${OPENGL_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES} ${CMAKE_DL_LIBS})

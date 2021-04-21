@@ -1,5 +1,6 @@
 #!/bin/sh
 
+sudo apt-get update
 sudo apt-get install build-essential libfltk1.3-dev libboost-all-dev libopencv-dev portaudio19-dev cmake
 
 BRANCH=master
