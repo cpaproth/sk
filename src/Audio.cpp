@@ -94,6 +94,9 @@ Audio::Audio(Network& nw) : trafo(framesize), bits(8 * encsize), encbuf(encsize 
 	initerror = Pa_Initialize() != paNoError;
 	if (initerror)
 		cout << "audio initialization failed" << endl;
+
+	working = true;
+	audiothread = boost::thread(boost::bind(&Audio::audioworker, this));
 }
 
 
@@ -108,12 +111,16 @@ Audio::~Audio() {
 			Pa_Terminate();
 
 		cout << "audio stream closed" << endl;
+
+		working = false;
+		if (audiothread.joinable())
+			audiothread.join();
 	} catch (...) {}
 }
 
 
 void Audio::restart() {
-	if (initerror || (!stream && Pa_OpenDefaultStream(&stream, 1, 1, paInt16, samplerate, framesize, &callback, this) != paNoError))
+	if (initerror || (!stream && Pa_OpenDefaultStream(&stream, 1, 1, paInt16, samplerate, paFramesPerBufferUnspecified, &callback, this) != paNoError))
 		throw runtime_error("open audio stream failed");
 	if (!Pa_IsStreamStopped(stream)) {
 		cout << "audio cpu load: " << Pa_GetStreamCpuLoad(stream) << endl;
@@ -218,24 +225,50 @@ void Audio::decode(short* out) {
 
 int Audio::callback(const void* in, void* out, unsigned long size, const PaStreamCallbackTimeInfo*, PaStreamCallbackFlags, void* data) {
 	try {
-		if (size != framesize)
-			throw runtime_error("wrong frame size");
-
 		Audio& a = *(Audio*)data;
 
-		a.encode((short*)in);
-		if (!a.playmic) {
-			a.network.broadcast(a.encbuf, a.decbuf, maxlatency);
-		} else {
-			a.decbuf.clear();
-			a.decbuf.push_back(a.encbuf);
-		}
-		a.decode((short*)out);
+		a.inbuf.push((short*)in, size);
+
+		if (a.outbuf.read_available() < size)
+			memset(out, 0, 2 * size);
+		else
+			a.outbuf.pop((short*)out, size);
 
 	} catch (exception& e) {
-		cout << "audio failure: " << e.what() << endl;
+		cout << "audio stream failure: " << e.what() << endl;
 		return paAbort;
 	}
 
 	return paContinue;
+}
+
+
+void Audio::audioworker() {
+	try {
+		short buffer[framesize];
+
+		while (working) {
+			if (inbuf.read_available() < framesize) {
+				boost::this_thread::sleep(boost::posix_time::milliseconds(maxlatency));
+				continue;
+			}
+			inbuf.pop(buffer, framesize);
+
+			encode(buffer);
+			if (!playmic) {
+				network.broadcast(encbuf, decbuf, maxlatency);
+			} else {
+				decbuf.clear();
+				decbuf.push_back(encbuf);
+			}
+			decode(buffer);
+
+			outbuf.push(buffer, framesize);
+		}
+
+		cout << "audio thread stopped" << endl;
+
+	} catch (std::exception& e) {
+		cout << "audio thread failure: " << e.what() << endl;
+	}
 }

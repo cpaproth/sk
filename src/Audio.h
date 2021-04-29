@@ -24,7 +24,9 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #include <vector>
 #include <complex>
 #include <boost/dynamic_bitset.hpp>
+#include <boost/thread.hpp>
 #include <boost/atomic.hpp>
+#include <boost/lockfree/spsc_queue.hpp>
 
 
 namespace SK {
@@ -70,6 +72,10 @@ class Audio {
 	vector<vector<unsigned char> >		decbuf;
 	Network&				network;
 	bool					initerror;
+	boost::thread				audiothread;
+	boost::lockfree::spsc_queue<short, boost::lockfree::capacity<8 * framesize> >	inbuf;
+	boost::lockfree::spsc_queue<short, boost::lockfree::capacity<8 * framesize> >	outbuf;
+	boost::atomic<bool>			working;
 	boost::atomic<bool>			playmic;
 	boost::atomic<bool>			noisegate;
 	boost::atomic<bool>			mute;
@@ -87,6 +93,7 @@ class Audio {
 	void decode(short*);
 
 	static int callback(const void*, void*, unsigned long, const PaStreamCallbackTimeInfo*, PaStreamCallbackFlags, void*);
+	void audioworker();
 
 	Audio(const Audio&);
 	void operator=(const Audio&);
