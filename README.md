@@ -45,6 +45,7 @@ The following steps illustrate how to install all dependencies and build *sk* on
 
 1. Install all the dependencies and CMake by using:
 
+        sudo apt-get update
         sudo apt-get install build-essential libfltk1.3-dev libboost-all-dev libopencv-dev portaudio19-dev cmake
 		
 2. [Download](https://github.com/cpaproth/sk/archive/master.zip) and unpack the *sk* source code.
@@ -62,6 +63,8 @@ The following steps illustrate how to install all dependencies and build *sk* on
 
 First of all, you need a webcam, a microphone, headphones and two other players.
 Skat is a card game played by three people. One player has to be the server. If you want to be the one, start *sk*, go to the *Options* tab, tick the *Server* checkbox, and click *Connect*. Then tell the other two players your publicly reachable IP address or hostname, and UDP port per e-mail, telephone, or whatever.
-Now, the other two can start *sk* and connect to this disclosed address and UDP port. Any firewalls/NATs in between should be configured to allow this connection. If a connection can be established, the videoconferencing starts.
+Now, the other two can start *sk* and connect to this disclosed address and UDP port. Any firewalls/NATs in between should be configured to allow this connection.
+
+If a connection can be established, the videoconferencing starts.
 If two peers are connected to the server, the server initiates UDP hole punching between these two peers. If a direct peer-to-peer connection is not successful, the server acts as relay between the peers. The server should provide enough upload bandwidth for this case. After 3 players are connected with each other either directly or through the relay, the game starts.
 The game consists of secure dealing out, bidding, choosing the Skat cards, announcing the game, playing the hand, and especially small talk: Hinten ist die Ente fett!
