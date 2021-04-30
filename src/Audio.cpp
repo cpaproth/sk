@@ -96,7 +96,7 @@ Audio::Audio(Network& nw) : trafo(framesize), bits(8 * encsize), encbuf(encsize 
 		cout << "audio initialization failed" << endl;
 
 	working = true;
-	audiothread = boost::thread(boost::bind(&Audio::audioworker, this));
+	workerthread = boost::thread(boost::bind(&Audio::worker, this));
 }
 
 
@@ -113,14 +113,14 @@ Audio::~Audio() {
 		cout << "audio stream closed" << endl;
 
 		working = false;
-		if (audiothread.joinable())
-			audiothread.join();
+		if (workerthread.joinable())
+			workerthread.join();
 	} catch (...) {}
 }
 
 
 void Audio::restart() {
-	if (initerror || (!stream && Pa_OpenDefaultStream(&stream, 1, 1, paInt16, samplerate, paFramesPerBufferUnspecified, &callback, this) != paNoError))
+	if (initerror || (!stream && Pa_OpenDefaultStream(&stream, 1, 1, paInt16, samplerate, framesize, &callback, this) != paNoError))
 		throw runtime_error("open audio stream failed");
 	if (!Pa_IsStreamStopped(stream)) {
 		cout << "audio cpu load: " << Pa_GetStreamCpuLoad(stream) << endl;
@@ -243,7 +243,7 @@ int Audio::callback(const void* in, void* out, unsigned long size, const PaStrea
 }
 
 
-void Audio::audioworker() {
+void Audio::worker() {
 	try {
 		short buffer[framesize];
 

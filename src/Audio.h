@@ -72,7 +72,7 @@ class Audio {
 	vector<vector<unsigned char> >		decbuf;
 	Network&				network;
 	bool					initerror;
-	boost::thread				audiothread;
+	boost::thread				workerthread;
 	boost::lockfree::spsc_queue<short, boost::lockfree::capacity<8 * framesize> >	inbuf;
 	boost::lockfree::spsc_queue<short, boost::lockfree::capacity<8 * framesize> >	outbuf;
 	boost::atomic<bool>			working;
@@ -93,7 +93,7 @@ class Audio {
 	void decode(short*);
 
 	static int callback(const void*, void*, unsigned long, const PaStreamCallbackTimeInfo*, PaStreamCallbackFlags, void*);
-	void audioworker();
+	void worker();
 
 	Audio(const Audio&);
 	void operator=(const Audio&);
