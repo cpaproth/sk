@@ -78,7 +78,6 @@ int main(int argc, char** argv) {
 
 		Fl::wait(0.1);
 		try {
-			audio.restart();
 			connect_network(ui, network);
 		} catch (exception& e) {
 			cout << "start error: " << e.what() << endl;

@@ -47,7 +47,7 @@ The following steps illustrate how to install all dependencies and build *sk* on
 
         sudo apt-get update
         sudo apt-get install build-essential libfltk1.3-dev libboost-all-dev libopencv-dev portaudio19-dev cmake
-		
+
 2. [Download](https://github.com/cpaproth/sk/archive/master.zip) and unpack the *sk* source code.
 3. Build and run *sk*:
 

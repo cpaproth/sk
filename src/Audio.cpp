@@ -81,6 +81,8 @@ Audio::Audio(Network& nw) : trafo(framesize), bits(8 * encsize), encbuf(encsize 
 	playmic = false;
 	noisegate = true;
 	mute = false;
+	working = true;
+	reset = false;
 	frame = 0;
 	rnd = 11113;
 	threshold = INT_MAX;
@@ -91,17 +93,21 @@ Audio::Audio(Network& nw) : trafo(framesize), bits(8 * encsize), encbuf(encsize 
 	a.resize(framesize);
 	v.resize(framesize);
 
-	initerror = Pa_Initialize() != paNoError;
-	if (initerror)
+	if (initerror = Pa_Initialize() != paNoError)
 		cout << "audio initialization failed" << endl;
-
-	working = true;
-	workerthread = boost::thread(boost::bind(&Audio::worker, this));
+	else if (Pa_OpenDefaultStream(&stream, 1, 1, paInt16, samplerate, framesize, &callback, this) != paNoError)
+		cout << "open audio stream failed" << endl;
+	else
+		workerthread = boost::thread(boost::bind(&Audio::worker, this));
 }
 
 
 Audio::~Audio() {
 	try {
+		working = false;
+		if (workerthread.joinable())
+			workerthread.join();
+
 		if (stream) {
 			if (!Pa_IsStreamStopped(stream))
 				Pa_StopStream(stream);
@@ -112,27 +118,12 @@ Audio::~Audio() {
 
 		cout << "audio stream closed" << endl;
 
-		working = false;
-		if (workerthread.joinable())
-			workerthread.join();
 	} catch (...) {}
 }
 
 
 void Audio::restart() {
-	if (initerror || (!stream && Pa_OpenDefaultStream(&stream, 1, 1, paInt16, samplerate, framesize, &callback, this) != paNoError))
-		throw runtime_error("open audio stream failed");
-	if (!Pa_IsStreamStopped(stream)) {
-		cout << "audio cpu load: " << Pa_GetStreamCpuLoad(stream) << endl;
-		if (Pa_StopStream(stream) == paNoError)
-			cout << "audio stream stopped" << endl;
-	}
-	threshold = INT_MAX;
-	noisecount = 0;
-	if (Pa_StartStream(stream) == paNoError)
-		cout << "audio stream started" << endl;
-	else
-		throw runtime_error("start audio stream failed");
+	reset = true;
 }
 
 
@@ -151,7 +142,7 @@ void Audio::mute_mic(bool m) {
 }
 
 
-void Audio::encode(const short* in) {
+void Audio::encode(const sample* in) {
 	int amp = *max_element(in, in + framesize) - *min_element(in, in + framesize);
 	threshold *= noisecount > 30? 2: 1;
 	noisecount = amp / 2 < threshold || noisecount > 30? 0: noisecount + 1;
@@ -192,7 +183,7 @@ void Audio::encode(const short* in) {
 }
 
 
-void Audio::decode(short* out) {
+void Audio::decode(sample* out) {
 	fill(&trafo.f(0), &trafo.f(0) + framesize, 0.f);
 	for (unsigned i = 0; i < decbuf.size(); i++) {
 		if (decbuf[i].size() != encbuf.size())
@@ -217,7 +208,7 @@ void Audio::decode(short* out) {
 	trafo.imdct();
 	for (unsigned i = 0; i < framesize; i++) {
 		trafo.t(i) += dectmp[i];
-		out[i] = trafo.t(i) < -128.f? -32768: trafo.t(i) > 127.f? 32767: (short)(trafo.t(i) * framesize);
+		out[i] = trafo.t(i) < -128.f? -32768: trafo.t(i) > 127.f? 32767: (sample)(trafo.t(i) * framesize);
 		dectmp[i] = trafo.t(i + framesize);
 	}
 }
@@ -227,12 +218,12 @@ int Audio::callback(const void* in, void* out, unsigned long size, const PaStrea
 	try {
 		Audio& a = *(Audio*)data;
 
-		a.inbuf.push((short*)in, size);
+		a.inbuf.push((sample*)in, size);
 
 		if (a.outbuf.read_available() < size)
-			memset(out, 0, 2 * size);
+			memset(out, 0, sizeof(sample) * size);
 		else
-			a.outbuf.pop((short*)out, size);
+			a.outbuf.pop((sample*)out, size);
 
 	} catch (exception& e) {
 		cout << "audio stream failure: " << e.what() << endl;
@@ -245,13 +236,30 @@ int Audio::callback(const void* in, void* out, unsigned long size, const PaStrea
 
 void Audio::worker() {
 	try {
-		short buffer[framesize];
+		sample buffer[framesize];
 
 		while (working) {
+			if (reset.exchange(false) || Pa_IsStreamActive(stream) == 0) {
+				if (!Pa_IsStreamStopped(stream)) {
+					cout << "audio cpu load: " << Pa_GetStreamCpuLoad(stream) << endl;
+					if (Pa_StopStream(stream) == paNoError)
+						cout << "audio stream stopped" << endl;
+				}
+				threshold = INT_MAX;
+				noisecount = 0;
+				inbuf.reset();
+				outbuf.reset();
+				if (Pa_StartStream(stream) == paNoError)
+					cout << "audio stream started" << endl;
+				else
+					throw runtime_error("start audio stream failed");
+			}
+
 			if (inbuf.read_available() < framesize) {
 				boost::this_thread::sleep(boost::posix_time::milliseconds(maxlatency));
 				continue;
 			}
+
 			inbuf.pop(buffer, framesize);
 
 			encode(buffer);

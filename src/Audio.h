@@ -27,6 +27,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #include <boost/thread.hpp>
 #include <boost/atomic.hpp>
 #include <boost/lockfree/spsc_queue.hpp>
+#include <boost/cstdint.hpp>
 
 
 namespace SK {
@@ -64,6 +65,7 @@ class Audio {
 	static const size_t	encsize = 80;
 	static const unsigned	maxlatency = 20;
 
+	typedef boost::int16_t	sample;
 
 	PaStream*				stream;
 	Transform				trafo;
@@ -73,9 +75,10 @@ class Audio {
 	Network&				network;
 	bool					initerror;
 	boost::thread				workerthread;
-	boost::lockfree::spsc_queue<short, boost::lockfree::capacity<8 * framesize> >	inbuf;
-	boost::lockfree::spsc_queue<short, boost::lockfree::capacity<8 * framesize> >	outbuf;
+	boost::lockfree::spsc_queue<sample, boost::lockfree::capacity<8 * framesize> >	inbuf;
+	boost::lockfree::spsc_queue<sample, boost::lockfree::capacity<8 * framesize> >	outbuf;
 	boost::atomic<bool>			working;
+	boost::atomic<bool>			reset;
 	boost::atomic<bool>			playmic;
 	boost::atomic<bool>			noisegate;
 	boost::atomic<bool>			mute;
@@ -89,8 +92,8 @@ class Audio {
 	vector<pair<unsigned char, int> >	v;
 
 
-	void encode(const short*);
-	void decode(short*);
+	void encode(const sample*);
+	void decode(sample*);
 
 	static int callback(const void*, void*, unsigned long, const PaStreamCallbackTimeInfo*, PaStreamCallbackFlags, void*);
 	void worker();

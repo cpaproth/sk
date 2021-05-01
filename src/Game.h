@@ -41,7 +41,7 @@ using namespace std;
 class Network;
 
 
-typedef boost::multiprecision::uint512_t crypto_t;
+typedef boost::multiprecision::uint512_t crypto_type;
 
 
 class Game {
@@ -61,11 +61,11 @@ class Game {
 	vector<uchar>		lefthand;
 	vector<uchar>		righthand;
 	
-	crypto_t		p;
-	crypto_t		g;
-	crypto_t		seckey;
-	crypto_t		leftkey;
-	crypto_t		rightkey;
+	crypto_type		p;
+	crypto_type		g;
+	crypto_type		seckey;
+	crypto_type		leftkey;
+	crypto_type		rightkey;
 
 	vector<uchar>		secretdeck;
 	vector<uchar>		secretcards;
@@ -112,7 +112,7 @@ class Game {
 	void shuffle();
 	string cards_string(const vector<uchar>&);
 	vector<uchar> string_cards(const string&);
-	string encrypt(const string&, const crypto_t&);
+	string encrypt(const string&, const crypto_type&);
 	string decrypt(const string&);
 
 	void reset_game(unsigned);

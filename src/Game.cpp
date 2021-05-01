@@ -28,10 +28,10 @@ using namespace SK;
 using namespace CPLib;
 
 
-static crypto_t modexp(crypto_t b, crypto_t e, const crypto_t& m) {
+static crypto_type modexp(crypto_type b, crypto_type e, const crypto_type& m) {
 	if (m == 1)
 		return 0;
-	crypto_t r(1);
+	crypto_type r(1);
 	b %= m;
 	while (e > 0) {
 		if ((e & 1) == 1)
@@ -43,7 +43,7 @@ static crypto_t modexp(crypto_t b, crypto_t e, const crypto_t& m) {
 }
 
 
-static string to_base94(crypto_t v, char o = 33) {
+static string to_base94(crypto_type v, char o = 33) {
 	string r;
 	if (v == 0)
 		return string(1, o);
@@ -55,8 +55,8 @@ static string to_base94(crypto_t v, char o = 33) {
 }
 
 
-static crypto_t from_base94(const string& v, char o = 33) {
-	crypto_t r = 0, b = 1;
+static crypto_type from_base94(const string& v, char o = 33) {
+	crypto_type r = 0, b = 1;
 	for (unsigned i = 0; i < v.length(); i++) {
 		r += b * (v[i] - o);
 		b *= 94;
@@ -96,9 +96,9 @@ Game::Game(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 	rangen.seed(secret ^ (unsigned)time(0));
 	shuffle();
 
-	p = crypto_t("110649179406060405769669636260824550432278345760244835380580314415376085982993");
+	p = crypto_type("110649179406060405769669636260824550432278345760244835380580314415376085982993");
 	g = 3;
-	seckey = boost::uniform_int<crypto_t>(1, p - 2)(rangen);
+	seckey = boost::uniform_int<crypto_type>(1, p - 2)(rangen);
 
 	reset_game(myself);
 
@@ -142,8 +142,8 @@ vector<uchar> Game::string_cards(const string& str) {
 }
 
 
-string Game::encrypt(const string& m, const crypto_t& pubkey) {
-	crypto_t k = boost::uniform_int<crypto_t>(1, p - 2)(rangen);
+string Game::encrypt(const string& m, const crypto_type& pubkey) {
+	crypto_type k = boost::uniform_int<crypto_type>(1, p - 2)(rangen);
 	return to_base94(modexp(g, k, p)) + " " + to_base94(((from_base94(m, 32) + 1) * modexp(pubkey, k, p)) % p);
 }
 
