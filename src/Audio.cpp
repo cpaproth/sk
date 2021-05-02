@@ -82,7 +82,7 @@ Audio::Audio(Network& nw) : trafo(framesize), bits(8 * encsize), encbuf(encsize 
 	noisegate = true;
 	mute = false;
 	working = true;
-	reset = false;
+	reset = true;
 	frame = 0;
 	rnd = 11113;
 	threshold = INT_MAX;

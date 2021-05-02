@@ -45,6 +45,9 @@ class GlTable : public Fl_Gl_Window {
 	unsigned		laststart;
 	vector<uchar>		lefthand;
 	vector<uchar>		righthand;
+	vector<uchar>		tricks;
+	vector<uchar>		lefttricks;
+	vector<uchar>		righttricks;
 	
 	unsigned		selected;
 	bool			pushed;
@@ -64,6 +67,7 @@ public:
 	void show_cards(const vector<uchar>&, const vector<uchar>&);
 	void show_trick(const vector<uchar>&, unsigned);
 	void show_disclosed(const vector<uchar>&, const vector<uchar>&);
+	void show_tricks(const vector<uchar>&, const vector<uchar>&, const vector<uchar>&);
 	
 	unsigned selection();
 };

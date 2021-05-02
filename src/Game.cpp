@@ -196,6 +196,7 @@ void Game::reset_game(unsigned d) {
 	ui.table->show_cards(hand, skat);
 	ui.table->show_trick(trick, 0);
 	ui.table->show_disclosed(lefthand, righthand);
+	ui.table->show_tricks(tricks, lefttricks, righttricks);
 }
 
 
@@ -458,6 +459,7 @@ void Game::game_over() {
 		unsigned& psum = player == myself? sum: player == left? lsum: rsum;
 		for (set<uchar>::iterator it = cards.begin(); it != cards.end(); it++) {
 			playerhand.push_back(*it);
+			(player == myself? tricks: player == left? lefttricks: righttricks).push_back(*it);
 			psum += values[*it & 7];
 		}
 
@@ -508,6 +510,7 @@ void Game::game_over() {
 		return;
 	}
 	bock |= (score < 0 && contrare == 2) || contrare == 4;
+	ui.table->show_tricks(tricks, lefttricks, righttricks);
 
 	for (unsigned i = 0; i < 6 && row > 0; i++)
 		ui.listing->remove(ui.listing->size());

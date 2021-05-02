@@ -132,6 +132,14 @@ void GlTable::show_disclosed(const vector<uchar>& l, const vector<uchar>& r) {
 }
 
 
+void GlTable::show_tricks(const vector<uchar>& t, const vector<uchar>& l, const vector<uchar>& r) {
+	tricks = t;
+	lefttricks = l;
+	righttricks = r;
+	redraw();
+}
+
+
 unsigned GlTable::selection() {
 	return selected;
 }
@@ -206,6 +214,19 @@ void GlTable::draw() {
 	glClear(GL_COLOR_BUFFER_BIT);
 
 
+	if (selected == UINT_MAX && pushed && tricks.size() + lefttricks.size() + righttricks.size() > 0) {
+		glBegin(GL_QUADS);
+		for (unsigned i = 0; i < tricks.size(); i++)
+			draw_card(tricks[i], w() / 2.f - 40.f + (i % 3) * 40.f, tricks.size() / 3 * 30.f - (i / 3) * 30.f, 0.f, 140.f);
+		for (unsigned i = 0; i < lefttricks.size(); i++)
+			draw_card(lefttricks[i], w() / 2.f - 275.f + (i % 3) * 40.f, h() - 70.f - (i / 3) * 30.f, 0.f, 140.f);
+		for (unsigned i = 0; i < righttricks.size(); i++)
+			draw_card(righttricks[i], w() / 2.f + 195.f + (i % 3) * 40.f, h() - 70.f - (i / 3) * 30.f, 0.f, 140.f);
+		glEnd();
+		return;
+	}
+
+
 	glBegin(GL_QUADS);
 
 	for (unsigned i = 0; i < hand.size(); i++) {
@@ -249,7 +270,7 @@ void GlTable::draw() {
 	} else {
 		for (unsigned i = 0; i < lasttrick.size(); i++) {
 			if ((i + laststart) % 3 == 0)
-				draw_card(lasttrick[i], w() / 2.f + 10.f, 290.f, 0.05f, 180.f);
+				draw_card(lasttrick[i], w() / 2.f + 10.f, 280.f, 0.05f, 180.f);
 			else if ((i + laststart) % 3 == 1)
 				draw_card(lasttrick[i], w() / 2.f - 50.f, 320.f, 0.2f, 180.f);
 			else
@@ -317,11 +338,10 @@ int GlTable::handle(int event) {
 		return 1;}
 	case FL_RELEASE:
 		pushed = false;
-		if (selected != UINT_MAX) {
+		if (selected != UINT_MAX)
 			do_callback();
-			selected = UINT_MAX;
-			redraw();
-		}
+		selected = UINT_MAX;
+		redraw();
 		return 1;
 	}
 
