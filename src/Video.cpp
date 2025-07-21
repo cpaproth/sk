@@ -22,10 +22,12 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #include <opencv2/highgui/highgui.hpp>
 #include "ui.h"
 #include <iostream>
+#include <random>
 
 
 using namespace SK;
 using namespace cv;
+namespace ph = boost::placeholders;
 
 
 Video::Codec::Codec() : a1(-1.586134342f), a2(-0.05298011854f), a3(0.8829110762f), a4(0.4435068522f), k1(0.81289306611596146f), k2(0.61508705245700002f) {
@@ -33,7 +35,7 @@ Video::Codec::Codec() : a1(-1.586134342f), a2(-0.05298011854f), a3(0.8829110762f
 	frame = part = rndpos = 0;
 	while (rndmask.size() < minsize)
 		rndmask.push_back(rndmask.size());
-	random_shuffle(rndmask.begin(), rndmask.end());
+	shuffle(rndmask.begin(), rndmask.end(), default_random_engine());
 	refresh.resize(minsize, 0);
 	for (w = imagewidth, h = imageheight, l = 1; w * h > minsize; w /= 2, h /= 2, l *= 2);
 }
@@ -465,7 +467,7 @@ Video::Video(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 	else
 		cout << "open webcam failed" << endl;
 
-	network.add_handler(boost::bind(&Video::handle_command, this, _1, _2, _3));
+	network.add_handler(boost::bind(&Video::handle_command, this, ph::_1, ph::_2, ph::_3));
 
 	ui.midimage->set(img.get());
 	ui.leftimage->set(limg.get());

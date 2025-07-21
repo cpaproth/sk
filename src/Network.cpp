@@ -24,16 +24,18 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 using namespace SK;
 using namespace CPLib;
 using namespace boost::asio;
+using boost::placeholders::_1;
+using boost::placeholders::_2;
 
 
-static istream& operator>>(istream& s, ip::udp::endpoint& ep) {
+template<> ss& ss::operator>>(ip::udp::endpoint& ep) {
 	boost::system::error_code e;
 	string a;
 	unsigned short p = 0;
-	getline(s, a, ':');
-	s >> p;
+	getline(ioss, a, ':');
+	ioss >> p;
 	ep = ip::udp::endpoint(ip::address_v4::from_string(a, e), p);
-	return s;
+	return *this;
 }
 
 

@@ -9,6 +9,7 @@ Skat-Konferenz is written in C++ using portable libraries exclusively, so it sho
 it has been tested on Ubuntu (latest version 20.04) and MS Windows.
 
 [Download Skat-Konferenz for Windows](https://github.com/cpaproth/sk/releases/latest/download/sk_windows.zip)
+[Get Skat-Konferenz as AppImage](https://github.com/cpaproth/sk/releases/latest/download/Skat-Konferenz-x86_64.AppImage)
 
 
 ## History

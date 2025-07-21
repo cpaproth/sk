@@ -26,6 +26,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 using namespace SK;
 using namespace CPLib;
+namespace ph = boost::placeholders;
 
 
 static crypto_type modexp(crypto_type b, crypto_type e, const crypto_type& m) {
@@ -102,7 +103,7 @@ Game::Game(UserInterface& ui, Network& nw) : ui(ui), network(nw) {
 
 	reset_game(myself);
 
-	network.add_handler(boost::bind(&Game::handle_command, this, _1, _2, _3));
+	network.add_handler(boost::bind(&Game::handle_command, this, ph::_1, ph::_2, ph::_3));
 }
 
 
