@@ -8,8 +8,8 @@ This program is free software and comes with ABSOLUTELY NO WARRANTY. Licensed un
 Skat-Konferenz is written in C++ using portable libraries exclusively, so it should be compatible with UNIX/Linux (X11), MS Windows, and Mac OS X. Till now,
 it has been tested on Ubuntu (latest version 20.04) and MS Windows.
 
-[Download Skat-Konferenz for Windows](https://github.com/cpaproth/sk/releases/latest/download/sk_windows.zip)
-[Get Skat-Konferenz as AppImage](https://github.com/cpaproth/sk/releases/latest/download/Skat-Konferenz-x86_64.AppImage)
+* [Download Skat-Konferenz for Windows](https://github.com/cpaproth/sk/releases/latest/download/sk_windows.zip)
+* [Get Skat-Konferenz as AppImage](https://github.com/cpaproth/sk/releases/latest/download/Skat-Konferenz-x86_64.AppImage)
 
 
 ## History
