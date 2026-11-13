@@ -21,8 +21,8 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 
 #include <boost/asio/ip/udp.hpp>
-#include <boost/asio/deadline_timer.hpp>
-#include <boost/asio/io_service.hpp>
+#include <boost/asio/steady_timer.hpp>
+#include <boost/asio/io_context.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/thread.hpp>
 #include <boost/function/function3.hpp>
@@ -77,12 +77,12 @@ class Network {
 	unsigned			mutexbusy;
 	unsigned			ignoredmsg;
 	vector<handler>			handlers;
-	boost::asio::io_service		io;
+	boost::asio::io_context		io;
 	boost::asio::ip::udp::socket	socket;
 	udpendpoint			endpoint;
 	udpendpoint			localendpoint;
-	boost::asio::deadline_timer	timer;
-	boost::asio::io_service::strand	strand;
+	boost::asio::steady_timer	timer;
+	boost::asio::io_context::strand	strand;
 	ucharbuf			recvbuf;
 	vector<Peer>			peers;
 	boost::thread			iothread1;

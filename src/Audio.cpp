@@ -23,6 +23,7 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 
 using namespace SK;
 
+const unsigned SK::Audio::maxlatency;
 
 Transform::Transform(size_t s) : twiddle(2 * s), factor(2 * s), window(2 * s), data(s), tmp(max<size_t>(4, s / 2)), tdata(2 * s), fdata(s) {
 	const float pi = 3.141592654f;

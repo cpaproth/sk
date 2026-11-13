@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.6...3.12)
 project(sk)
 
 find_package(OpenCV REQUIRED)
-find_package(Boost REQUIRED system thread)
+find_package(Boost REQUIRED COMPONENTS thread)
 find_package(FLTK REQUIRED)
 find_package(OpenGL REQUIRED)
 

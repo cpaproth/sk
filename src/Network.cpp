@@ -19,6 +19,8 @@ along with Skat-Konferenz.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "Network.h"
 #include <iostream>
 #include "Convenience.h"
+#include <chrono>
+#include <boost/asio/post.hpp>
 
 
 using namespace SK;
@@ -27,6 +29,7 @@ using namespace boost::asio;
 using boost::placeholders::_1;
 using boost::placeholders::_2;
 
+const unsigned SK::Network::version;
 
 template<> ss& ss::operator>>(ip::udp::endpoint& ep) {
 	boost::system::error_code e;
@@ -34,7 +37,7 @@ template<> ss& ss::operator>>(ip::udp::endpoint& ep) {
 	unsigned short p = 0;
 	getline(ioss, a, ':');
 	ioss >> p;
-	ep = ip::udp::endpoint(ip::address_v4::from_string(a, e), p);
+	ep = ip::udp::endpoint(ip::make_address_v4(a, e), p);
 	return *this;
 }
 
@@ -101,7 +104,7 @@ void Network::connect(const string& address, unsigned short port, bool s, unsign
 	ignoredpeers.clear();
 	socket.open(ip::udp::v4());
 	endpoint = udpendpoint();
-	io.reset();
+	io.restart();
 
 	minimal(bandwidth = bw, (unsigned)(maxpeers * minbw));
 
@@ -120,10 +123,9 @@ void Network::connect(const string& address, unsigned short port, bool s, unsign
 	} else {
 		server = false;
 		ip::udp::resolver resolver(io);
-		ip::udp::resolver::query query(ip::udp::v4(), address, ss(port));
-		endpoint = *resolver.resolve(query);
+		auto results = resolver.resolve(ip::udp::v4(), address, (string)ss(port));
+		endpoint = results.begin()->endpoint();
 		peers.push_back(Peer(endpoint));
-
 		socket.send_to(buffer(recvbuf, 1), endpoint);
 		ip::udp::socket tmpsocket(io, ip::udp::v4());
 		tmpsocket.connect(endpoint);
@@ -131,7 +133,7 @@ void Network::connect(const string& address, unsigned short port, bool s, unsign
 		cout << "connect from " << localendpoint << " to " << endpoint << endl;
 	}
 
-	timer.expires_from_now(boost::posix_time::milliseconds(1000 / timerrate));
+	timer.expires_after(std::chrono::milliseconds(1000 / timerrate));
 	timer.async_wait(boost::bind(&Network::deadline, this, _1));
 	socket.async_receive_from(buffer(recvbuf), endpoint, boost::bind(&Network::receiver, this, _1, _2));
 	iothread1 = boost::thread(boost::bind(&Network::worker, this, 1));
@@ -282,7 +284,7 @@ void Network::process_message(unsigned i, const string& message) {
 		ss(data) >> str >> str >> type >> str >> v >> ws >> peers[i].altendpoint;
 		if (v == version) {
 			peers[i].connected = true;
-			strand.post(boost::bind(&Network::handle_command, this, i, "newpeer", ""));
+			boost::asio::post(strand, boost::bind(&Network::handle_command, this, i, "newpeer", ""));
 		} else {
 			cout << "peer " << i << " incompatible version " << v << endl;
 		}
@@ -310,9 +312,9 @@ void Network::process_message(unsigned i, const string& message) {
 	} else if (command == "peerconnected") {
 		ss(data) >> peers[i].connections;
 		if (find_if(peers.begin(), peers.end(), boost::bind(&Peer::connections, _1) != peers.size()) == peers.end())
-			strand.post(boost::bind(&Network::handle_command, this, i, "peersconnected", (string)ss(peers.size())));
+			boost::asio::post(strand, boost::bind(&Network::handle_command, this, i, "peersconnected", (string)ss(peers.size())));
 	} else {
-		strand.post(boost::bind(&Network::handle_command, this, i, command, data));
+		boost::asio::post(strand, boost::bind(&Network::handle_command, this, i, command, data));
 	}
 }
 
@@ -403,7 +405,7 @@ void Network::receiver(const errorcode& e, size_t n) {
 		peers[1].relayed = true;
 		recvbuf[0] = recvbuf[n - 1];
 		endpoint = peers[1].endpoint;
-		return io.post(boost::bind(&Network::receiver, this, e, n - 1));
+		return boost::asio::post(io, boost::bind(&Network::receiver, this, e, n - 1));
 	}
 
 
@@ -472,6 +474,6 @@ void Network::deadline(const errorcode& e) {
 		maximal(peer->bucket, bandwidth);
 	}
 	
-	timer.expires_at(timer.expires_at() + boost::posix_time::milliseconds(1000 / timerrate));
+	timer.expires_at(timer.expiry() + std::chrono::milliseconds(1000 / timerrate));
 	timer.async_wait(boost::bind(&Network::deadline, this, _1));
 }
